@@ -322,9 +322,8 @@ void LockContent::onUserListChanged(QList<std::shared_ptr<User> > list)
 
 void LockContent::tryGrabKeyboard()
 {
-    VirtualKBInstance::Instance().debug("try Keyboard", " m_faiures = " + QString::number(m_failures));
-
-#ifdef QT_DEBUG
+//#ifdef QT_DEBUG
+#if 1
     return;
 #endif
 
