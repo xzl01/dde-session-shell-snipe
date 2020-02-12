@@ -48,6 +48,8 @@ FullscreenBackground::FullscreenBackground(QWidget *parent)
 #ifndef QT_DEBUG
     if(DGuiApplicationHelper::isXWindowPlatform()) {
         setWindowFlags(Qt::WindowStaysOnTopHint | Qt::X11BypassWindowManagerHint);
+    } else {
+        setWindowFlags(windowFlags() | Qt::WindowStaysOnTopHint | Qt::FramelessWindowHint);
     }
 #endif
 

@@ -1,5 +1,21 @@
 #!/bin/bash
+export KWIN_COMPOSE=O2ES
 
-for i in /etc/deepin/greeters.d/*; do
-    $i
-done
+export GDK_BACKEND=x11
+
+
+export QT_QPA_PLATFORM=wayland
+
+export LD_LIBRARY_PATH=/opt/usr/lib:/opt/usr/lib/aarch64-linux-gnu/
+
+export QT_QPA_PLATFORM_PLUGIN_PATH=/opt/usr/plugins/platforms
+
+export QT_PLUGIN_PATH=/opt/usr/plugins
+
+export QML2_IMPORT_PATH=/opt/usr/qml:/usr/lib/aarch64-linux-gnu/qt5/qml
+
+export XDG_DATA_DIRS=/opt/usr/share:/usr/share
+
+
+
+/opt/usr/bin/kwin_wayland --xwayland --drm --no-lockscreen /etc/deepin/greeters.d/lightdm-deepin-greeter
