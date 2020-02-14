@@ -119,7 +119,13 @@ int main(int argc, char *argv[])
             dbusAgent->addFrame(frame);
             frame->setScreen(screen);
             property_group->addObject(frame);
-            QObject::connect(model, &SessionBaseModel::visibleChanged, frame, &ShutdownFrame::setVisible);
+            QObject::connect(model, &SessionBaseModel::visibleChanged, [frame](bool v) {
+                if (v) {
+                    frame->showFullScreen();
+                } else {
+                    frame->setVisible(false);
+                }
+            });
             QObject::connect(frame, &ShutdownFrame::requestEnableHotzone, worker, &ShutdownWorker::enableZoneDetected);
             QObject::connect(frame, &ShutdownFrame::destroyed, property_group, &PropertyGroup::removeObject);
             QObject::connect(frame, &ShutdownFrame::destroyed, frame, [ = ] {

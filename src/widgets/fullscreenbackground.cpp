@@ -46,11 +46,11 @@ FullscreenBackground::FullscreenBackground(QWidget *parent)
     , m_imageEffectInter(new ImageEffectInter("com.deepin.daemon.ImageEffect", "/com/deepin/daemon/ImageEffect", QDBusConnection::systemBus(), this))
 {
 #ifndef QT_DEBUG
-    if(DGuiApplicationHelper::isXWindowPlatform()) {
-        setWindowFlags(Qt::WindowStaysOnTopHint | Qt::X11BypassWindowManagerHint);
-    } else {
-        setWindowFlags(windowFlags() | Qt::WindowStaysOnTopHint | Qt::FramelessWindowHint);
-    }
+//    if(DGuiApplicationHelper::isXWindowPlatform()) {
+//        setWindowFlags(Qt::WindowStaysOnTopHint | Qt::X11BypassWindowManagerHint);
+//    } else {
+        setWindowFlags(windowFlags() | Qt::WindowStaysOnTopHint | Qt::FramelessWindowHint | Qt::Window);
+//    }
 #endif
 
     m_fadeOutAni->setEasingCurve(QEasingCurve::InOutCubic);

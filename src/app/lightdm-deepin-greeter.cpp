@@ -243,7 +243,7 @@ int main(int argc, char* argv[])
         QObject::connect(loginFrame, &LoginWindow::requestSetLayout, worker, &GreeterWorkek::setLayout);
         QObject::connect(worker, &GreeterWorkek::requestUpdateBackground, loginFrame, static_cast<void (LoginWindow::*)(const QString &)>(&LoginWindow::updateBackground));
         QObject::connect(loginFrame, &LoginWindow::destroyed, property_group, &PropertyGroup::removeObject);
-        loginFrame->show();
+        loginFrame->showFullScreen();
         return loginFrame;
     };
 
