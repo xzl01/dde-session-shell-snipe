@@ -54,6 +54,7 @@ LockFrame::LockFrame(SessionBaseModel *const model, QWidget *parent)
         if (success) {
             //m_content->beforeUnlockAction();
             Q_EMIT requestEnableHotzone(true);
+            qDebug() << "unlock success!-----------------------";
             hide();
         }
     });
