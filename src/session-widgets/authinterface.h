@@ -44,6 +44,7 @@ protected:
     void checkVirtualKB();
     void checkSwap();
     bool isDeepin();
+    QString getFileContent(QString path = "/proc/cmdline ");
 
     template <typename T>
     T valueByQSettings(const QString & group,

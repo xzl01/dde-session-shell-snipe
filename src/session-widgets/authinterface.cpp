@@ -11,6 +11,11 @@
 #define POWER_CAN_SLEEP "POWER_CAN_SLEEP"
 #define POWER_CAN_HIBERNATE "POWER_CAN_HIBERNATE"
 
+const QString force_hiberbate_1 = "systemd.force-hibernate=1";
+const QString force_hiberbate_true = "systemd.force-hibernate=true";
+const QString force_hiberbate_yes = "systemd.force-hibernate=yes";
+const QString cmd_path = "/proc/cmdline";
+
 using namespace Auth;
 
 static std::pair<bool, qint64> checkIsPartitionType(const QStringList &list)
@@ -234,6 +239,21 @@ bool AuthInterface::isDeepin()
 #endif
 }
 
+QString AuthInterface::getFileContent(QString path)
+{
+    QFile file(path);
+    QString retContent = "";
+
+    if (file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        QByteArray content = file.readAll();
+        retContent = content;
+        file.close();
+    }
+
+    qDebug() << " path : " << path << " , content : " << retContent;
+    return retContent;
+}
+
 void AuthInterface::checkPowerInfo()
 {
     QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
@@ -241,6 +261,16 @@ void AuthInterface::checkPowerInfo()
                                                    : valueByQSettings<bool>("Power", "sleep", true) &&
                                                      m_login1Inter->CanSuspend().value().contains("yes");
     m_model->setCanSleep(can_sleep);
+
+    QString force_hibernate = getFileContent(cmd_path);
+    //judge systemd.force-hibernate=1 , true, yes
+    if (force_hibernate.contains(force_hiberbate_1)
+            || force_hibernate.contains(force_hiberbate_true)
+            || force_hibernate.contains(force_hiberbate_yes)) {
+        qDebug() << " ignore check hibernate , direct checkSwap .";
+        checkSwap();
+        return;
+    }
 
     bool can_hibernate = env.contains(POWER_CAN_HIBERNATE) ? QVariant(env.value(POWER_CAN_HIBERNATE)).toBool()
                                                            : valueByQSettings<bool>("Power", "hibernate", true) &&
