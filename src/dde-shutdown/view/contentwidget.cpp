@@ -57,6 +57,7 @@ ContentWidget::ContentWidget(QWidget *parent)
     initUI();
     initData();
     initConnect();
+    setFocus();
 }
 
 void ContentWidget::setModel(SessionBaseModel *const model)
