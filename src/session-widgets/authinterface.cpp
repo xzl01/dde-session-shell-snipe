@@ -268,7 +268,8 @@ void AuthInterface::checkPowerInfo()
             || force_hibernate.contains(force_hiberbate_true)
             || force_hibernate.contains(force_hiberbate_yes)) {
         qDebug() << " ignore check hibernate , direct checkSwap .";
-        checkSwap();
+        //kernel cmdline中开启了强制休眠
+        m_model->setForceHibernate(true);
         return;
     }
 

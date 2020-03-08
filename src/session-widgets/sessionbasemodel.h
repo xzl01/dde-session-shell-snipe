@@ -68,6 +68,7 @@ public:
     inline bool hasVirtualKB() { return m_hasVirtualKB; }
     void setHasVirtualKB(bool hasVirtualKB);
 
+    void setForceHibernate(bool fh);
     void setHasSwap(bool hasSwap);
     inline bool hasSwap() { return m_hasSwap; }
 
@@ -123,6 +124,7 @@ private:
     bool m_isShow;
     bool m_isServerModel;
     bool m_canSleep;
+    bool m_forceHibernate{false};
     bool m_allowShowUserSwitchButton;
     bool m_alwaysShowUserSwitchButton;
     bool m_abortConfirm;

@@ -158,11 +158,30 @@ void SessionBaseModel::setHasVirtualKB(bool hasVirtualKB)
 }
 
 void SessionBaseModel::setHasSwap(bool hasSwap) {
-    if (m_hasSwap == hasSwap) return;
+    if (m_hasSwap == hasSwap || m_forceHibernate)
+        return;
 
     m_hasSwap = hasSwap;
 
     emit onHasSwapChanged(hasSwap);
+}
+
+
+/**
+ * @brief SessionBaseModel::setForceHibernate 设置强制休眠
+ * @param fh
+ * 如果开启强制休眠，则设置 m_hasSwap 为 true ，并且后续不在接受对m_hasSwap的设置
+ */
+void SessionBaseModel::setForceHibernate(bool fh)
+{
+    if (m_forceHibernate == fh)
+        return;
+
+    m_forceHibernate = fh;
+    if (m_forceHibernate) {
+        m_hasSwap = true;
+        emit onHasSwapChanged(m_hasSwap);
+    }
 }
 
 void SessionBaseModel::setIsShow(bool isShow)
