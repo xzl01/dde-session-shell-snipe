@@ -54,6 +54,7 @@ void ControlWidget::initUI()
 
     m_mainLayout = new QHBoxLayout;
 
+#if defined SUPPORT_VIRTUAL_KEYBOARD
     m_virtualKBBtn = new DFloatingButton(this);
     m_virtualKBBtn->setIcon(QIcon::fromTheme(":/img/screen_keyboard_normal.svg"));
     m_virtualKBBtn->hide();
@@ -63,6 +64,7 @@ void ControlWidget::initUI()
     m_virtualKBBtn->setAutoExclusive(true);
     m_virtualKBBtn->setBackgroundRole(DPalette::Button);
     m_virtualKBBtn->installEventFilter(this);
+#endif
 
     m_switchUserBtn = new DFloatingButton(this);
     m_switchUserBtn->setIcon(QIcon::fromTheme(":/img/bottom_actions/userswitch_normal.svg"));
@@ -101,7 +103,9 @@ void ControlWidget::initConnect()
 {
     connect(m_switchUserBtn, &DFloatingButton::clicked, this, &ControlWidget::requestSwitchUser);
     connect(m_powerBtn, &DFloatingButton::clicked, this, &ControlWidget::requestShutdown);
+#if defined SUPPORT_VIRTUAL_KEYBOARD
     connect(m_virtualKBBtn, &DFloatingButton::clicked, this, &ControlWidget::requestSwitchVirtualKB);
+#endif
 }
 
 void ControlWidget::showTips()

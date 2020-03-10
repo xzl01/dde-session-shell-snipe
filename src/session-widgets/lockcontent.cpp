@@ -65,8 +65,9 @@ LockContent::LockContent(SessionBaseModel *const model, QWidget *parent)
     connect(m_controlWidget, &ControlWidget::requestShutdown, this, [ = ] {
         m_model->setCurrentModeState(SessionBaseModel::ModeStatus::PowerMode);
     });
+#if defined SUPPORT_VIRTUAL_KEYBOARD
     connect(m_controlWidget, &ControlWidget::requestSwitchVirtualKB, this, &LockContent::toggleVirtualKB);
-
+#endif
     //lixin
     //connect(m_userLoginInfo, &UserLoginInfo::requestAuthUser, this, &LockContent::restoreMode);
     connect(m_userLoginInfo, &UserLoginInfo::requestAuthUser, this, &LockContent::requestAuthUser);
@@ -90,6 +91,7 @@ LockContent::LockContent(SessionBaseModel *const model, QWidget *parent)
 
     connect(model, &SessionBaseModel::onStatusChanged, this, &LockContent::onStatusChanged);
 
+#if defined SUPPORT_VIRTUAL_KEYBOARD
     auto initVirtualKB = [&](bool hasvirtualkb) {
         if (hasvirtualkb && !m_virtualKB) {
             connect(&VirtualKBInstance::Instance(), &VirtualKBInstance::initFinished, this, [&] {
@@ -102,13 +104,16 @@ LockContent::LockContent(SessionBaseModel *const model, QWidget *parent)
     };
 
     connect(model, &SessionBaseModel::hasVirtualKBChanged, this, initVirtualKB);
+#endif
     connect(model, &SessionBaseModel::onUserListChanged, this, &LockContent::onUserListChanged);
     connect(model, &SessionBaseModel::userListLoginedChanged, this, &LockContent::onUserListChanged);
     connect(m_imageBlurInter, &ImageBlur::BlurDone, this, &LockContent::onBlurDone);
 
     QTimer::singleShot(0, this, [ = ] {
         onCurrentUserChanged(model->currentUser());
+#if defined SUPPORT_VIRTUAL_KEYBOARD
         initVirtualKB(model->hasVirtualKB());
+#endif
         onUserListChanged(model->isServerModel() ? model->logindUser() : model->userList());
     });
 }
