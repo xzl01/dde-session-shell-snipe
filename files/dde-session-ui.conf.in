@@ -1,6 +1,6 @@
 [Power]
 sleep=$$ENABLE_SLEEP
-hibernate=$$ENABLE_HIBERNATE
+hibernate=false
 
 [OS]
 isDeepin=$$IS_DEEPIN
