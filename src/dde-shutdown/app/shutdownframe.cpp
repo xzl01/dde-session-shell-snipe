@@ -89,10 +89,9 @@ ShutdownFrame::~ShutdownFrame()
 {
 }
 
-ShutdownFrontDBus::ShutdownFrontDBus(DBusShutdownAgent *parent, SessionBaseModel *model)
-    : QDBusAbstractAdaptor(parent)
-    , m_parent(parent)
-    , m_model(model)
+ShutdownFrontDBus::ShutdownFrontDBus(DBusShutdownAgent *parent):
+    QDBusAbstractAdaptor(parent),
+    m_parent(parent)
 {
 }
 
@@ -132,6 +131,5 @@ void ShutdownFrontDBus::SwitchUser()
 
 void ShutdownFrontDBus::Show()
 {
-    if(m_model != nullptr && !m_model->isLocked())
-        m_parent->Show();
+    m_parent->Show();
 }

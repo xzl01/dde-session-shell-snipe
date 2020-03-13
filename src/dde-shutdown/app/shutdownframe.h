@@ -63,7 +63,7 @@ class ShutdownFrontDBus : public QDBusAbstractAdaptor {
     Q_CLASSINFO("D-Bus Interface", "com.deepin.dde.shutdownFront")
 
 public:
-    ShutdownFrontDBus(DBusShutdownAgent* parent, SessionBaseModel *model);
+    ShutdownFrontDBus(DBusShutdownAgent* parent);
     ~ShutdownFrontDBus();
 
     Q_SLOT void Shutdown();
@@ -76,7 +76,6 @@ public:
 
 private:
     DBusShutdownAgent* m_parent;
-    SessionBaseModel *m_model;
 };
 #endif // SHUTDOWNFRAME
 
