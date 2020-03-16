@@ -119,7 +119,18 @@ int main(int argc, char *argv[])
             dbusAgent->addFrame(frame);
             frame->setScreen(screen);
             property_group->addObject(frame);
-            QObject::connect(model, &SessionBaseModel::visibleChanged, [frame](bool v) {
+            QDBusInterface *inter = nullptr;
+            if (qEnvironmentVariable("XDG_SESSION_TYPE").toLower().contains("wayland")) {
+                inter = new QDBusInterface("org.kde.KWin", "/kglobalaccel", "org.kde.KGlobalAccel",
+                                                          QDBusConnection::sessionBus(), frame);
+            }
+            QObject::connect(model, &SessionBaseModel::visibleChanged, [frame, inter](bool v) {
+                if (inter) {
+                    auto req = inter->call("blockGlobalShortcuts", v);
+                    if (req.type() == QDBusMessage::MessageType::ErrorMessage) {
+                        qDebug() << "call blockGlobalShortcuts error " << req.errorName() << ":" << req.errorMessage();
+                    }
+                }
                 if (v) {
                     frame->showFullScreen();
                 } else {

@@ -102,11 +102,22 @@ int main(int argc, char *argv[])
 
     auto createFrame = [&] (QScreen *screen) -> QWidget* {
         LockFrame *lockFrame = new LockFrame(model);
+        QDBusInterface *inter = nullptr;
         lockFrame->setScreen(screen);
         property_group->addObject(lockFrame);
+        if (qEnvironmentVariable("XDG_SESSION_TYPE").toLower().contains("wayland")) {
+            inter = new QDBusInterface("org.kde.KWin", "/kglobalaccel", "org.kde.KGlobalAccel",
+                                                      QDBusConnection::sessionBus(), lockFrame);
+        }
         QObject::connect(lockFrame, &LockFrame::requestSwitchToUser, worker, &LockWorker::switchToUser);
         QObject::connect(lockFrame, &LockFrame::requestAuthUser, worker, &LockWorker::authUser);
-        QObject::connect(model, &SessionBaseModel::visibleChanged, [lockFrame](bool v) {
+        QObject::connect(model, &SessionBaseModel::visibleChanged, [lockFrame, inter](bool v) {
+            if (inter) {
+                auto req = inter->call("blockGlobalShortcuts", v);
+                if (req.type() == QDBusMessage::MessageType::ErrorMessage) {
+                    qDebug() << "call blockGlobalShortcuts error " << req.errorName() << ":" << req.errorMessage();
+                }
+            }
             if (v) {
                 lockFrame->showFullScreen();
             } else {
