@@ -33,7 +33,6 @@
 #include <DGuiApplicationHelper>
 
 #include <DLog>
-#include <com_deepin_sessionmanager.h>
 
 #include "src/dde-shutdown/app/shutdownframe.h"
 #include "src/session-widgets/sessionbasemodel.h"
@@ -45,8 +44,6 @@
 
 const QString DBUS_PATH = "/com/deepin/dde/shutdownFront";
 const QString DBUS_NAME = "com.deepin.dde.shutdownFront";
-
-using SessionManagerInter = com::deepin::SessionManager;
 
 DCORE_USE_NAMESPACE
 DWIDGET_USE_NAMESPACE
@@ -135,10 +132,7 @@ int main(int argc, char *argv[])
                     }
                 }
                 if (v) {
-                    SessionManagerInter inter("com.deepin.SessionManager", "/com/deepin/SessionManager",
-                                                QDBusConnection::sessionBus(), frame);
-                    if (!inter.locked())
-                        frame->showFullScreen();
+                    frame->showFullScreen();
                 } else {
                     frame->setVisible(false);
                 }
