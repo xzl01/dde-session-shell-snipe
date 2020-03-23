@@ -82,6 +82,7 @@ protected:
     void mousePressEvent(QMouseEvent* event) Q_DECL_OVERRIDE;
     void mouseReleaseEvent(QMouseEvent* e) Q_DECL_OVERRIDE;
     bool eventFilter(QObject *watched, QEvent *event) Q_DECL_OVERRIDE;
+    void keyReleaseEvent(QKeyEvent *e) override;
 
 private:
     void initUI();

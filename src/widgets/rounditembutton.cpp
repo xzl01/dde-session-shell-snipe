@@ -185,6 +185,16 @@ bool RoundItemButton::eventFilter(QObject *watched, QEvent *event)
     return false;
 }
 
+void RoundItemButton::keyReleaseEvent(QKeyEvent *e)
+{
+    //wayland下出现了relase信号触发按钮，导致launcher中按下回车，
+    //会先弹出关机界面然后触发锁屏按钮
+    if (e->key() == Qt::Key::Key_Enter) {
+        return;
+    }
+    QAbstractButton::keyReleaseEvent(e);
+}
+
 void RoundItemButton::paintEvent(QPaintEvent* event)
 {
     QWidget::paintEvent(event);
