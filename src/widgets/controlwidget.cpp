@@ -45,7 +45,10 @@ ControlWidget::ControlWidget(QWidget *parent) : QWidget(parent)
 
 void ControlWidget::setVirtualKBVisible(bool visible)
 {
+
+#if defined SUPPORT_VIRTUAL_KEYBOARD
     m_virtualKBBtn->setVisible(visible);
+#endif
 }
 
 void ControlWidget::initUI()
@@ -64,6 +67,7 @@ void ControlWidget::initUI()
     m_virtualKBBtn->setAutoExclusive(true);
     m_virtualKBBtn->setBackgroundRole(DPalette::Button);
     m_virtualKBBtn->installEventFilter(this);
+    m_btnList.append(m_virtualKBBtn);
 #endif
 
     m_switchUserBtn = new DFloatingButton(this);
@@ -84,14 +88,15 @@ void ControlWidget::initUI()
     m_powerBtn->setBackgroundRole(DPalette::Button);
     m_powerBtn->installEventFilter(this);
 
-    m_btnList.append(m_virtualKBBtn);
     m_btnList.append(m_switchUserBtn);
     m_btnList.append(m_powerBtn);
 
     m_mainLayout->setMargin(0);
     m_mainLayout->setSpacing(26);
     m_mainLayout->addStretch();
+#if defined SUPPORT_VIRTUAL_KEYBOARD
     m_mainLayout->addWidget(m_virtualKBBtn, 0, Qt::AlignBottom);
+#endif
     m_mainLayout->addWidget(m_switchUserBtn, 0, Qt::AlignBottom);
     m_mainLayout->addWidget(m_powerBtn, 0, Qt::AlignBottom);
     m_mainLayout->addSpacing(60);
