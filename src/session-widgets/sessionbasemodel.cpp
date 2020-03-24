@@ -22,6 +22,12 @@ SessionBaseModel::SessionBaseModel(AuthType type, QObject *parent)
 {
     if (m_currentType == LockType || m_currentType == UnknowAuthType) {
         m_sessionManagerInter = new SessionManager(SessionManagerService, SessionManagerPath, QDBusConnection::sessionBus(), this);
+
+        if(m_currentType == UnknowAuthType) {
+            connect(m_sessionManagerInter, &SessionManager::LockedChanged, this, [ this ] (bool locked) {
+                this->setIsShow(!locked);
+            });
+        }
     }
 }
 
