@@ -16,9 +16,6 @@ export QML2_IMPORT_PATH=/opt/usr/qml:/opt/usr/lib/aarch64-linux-gnu/qml:/usr/lib
 
 export XDG_DATA_DIRS=/opt/usr/share:/usr/share
 
-/usr/bin/dde_update_dbus_env
-if [ -z "$DBUS_SESSION_BUS_ADDRESS" ]; then
-  exec dbus-launch /opt/usr/bin/kwin_wayland --xwayland --drm --no-lockscreen /etc/deepin/greeters.d/lightdm-deepin-greeter
-else
-  exec /opt/usr/bin/kwin_wayland --xwayland --drm --no-lockscreen /etc/deepin/greeters.d/lightdm-deepin-greeter
-fi
+
+
+/opt/usr/bin/kwin_wayland --xwayland --drm --no-lockscreen /etc/deepin/greeters.d/lightdm-deepin-greeter
