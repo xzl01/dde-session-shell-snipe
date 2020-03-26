@@ -528,7 +528,7 @@ void ContentWidget::currentWorkspaceChanged()
         } else
         {
             qWarning() << "get current workspace background error: " << call.error().message();
-            updateWallpaper("/usr/share/backgrounds/deepin/desktop.jpg");
+            updateWallpaper();
         }
 
         watcher->deleteLater();
@@ -537,8 +537,12 @@ void ContentWidget::currentWorkspaceChanged()
 
 void ContentWidget::updateWallpaper(const QString &path)
 {
-    const QUrl url(path);
     QString wallpaper = path;
+    if(path.isEmpty()) {
+            wallpaper = "/usr/share/backgrounds/deepin/desktop.jpg";
+    }
+
+    const QUrl url(path);
     if (url.isLocalFile()) {
         wallpaper = url.path();
     }

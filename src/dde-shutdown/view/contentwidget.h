@@ -98,7 +98,7 @@ private:
     bool handleKeyPress(QKeyEvent *event);
 
     void currentWorkspaceChanged();
-    void updateWallpaper(const QString &path);
+    void updateWallpaper(const QString &path = QString());
     void onUserListChanged(QList<std::shared_ptr<User>> list);
     void enableHibernateBtn(bool enable);
     void enableSleepBtn(bool enable);
