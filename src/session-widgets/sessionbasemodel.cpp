@@ -25,7 +25,7 @@ SessionBaseModel::SessionBaseModel(AuthType type, QObject *parent)
 
         if(m_currentType == UnknowAuthType) {
             connect(m_sessionManagerInter, &SessionManager::LockedChanged, this, [ this ] (bool locked) {
-                this->setIsShow(!locked);
+                if(!locked) this->setIsShow(false);
             });
         }
     }
