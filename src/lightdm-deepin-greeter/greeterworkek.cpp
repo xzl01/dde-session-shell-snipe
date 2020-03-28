@@ -382,7 +382,7 @@ void GreeterWorkek::authenticationComplete()
     };
 
     // NOTE(kirigaya): It is not necessary to display the login animation.
-    emit requestUpdateBackground(m_model->currentUser()->desktopBackgroundPath());
+//    emit requestUpdateBackground(m_model->currentUser()->desktopBackgroundPath());
     emit m_model->authFinished(true);
 
 #ifndef DISABLE_LOGIN_ANI
