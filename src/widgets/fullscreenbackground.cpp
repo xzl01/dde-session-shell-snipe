@@ -49,7 +49,7 @@ FullscreenBackground::FullscreenBackground(QWidget *parent)
 //    if(DGuiApplicationHelper::isXWindowPlatform()) {
 //        setWindowFlags(Qt::WindowStaysOnTopHint | Qt::X11BypassWindowManagerHint);
 //    } else {
-        setWindowFlags(windowFlags() | Qt::WindowStaysOnTopHint | Qt::FramelessWindowHint | Qt::Window | Qt::X11BypassWindowManagerHint);
+        setWindowFlags(windowFlags() | Qt::WindowStaysOnTopHint | Qt::FramelessWindowHint | Qt::Window);
 //    }
 #endif
 
