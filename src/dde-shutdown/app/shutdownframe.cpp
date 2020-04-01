@@ -29,7 +29,11 @@
 #include "src/session-widgets/sessionbasemodel.h"
 #include "src/dde-shutdown/dbusshutdownagent.h"
 
+#include <com_deepin_sessionmanager.h>
+
 const QString WallpaperKey = "pictureUri";
+
+using SessionManagerInter = com::deepin::SessionManager;
 
 ShutdownFrame::ShutdownFrame(SessionBaseModel *const model, QWidget *parent)
     : FullscreenBackground(parent)
@@ -51,6 +55,9 @@ ShutdownFrame::ShutdownFrame(SessionBaseModel *const model, QWidget *parent)
             emit model->onStatusChanged(SessionBaseModel::PowerMode);
         }
     });
+    SessionManagerInter *sessionInter = new SessionManagerInter("com.deepin.SessionManager", "/com/deepin/SessionManager",
+                                QDBusConnection::sessionBus(), this);
+    connect(sessionInter, &SessionManagerInter::LockedChanged, this, &ShutdownFrame::hide);
 
     m_shutdownFrame->initBackground();
 }

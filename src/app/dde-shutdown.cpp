@@ -45,6 +45,7 @@
 const QString DBUS_PATH = "/com/deepin/dde/shutdownFront";
 const QString DBUS_NAME = "com.deepin.dde.shutdownFront";
 
+
 DCORE_USE_NAMESPACE
 DWIDGET_USE_NAMESPACE
 
@@ -118,6 +119,7 @@ int main(int argc, char *argv[])
             ShutdownFrame *frame = new ShutdownFrame(model);
             dbusAgent->addFrame(frame);
             frame->setScreen(screen);
+            frame->setWindowFlags(frame->windowFlags() | Qt::X11BypassWindowManagerHint);
             property_group->addObject(frame);
             QDBusInterface *inter = nullptr;
             if (qEnvironmentVariable("XDG_SESSION_TYPE").toLower().contains("wayland")) {
