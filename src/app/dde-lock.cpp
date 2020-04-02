@@ -119,8 +119,10 @@ int main(int argc, char *argv[])
                 }
             }
             if (v) {
+                qDebug() << __FILE__ << __LINE__ << ": dde-lock showFullScreen";
                 lockFrame->showFullScreen();
             } else {
+                qDebug() << __FILE__ << __LINE__ << ": dde-lock setVisible false";
                 lockFrame->setVisible(false);
             }
         });
@@ -128,6 +130,8 @@ int main(int argc, char *argv[])
         QObject::connect(lockFrame, &LockFrame::requestSetLayout, worker, &LockWorker::setLayout);
         QObject::connect(lockFrame, &LockFrame::requestEnableHotzone, worker, &LockWorker::enableZoneDetected, Qt::UniqueConnection);
         QObject::connect(lockFrame, &LockFrame::destroyed, property_group, &PropertyGroup::removeObject);
+
+        qDebug() << "create dde-lock window & setVisible " << model->isShow();
         lockFrame->setVisible(model->isShow());
         return lockFrame;
     };

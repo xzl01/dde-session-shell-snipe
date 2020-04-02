@@ -134,8 +134,10 @@ int main(int argc, char *argv[])
                     }
                 }
                 if (v) {
+                    qDebug() << __FILE__ << __LINE__ << ": shutdown showFullScreen";
                     frame->showFullScreen();
                 } else {
+                    qDebug() << __FILE__ << __LINE__ << ": shutdown setVisible false";
                     frame->setVisible(false);
                 }
             });
@@ -149,6 +151,7 @@ int main(int argc, char *argv[])
                 dbusAgent->sync(action);
             });
 
+            qDebug() << "create shutdown window & setVisible " << model->isShow();
             frame->setVisible(model->isShow());
             return frame;
         };

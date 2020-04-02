@@ -26,6 +26,7 @@ void MultiScreenManager::register_for_mutil_screen(std::function<QWidget *(QScre
 
     // update all screen
     for (QScreen *screen : qApp->screens()) {
+        qDebug() << __FILE__ << __LINE__ << __func__ << ": screen info ---- " <<  screen;
         onScreenAdded(screen);
     }
 }
