@@ -42,9 +42,12 @@
 
 #include "src/dde-shutdown/dbusshutdownagent.h"
 
+#include <com_deepin_sessionmanager.h>
+
 const QString DBUS_PATH = "/com/deepin/dde/shutdownFront";
 const QString DBUS_NAME = "com.deepin.dde.shutdownFront";
 
+using SessionManagerInter = com::deepin::SessionManager;
 
 DCORE_USE_NAMESPACE
 DWIDGET_USE_NAMESPACE
@@ -134,7 +137,11 @@ int main(int argc, char *argv[])
                     }
                 }
                 if (v) {
-                    qDebug() << __FILE__ << __LINE__ << ": shutdown showFullScreen";
+                    SessionManagerInter sessionInter("com.deepin.SessionManager", "/com/deepin/SessionManager",
+                                                QDBusConnection::sessionBus(), nullptr);
+                    if (sessionInter.locked())
+                        return;
+                    qDebug() << __FILE__ << __LINE__ << ": shutdown showFullScreen, locked :" << sessionInter.locked();
                     frame->showFullScreen();
                 } else {
                     qDebug() << __FILE__ << __LINE__ << ": shutdown setVisible false";

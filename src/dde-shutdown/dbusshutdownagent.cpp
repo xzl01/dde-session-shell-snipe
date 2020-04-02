@@ -82,6 +82,13 @@ void DBusShutdownAgent::Show()
     }
 }
 
+void DBusShutdownAgent::Hide()
+{
+    for (ShutdownFrame *frame : m_frames) {
+        frame->hide();
+    }
+}
+
 void DBusShutdownAgent::sync(Actions action)
 {
     for (ShutdownFrame *frame : m_frames) {

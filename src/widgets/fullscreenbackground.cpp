@@ -258,6 +258,7 @@ const QPixmap FullscreenBackground::pixmapHandle(const QPixmap &pixmap)
 
 void FullscreenBackground::updateScreen(QScreen *screen)
 {
+    qDebug() << __FILE__ << __LINE__ << __FUNCTION__ << "UpdateScree: " << screen << screen->geometry();
     if (screen == m_screen)
         return;
 
@@ -277,6 +278,7 @@ void FullscreenBackground::updateScreen(QScreen *screen)
 
 void FullscreenBackground::updateGeometry()
 {
+    qDebug() << __FILE__ << __LINE__ << __FUNCTION__ << "updateGeometry: " << m_screen << m_screen->geometry();
     setGeometry(m_screen->geometry());
 }
 

@@ -42,6 +42,7 @@ DBusLockFrontService::~DBusLockFrontService()
 void DBusLockFrontService::Show()
 {
     parent()->Show();
+    Q_EMIT Locked();
 }
 
 void DBusLockFrontService::ShowUserList()

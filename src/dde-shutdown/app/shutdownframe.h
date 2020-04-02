@@ -31,6 +31,10 @@
 #include "src/widgets/fullscreenbackground.h"
 #include "src/dde-shutdown/view/contentwidget.h"
 
+#include <com_deepin_sessionmanager.h>
+
+using SessionManagerInter = com::deepin::SessionManager;
+
 class ShutdownFrontDBus;
 class SessionBaseModel;
 class DBusShutdownAgent;
@@ -56,6 +60,7 @@ protected:
 private:
     SessionBaseModel *m_model;
     ContentWidget *m_shutdownFrame;
+    SessionManagerInter *m_sessionInter;
 };
 
 class ShutdownFrontDBus : public QDBusAbstractAdaptor {
@@ -77,6 +82,7 @@ public:
 private:
     DBusShutdownAgent* m_parent;
     SessionBaseModel *m_model;
+    SessionManagerInter *m_sessionInter;
 };
 #endif // SHUTDOWNFRAME
 

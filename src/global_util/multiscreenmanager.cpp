@@ -5,6 +5,9 @@
 #include <QDebug>
 #include <QDesktopWidget>
 
+#include <com_deepin_daemon_display.h>
+using DisplayInter=com::deepin::daemon::Display;
+
 MultiScreenManager::MultiScreenManager(QObject *parent)
     : QObject(parent)
     , m_registerFunction(nullptr)
@@ -24,9 +27,10 @@ void MultiScreenManager::register_for_mutil_screen(std::function<QWidget *(QScre
 {
     m_registerFunction = function;
 
+    DisplayInter inter("com.deepin.daemon.Display", "/com/deepin/daemon/Display", QDBusConnection::sessionBus(), nullptr);
     // update all screen
     for (QScreen *screen : qApp->screens()) {
-        qDebug() << __FILE__ << __LINE__ << __func__ << ": screen info ---- " <<  screen;
+        qDebug() << __FILE__ << __LINE__ << __func__ << ": screen info ---- " <<  screen << screen->geometry();
         onScreenAdded(screen);
     }
 }
@@ -38,6 +42,7 @@ void MultiScreenManager::startRaiseContentFrame()
 
 void MultiScreenManager::onScreenAdded(QScreen *screen)
 {
+    qDebug() << __FILE__ << __LINE__ << __func__ << ": screen add ---- " <<  screen << screen->geometry();
     if (!m_registerFunction) {
         return;
     }
@@ -49,6 +54,7 @@ void MultiScreenManager::onScreenAdded(QScreen *screen)
 
 void MultiScreenManager::onScreenRemoved(QScreen *screen)
 {
+    qDebug() << __FILE__ << __LINE__ << __func__ << ": screen removed ---- " <<  screen << screen->geometry();
     if (!m_registerFunction) {
         return;
     }

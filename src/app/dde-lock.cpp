@@ -122,7 +122,7 @@ int main(int argc, char *argv[])
                                          , QDBusConnection::sessionBus());
             launcherInter.call("Hide");
             if (v) {
-                qDebug() << __FILE__ << __LINE__ << ": dde-lock showFullScreen";
+                qDebug() << __FILE__ << __LINE__ << "dde-lock showFullScreen : " << lockFrame->geometry();
                 lockFrame->showFullScreen();
             } else {
                 qDebug() << __FILE__ << __LINE__ << ": dde-lock setVisible false";

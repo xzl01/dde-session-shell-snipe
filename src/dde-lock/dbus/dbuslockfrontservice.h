@@ -60,6 +60,8 @@ public Q_SLOTS:// METHODS
     void Show();
     void ShowUserList();
     void ShowAuth(bool active);
+Q_SIGNALS:
+    void Locked();
 };
 
 #endif // DBUSLOCKFRONTSERVICE_H
