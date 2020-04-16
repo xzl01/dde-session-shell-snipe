@@ -14,7 +14,7 @@ MultiScreenManager::MultiScreenManager(QObject *parent)
     connect(qApp, &QGuiApplication::screenRemoved, this, &MultiScreenManager::onScreenRemoved, Qt::QueuedConnection);
 
     // 在sw平台存在复制模式显示问题，使用延迟来置顶一个Frame
-    m_raiseContentFrameTimer->setInterval(50);
+    m_raiseContentFrameTimer->setInterval(80);
     m_raiseContentFrameTimer->setSingleShot(true);
 
     connect(m_raiseContentFrameTimer, &QTimer::timeout, this, &MultiScreenManager::raiseContentFrame);
@@ -53,6 +53,7 @@ void MultiScreenManager::onScreenRemoved(QScreen *screen)
         return;
     }
 
+    qDebug() << __FILE__ << __LINE__ << __func__ << ": screen info ---- " <<  screen;
     m_frames[screen]->deleteLater();
     m_frames.remove(screen);
 
