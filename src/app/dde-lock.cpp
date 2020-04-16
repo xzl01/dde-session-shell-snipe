@@ -118,6 +118,9 @@ int main(int argc, char *argv[])
                     qDebug() << "call blockGlobalShortcuts error " << req.errorName() << ":" << req.errorMessage();
                 }
             }
+            QDBusInterface launcherInter("com.deepin.dde.Launcher", "/com/deepin/dde/Launcher", "com.deepin.dde.Launcher"
+                                         , QDBusConnection::sessionBus());
+            launcherInter.call("Hide");
             if (v) {
                 qDebug() << __FILE__ << __LINE__ << ": dde-lock showFullScreen";
                 lockFrame->showFullScreen();
