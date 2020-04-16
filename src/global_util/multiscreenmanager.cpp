@@ -54,12 +54,14 @@ void MultiScreenManager::onScreenAdded(QScreen *screen)
 
 void MultiScreenManager::onScreenRemoved(QScreen *screen)
 {
-    qDebug() << __FILE__ << __LINE__ << __func__ << ": screen removed ---- " <<  screen << screen->geometry();
+    qDebug() << __FILE__ << __LINE__ << __func__ << ": screen removed ---- ";
     if (!m_registerFunction) {
         return;
     }
 
     qDebug() << __FILE__ << __LINE__ << __func__ << ": screen info ---- " <<  screen;
+    if(!m_frames.contains(screen)) return;
+
     m_frames[screen]->deleteLater();
     m_frames.remove(screen);
 
