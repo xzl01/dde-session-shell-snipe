@@ -59,7 +59,6 @@ void MultiScreenManager::onScreenRemoved(QScreen *screen)
         return;
     }
 
-    qDebug() << __FILE__ << __LINE__ << __func__ << ": screen info ---- " <<  screen;
     if(!m_frames.contains(screen)) return;
 
     m_frames[screen]->deleteLater();
