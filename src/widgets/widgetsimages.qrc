@@ -132,5 +132,6 @@
         <file>img/bottom_actions/reboot.svg</file>
         <file>img/bottom_actions/shutdown.svg</file>
         <file>img/default_avatar.svg</file>
+        <file>img/spinner_white.svg</file>
     </qresource>
 </RCC>
