@@ -127,6 +127,7 @@ private:
     QStackedLayout *m_mainLayout;
 
     bool m_confirm = false;
+    bool isBocking = false;
 
     DBusSessionManagerInterface *m_sessionInterface = nullptr;
     SystemMonitor *m_systemMonitor;
