@@ -29,6 +29,7 @@
 #include "src/session-widgets/sessionbasemodel.h"
 #include "src/widgets/propertygroup.h"
 #include "src/global_util/multiscreenmanager.h"
+#include "src/global_util/monitor.h"
 
 #include <DApplication>
 #include <QtCore/QTranslator>
@@ -234,9 +235,9 @@ int main(int argc, char* argv[])
 
     property_group->addProperty("contentVisible");
 
-    auto createFrame = [&] (QScreen *screen) -> QWidget* {
+    auto createFrame = [&] (Monitor *screen) -> QWidget* {
         LoginWindow *loginFrame = new LoginWindow(model);
-        loginFrame->setScreen(screen);
+        loginFrame->setMonitor(screen);
         property_group->addObject(loginFrame);
         QObject::connect(loginFrame, &LoginWindow::requestSwitchToUser, worker, &GreeterWorkek::switchToUser);
         QObject::connect(loginFrame, &LoginWindow::requestAuthUser, worker, &GreeterWorkek::authUser);
@@ -248,7 +249,7 @@ int main(int argc, char* argv[])
     };
 
     MultiScreenManager multi_screen_manager;
-    multi_screen_manager.register_for_mutil_screen(createFrame);
+    multi_screen_manager.register_for_mutil_monitor(createFrame);
     QObject::connect(model, &SessionBaseModel::visibleChanged, &multi_screen_manager, &MultiScreenManager::startRaiseContentFrame);
 
     return a.exec();

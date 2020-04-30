@@ -125,9 +125,9 @@ void FullscreenBackground::updateBackground(const QString &file)
     Q_ASSERT(QFileInfo(m_bgPath).isFile());
 }
 
-void FullscreenBackground::setScreen(QScreen *screen)
+void FullscreenBackground::setMonitor(Monitor *monitor)
 {
-    updateScreen(screen);
+    updateMonitor(monitor);
 }
 
 void FullscreenBackground::setContentVisible(bool contentVisible)
@@ -218,26 +218,6 @@ void FullscreenBackground::keyPressEvent(QKeyEvent *e)
     }
 }
 
-void FullscreenBackground::showEvent(QShowEvent *event)
-{
-    if (QWindow *w = windowHandle()) {
-        if (m_screen) {
-            if (w->screen() != m_screen) {
-                w->setScreen(m_screen);
-            }
-
-            // 更新窗口位置和大小
-            updateGeometry();
-        } else {
-            updateScreen(w->screen());
-        }
-
-        connect(w, &QWindow::screenChanged, this, &FullscreenBackground::updateScreen);
-    }
-
-    return QWidget::showEvent(event);
-}
-
 const QPixmap FullscreenBackground::pixmapHandle(const QPixmap &pixmap)
 {
     const QSize trueSize { size() *devicePixelRatioF() };
@@ -256,30 +236,32 @@ const QPixmap FullscreenBackground::pixmapHandle(const QPixmap &pixmap)
     return pix;
 }
 
-void FullscreenBackground::updateScreen(QScreen *screen)
+void FullscreenBackground::updateMonitor(Monitor *monitor)
 {
-    qDebug() << __FILE__ << __LINE__ << __FUNCTION__ << "UpdateScree: " << screen << screen->geometry();
-    if (screen == m_screen)
+    qDebug() << __FILE__ << __LINE__ << __FUNCTION__ << "UpdateScree: " << monitor << monitor->rect();
+    if (monitor == m_monitor)
         return;
 
-    if (m_screen) {
-        disconnect(m_screen, &QScreen::geometryChanged, this, &FullscreenBackground::updateGeometry);
+    if (m_monitor) {
+        disconnect(m_monitor, &Monitor::geometryChanged, this, &FullscreenBackground::updateGeometry);
     }
 
-    if (screen) {
-        connect(screen, &QScreen::geometryChanged, this, &FullscreenBackground::updateGeometry);
+    if (monitor) {
+        connect(monitor, &Monitor::geometryChanged, this, &FullscreenBackground::updateGeometry);
     }
 
-    m_screen = screen;
+    m_monitor = monitor;
 
-    if (m_screen)
+    if (m_monitor)
         updateGeometry();
 }
 
 void FullscreenBackground::updateGeometry()
 {
-    qDebug() << __FILE__ << __LINE__ << __FUNCTION__ << "updateGeometry: " << m_screen << m_screen->geometry();
-    setGeometry(m_screen->geometry());
+
+    qDebug() << __FILE__ << __LINE__ << __FUNCTION__ << "updateGeometry: " << m_monitor << m_monitor->rect();
+    //setGeometry(m_screen->geometry());
+    setGeometry(m_monitor->rect());
 }
 
 /********************************************************

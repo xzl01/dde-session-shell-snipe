@@ -34,6 +34,7 @@
 #include "src/dde-lock/lockworker.h"
 #include "src/session-widgets/sessionbasemodel.h"
 #include "src/widgets/propertygroup.h"
+#include "src/global_util/monitor.h"
 
 #include <QLabel>
 #include <QScreen>
@@ -100,10 +101,10 @@ int main(int argc, char *argv[])
 
     property_group->addProperty("contentVisible");
 
-    auto createFrame = [&] (QScreen *screen) -> QWidget* {
+    auto createFrame = [&] (Monitor *monitor) -> QWidget* {
         LockFrame *lockFrame = new LockFrame(model);
         QDBusInterface *inter = nullptr;
-        lockFrame->setScreen(screen);
+        lockFrame->setMonitor(monitor);
         property_group->addObject(lockFrame);
         if (qEnvironmentVariable("XDG_SESSION_TYPE").toLower().contains("wayland")) {
             inter = new QDBusInterface("org.kde.KWin", "/kglobalaccel", "org.kde.KGlobalAccel",
@@ -140,8 +141,8 @@ int main(int argc, char *argv[])
     };
 
     MultiScreenManager multi_screen_manager;
-    multi_screen_manager.register_for_mutil_screen(createFrame);
-
+    //multi_screen_manager.register_for_mutil_screen(createFrame);
+    multi_screen_manager.register_for_mutil_monitor(createFrame);
     QObject::connect(model, &SessionBaseModel::visibleChanged, &multi_screen_manager, &MultiScreenManager::startRaiseContentFrame);
 
     DBusLockAgent agent;

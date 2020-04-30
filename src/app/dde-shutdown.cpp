@@ -39,6 +39,7 @@
 #include "src/dde-shutdown/shutdownworker.h"
 #include "src/widgets/propertygroup.h"
 #include "src/global_util/multiscreenmanager.h"
+#include "src/global_util/monitor.h"
 
 #include "src/dde-shutdown/dbusshutdownagent.h"
 
@@ -118,10 +119,10 @@ int main(int argc, char *argv[])
 
         property_group->addProperty("contentVisible");
 
-        auto createFrame = [&](QScreen * screen) -> QWidget* {
+        auto createFrame = [&](Monitor * screen) -> QWidget* {
             ShutdownFrame *frame = new ShutdownFrame(model);
             dbusAgent->addFrame(frame);
-            frame->setScreen(screen);
+            frame->setMonitor(screen);
             frame->setWindowFlags(frame->windowFlags() | Qt::X11BypassWindowManagerHint);
             property_group->addObject(frame);
             QDBusInterface *inter = nullptr;
@@ -164,7 +165,7 @@ int main(int argc, char *argv[])
         };
 
         MultiScreenManager multi_screen_manager;
-        multi_screen_manager.register_for_mutil_screen(createFrame);
+        multi_screen_manager.register_for_mutil_monitor(createFrame);
 
         QObject::connect(model, &SessionBaseModel::visibleChanged, &multi_screen_manager, &MultiScreenManager::startRaiseContentFrame);
 

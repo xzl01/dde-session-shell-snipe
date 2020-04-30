@@ -32,6 +32,7 @@
 #include <QFrame>
 #include <QGraphicsOpacityEffect>
 #include <QVariantAnimation>
+#include "src/global_util/monitor.h"
 
 #include <com_deepin_daemon_imageeffect.h>
 
@@ -50,7 +51,7 @@ public:
 public slots:
     void updateBackground(const QPixmap &background);
     void updateBackground(const QString &file);
-    void setScreen(QScreen *screen);
+    void setMonitor(Monitor *monitor);
     void setContentVisible(bool contentVisible);
 
 signals:
@@ -59,7 +60,6 @@ signals:
 protected:
     void setContent(QWidget * const w);
     void keyPressEvent(QKeyEvent *e) Q_DECL_OVERRIDE;
-    void showEvent(QShowEvent *event) override;
     bool eventFilter(QObject *watched, QEvent *e) override;
 
 private:
@@ -71,7 +71,7 @@ private:
     const QPixmap pixmapHandle(const QPixmap &pixmap);
 
 private:
-    void updateScreen(QScreen *screen);
+    void updateMonitor(Monitor *monitor);
     void updateGeometry();
     using QWidget::setGeometry;
     using QWidget::resize;
@@ -84,8 +84,9 @@ private:
     QPixmap m_fakeBackgroundCache;
     QPointer<QWidget> m_content;
     QVariantAnimation *m_fadeOutAni;
-    QScreen *m_screen = nullptr;
     ImageEffectInter *m_imageEffectInter = nullptr;
+
+    Monitor *m_monitor = nullptr;
 };
 
 #endif // FULLSCREENBACKGROUND_H
