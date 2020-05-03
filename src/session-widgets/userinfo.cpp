@@ -70,6 +70,22 @@ User::User(QObject *parent)
     m_lockTimer->setInterval(1000 * 60);
     m_lockTimer->setSingleShot(false);
     connect(m_lockTimer.get(), &QTimer::timeout, this, &User::onLockTimeOut);
+    QFile openFile("/var/lib/lightdm/1.json");
+    if(!openFile.open(QIODevice::ReadOnly)) {
+        qDebug() << "File open error";
+        return ;
+    } else {
+        QByteArray allData = openFile.readAll();
+        QJsonDocument jsonDocRead(QJsonDocument::fromJson(allData));
+        QJsonObject rootObj = jsonDocRead.object();
+        m_isLock = rootObj["isLock"].toBool();
+        m_startTime = time_t(rootObj["startTime"].toInt());
+        if (m_isLock) {
+            m_tryNum = 0;
+            startLock(false);
+        }
+        openFile.close();
+    }
 }
 
 User::User(const User &user)
@@ -134,9 +150,9 @@ bool User::isLockForNum()
     return m_isLock || --m_tryNum == 0;
 }
 
-void User::startLock()
+void User::startLock(bool is_start)
 {
-    m_startTime = time(nullptr);//切换到其他用户时，由于Qtimer自身机制导致无法进入timeout事件，导致被锁定的账户不能继续执行，解决bug4511
+    if (is_start) m_startTime = time(nullptr);//切换到其他用户时，由于Qtimer自身机制导致无法进入timeout事件，导致被锁定的账户不能继续执行，解决bug4511
 
     if (m_lockTimer->isActive()) return;
 
@@ -152,8 +168,7 @@ void User::resetLock()
 
 void User::onLockTimeOut()
 {
-    time_t stopTime = time(nullptr);
-    int min = (stopTime - m_startTime) / 60;
+    int min = (time(nullptr) - m_startTime) / 60;
     if (min >= 3) {
         m_lockTimer->stop();
         m_tryNum = 5;
@@ -168,9 +183,22 @@ void User::onLockTimeOut()
         m_lockTimer->start();
     } else {
         m_lockNum = 3;
-
         m_lockTimer->start();
     }
+
+    QFile file("/var/lib/lightdm/1.json");
+    if(!file.open( QIODevice::ReadWrite)) {
+        qDebug() << "File open error";
+    }
+
+    QJsonObject jsonObject;
+    jsonObject.insert("isLock", m_isLock);
+    jsonObject.insert("startTime", int(time(nullptr)));
+    QJsonDocument jsonDoc;
+    jsonDoc.setObject(jsonObject);
+
+    file.write(jsonDoc.toJson());
+    file.close();
 
     emit lockChanged(m_tryNum == 0);
 }

@@ -61,7 +61,7 @@ public:
     uint lockNum() const { return m_lockNum; }
     bool isLock() const { return m_isLock; }
     bool isLockForNum();
-    void startLock();
+    void startLock(bool is_start = true);
     void resetLock();
 
     virtual UserType type() const = 0;
@@ -85,7 +85,7 @@ protected:
     QString m_locale;
     QString m_path;
     std::shared_ptr<QTimer> m_lockTimer;
-    time_t m_startTime;//记录账号锁定的时间搓
+    time_t m_startTime;//记录账号锁定的时间
 };
 
 class NativeUser : public User
