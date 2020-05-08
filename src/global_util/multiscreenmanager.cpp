@@ -10,10 +10,11 @@ using DisplayInter=com::deepin::daemon::Display;
 
 MultiScreenManager::MultiScreenManager(QObject *parent)
     : QObject(parent)
+    , m_registerFunction(nullptr)
     , m_raiseContentFrameTimer(new QTimer(this))
-    , m_displayInter("com.deepin.daemon.Display", "/com/deepin/daemon/Display", QDBusConnection::sessionBus(), this)
 {
-    connect(&m_displayInter, &DisplayInter::MonitorsChanged, this, &MultiScreenManager::onMonitorsChanged);
+    connect(qApp, &QGuiApplication::screenAdded, this, &MultiScreenManager::onScreenAdded, Qt::QueuedConnection);
+    connect(qApp, &QGuiApplication::screenRemoved, this, &MultiScreenManager::onScreenRemoved, Qt::QueuedConnection);
 
     // 在sw平台存在复制模式显示问题，使用延迟来置顶一个Frame
     m_raiseContentFrameTimer->setInterval(80);
@@ -22,86 +23,56 @@ MultiScreenManager::MultiScreenManager(QObject *parent)
     connect(m_raiseContentFrameTimer, &QTimer::timeout, this, &MultiScreenManager::raiseContentFrame);
 }
 
+void MultiScreenManager::register_for_mutil_screen(std::function<QWidget *(QScreen *)> function)
+{
+    m_registerFunction = function;
+
+    DisplayInter inter("com.deepin.daemon.Display", "/com/deepin/daemon/Display", QDBusConnection::sessionBus(), nullptr);
+    // update all screen
+    for (QScreen *screen : qApp->screens()) {
+        qDebug() << __FILE__ << __LINE__ << __func__ << ": screen info ---- " <<  screen << screen->geometry();
+        onScreenAdded(screen);
+    }
+}
+
 void MultiScreenManager::startRaiseContentFrame()
 {
     m_raiseContentFrameTimer->start();
 }
 
-void MultiScreenManager::register_for_mutil_monitor(std::function<QWidget* (Monitor *)> function)
+void MultiScreenManager::onScreenAdded(QScreen *screen)
 {
-    QList<QDBusObjectPath> monitor = m_displayInter.property("Monitors").value<QList<QDBusObjectPath>>();
-    m_registerMonitorFun = function;
-    onMonitorsChanged(monitor);
+    qDebug() << __FILE__ << __LINE__ << __func__ << ": screen add ---- " <<  screen << screen->geometry();
+    if (!m_registerFunction) {
+        return;
+    }
+
+    m_frames[screen] = m_registerFunction(screen);
+
+    startRaiseContentFrame();
+}
+
+void MultiScreenManager::onScreenRemoved(QScreen *screen)
+{
+    qDebug() << __FILE__ << __LINE__ << __func__ << ": screen removed ---- ";
+    if (!m_registerFunction) {
+        return;
+    }
+
+    if(!m_frames.contains(screen)) return;
+
+    m_frames[screen]->deleteLater();
+    m_frames.remove(screen);
+
+    startRaiseContentFrame();
 }
 
 void MultiScreenManager::raiseContentFrame()
 {
-    for (auto it = m_frameMoniter.constBegin(); it != m_frameMoniter.constEnd(); ++it) {
+    for (auto it = m_frames.constBegin(); it != m_frames.constEnd(); ++it) {
         if (it.value()->property("contentVisible").toBool()) {
             it.value()->raise();
             return;
         }
     }
 }
-
-void MultiScreenManager::onMonitorsChanged(const QList<QDBusObjectPath> & mons)
-{
-    QList<QString> ops;
-    for (const auto *mon : m_frameMoniter.keys())
-        ops << mon->path();
-
-    qDebug() << mons.size();
-    QList<QString> pathList;
-    for (const auto op : mons) {
-        const QString path = op.path();
-        pathList << path;
-        qDebug() << path;
-        if (!ops.contains(path))
-            monitorAdded(path);
-    }
-
-    for (const auto op : ops)
-        if (!pathList.contains(op))
-            monitorRemoved(op);
-}
-
-void MultiScreenManager::monitorAdded(const QString &path)
-{
-    MonitorInter *inter = new MonitorInter("com.deepin.daemon.Display", path, QDBusConnection::sessionBus(), this);
-    Monitor *mon = new Monitor(this);
-    connect(inter, &MonitorInter::XChanged, mon, &Monitor::setX);
-    connect(inter, &MonitorInter::YChanged, mon, &Monitor::setY);
-    connect(inter, &MonitorInter::WidthChanged, mon, &Monitor::setW);
-    connect(inter, &MonitorInter::HeightChanged, mon, &Monitor::setH);
-    connect(inter, &MonitorInter::EnabledChanged, mon, &Monitor::setMonitorEnable);
-    // NOTE: DO NOT using async dbus call. because we need to have a unique name to distinguish each monitor
-    Q_ASSERT(inter->isValid());
-    mon->setName(inter->name());
-    mon->setMonitorEnable(inter->enabled());
-    mon->setPath(path);
-    mon->setX(inter->x());
-    mon->setY(inter->y());
-    mon->setW(inter->width());
-    mon->setH(inter->height());
-
-    mon->setPrimary(m_displayInter.primary());
-
-    m_frameMoniter[mon] = m_registerMonitorFun(mon);
-    startRaiseContentFrame();
-}
-
-void MultiScreenManager::monitorRemoved(const QString &path)
-{
-    Monitor *monitor = nullptr;
-    for (auto it(m_frameMoniter.cbegin()); it != m_frameMoniter.cend(); ++it) {
-        if (it.key()->path() == path) {
-            monitor = it.key();
-            break;
-        }
-    }
-    if (!monitor)
-        return;
-    m_frameMoniter.remove(monitor);
-    startRaiseContentFrame();
-}
-
