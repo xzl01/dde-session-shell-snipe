@@ -227,6 +227,7 @@ void FullscreenBackground::showEvent(QShowEvent *event)
             }
 
             // 更新窗口位置和大小
+            setFixedSize(m_screen->geometry().width(), m_screen->geometry().height());
             updateGeometry();
         } else {
             updateScreen(w->screen());
