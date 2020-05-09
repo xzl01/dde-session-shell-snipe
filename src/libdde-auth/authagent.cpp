@@ -58,6 +58,8 @@ void AuthAgent::Authenticate(const QString& username)
         qDebug() << Q_FUNC_INFO << pam_strerror(m_pamHandle, m_lastStatus);
     }
 
+    m_hasPw = false;
+
     emit respondResult(msg);
 }
 

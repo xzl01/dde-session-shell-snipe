@@ -276,11 +276,6 @@ void LockWorker::onUnlockFinished(bool unlocked)
             m_model->currentUser()->startLock();
         }
         return;
-    } else if(!unlocked && m_authFramework->GetAuthType() != AuthFlag::Password) {
-        qDebug() << "Authorization finger failed!";
-
-        m_authFramework->Authenticate(m_model->currentUser());
-        return;
     }
 
     switch (m_model->powerAction()) {
