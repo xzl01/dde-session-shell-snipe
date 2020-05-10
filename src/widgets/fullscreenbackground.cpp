@@ -38,15 +38,12 @@
 #include <QDir>
 #include <DGuiApplicationHelper>
 
-#include "src/session-widgets/framedatabind.h"
-
 DGUI_USE_NAMESPACE
 
 FullscreenBackground::FullscreenBackground(QWidget *parent)
     : QWidget(parent)
     , m_fadeOutAni(new QVariantAnimation(this))
     , m_imageEffectInter(new ImageEffectInter("com.deepin.daemon.ImageEffect", "/com/deepin/daemon/ImageEffect", QDBusConnection::systemBus(), this))
-    , m_displayInter(new DisplayInter("com.deepin.daemon.Display", "/com/deepin/daemon/Display", QDBusConnection::sessionBus(), this))
 {
 #ifndef QT_DEBUG
     if(DGuiApplicationHelper::isXWindowPlatform()) {
@@ -62,13 +59,6 @@ FullscreenBackground::FullscreenBackground(QWidget *parent)
     installEventFilter(this);
 
     connect(m_fadeOutAni, &QVariantAnimation::valueChanged, this, static_cast<void (FullscreenBackground::*)()>(&FullscreenBackground::update));
-    std::function<void (QVariant)> primary_show_finish = std::bind(&FullscreenBackground::onOtherPagePrimaryShowChanged, this, std::placeholders::_1);
-    m_dataBindIndex = FrameDataBind::Instance()->registerFunction("PrimaryShowFinished", primary_show_finish);
-}
-
-FullscreenBackground::~FullscreenBackground()
-{
-    FrameDataBind::Instance()->unRegisterFunction("PrimaryShowFinished", m_dataBindIndex);
 }
 
 bool FullscreenBackground::contentVisible() const
@@ -135,19 +125,6 @@ void FullscreenBackground::updateBackground(const QString &file)
 
 void FullscreenBackground::setScreen(QScreen *screen)
 {
-    if(m_displayInter->displayMode() == FullscreenBackground::ExpandMode) {
-        if(m_displayInter->primary() == screen->name()) {
-            m_content->show();
-            emit contentVisibleChanged(true);
-            QTimer::singleShot(100, this, []{ FrameDataBind::Instance()->updateValue("PrimaryShowFinished", true); });
-        }
-    } else if(m_displayInter->displayMode() == FullscreenBackground::CopyMode) {
-        m_content->show();
-        emit contentVisibleChanged(true);
-    } else {
-        FrameDataBind::Instance()->updateValue("PrimaryShowFinished", true);
-    }
-
     updateScreen(screen);
 }
 
@@ -182,7 +159,6 @@ void FullscreenBackground::setIsBlackMode(bool is_black)
     if(m_isBlackMode == is_black) return;
 
     m_isBlackMode = is_black;
-    FrameDataBind::Instance()->updateValue("PrimaryShowFinished", !is_black);
     m_content->setVisible(!is_black);
     emit contentVisibleChanged(!is_black);
 
@@ -222,10 +198,8 @@ void FullscreenBackground::paintEvent(QPaintEvent *e)
 
 void FullscreenBackground::enterEvent(QEvent *event)
 {
-    if(m_primaryShowFinished) {
-        m_content->show();
-        emit contentVisibleChanged(true);
-    }
+    m_content->show();
+    emit contentVisibleChanged(true);
 
     return QWidget::enterEvent(event);
 }
@@ -293,11 +267,6 @@ const QPixmap FullscreenBackground::pixmapHandle(const QPixmap &pixmap)
     pix.setDevicePixelRatio(devicePixelRatioF());
 
     return pix;
-}
-
-void FullscreenBackground::onOtherPagePrimaryShowChanged(const QVariant &value)
-{
-    m_primaryShowFinished = value.toBool();
 }
 
 void FullscreenBackground::updateScreen(QScreen *screen)

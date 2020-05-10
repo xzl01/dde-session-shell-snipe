@@ -34,10 +34,8 @@
 #include <QVariantAnimation>
 
 #include <com_deepin_daemon_imageeffect.h>
-#include <com_deepin_daemon_display.h>
 
 using ImageEffectInter = com::deepin::daemon::ImageEffect;
-using DisplayInter = com::deepin::daemon::Display;
 
 class FullscreenBackground : public QWidget
 {
@@ -45,13 +43,8 @@ class FullscreenBackground : public QWidget
     Q_PROPERTY(bool contentVisible READ contentVisible WRITE setContentVisible NOTIFY contentVisibleChanged)
 
 public:
-    enum DisplayMode {
-        CopyMode = 1,
-        ExpandMode = 2
-    };
-
     explicit FullscreenBackground(QWidget *parent = nullptr);
-    ~FullscreenBackground();
+
     bool contentVisible() const;
 
 public slots:
@@ -77,7 +70,6 @@ private:
     void resizeEvent(QResizeEvent *event) Q_DECL_OVERRIDE;
 
     const QPixmap pixmapHandle(const QPixmap &pixmap);
-    void onOtherPagePrimaryShowChanged(const QVariant &value);
 
 private:
     void updateScreen(QScreen *screen);
@@ -95,10 +87,7 @@ private:
     QVariantAnimation *m_fadeOutAni;
     QScreen *m_screen = nullptr;
     ImageEffectInter *m_imageEffectInter = nullptr;
-    DisplayInter *m_displayInter = nullptr;
-    bool m_primaryShowFinished = false;
     bool m_isBlackMode = false;
-    int m_dataBindIndex;
 };
 
 #endif // FULLSCREENBACKGROUND_H
