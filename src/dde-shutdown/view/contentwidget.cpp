@@ -909,6 +909,8 @@ void ContentWidget::tryGrabKeyboard()
 #ifdef QT_DEBUG
     return;
 #endif
+    if (qgetenv("XDG_SESSION_TYPE").contains("wayland"))
+        return;
 
     if (window()->windowHandle() && window()->windowHandle()->setKeyboardGrabEnabled(true)) {
         m_failures = 0;
