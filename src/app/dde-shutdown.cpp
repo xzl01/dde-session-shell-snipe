@@ -39,6 +39,7 @@
 #include "src/dde-shutdown/shutdownworker.h"
 #include "src/widgets/propertygroup.h"
 #include "src/global_util/multiscreenmanager.h"
+#include "src/global_util/monitor.h"
 
 #include "src/dde-shutdown/dbusshutdownagent.h"
 
@@ -54,6 +55,7 @@ DWIDGET_USE_NAMESPACE
 
 int main(int argc, char *argv[])
 {
+    qputenv("QT_WAYLAND_SHELL_INTEGRATION", "kwayland-shell");
     DApplication app(argc, argv);
     QApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
     app.setOrganizationName("deepin");
@@ -118,10 +120,11 @@ int main(int argc, char *argv[])
 
         property_group->addProperty("contentVisible");
 
-        auto createFrame = [&](QScreen * screen) -> QWidget* {
+        auto createFrame = [&](Monitor *monitor) -> QWidget* {
             ShutdownFrame *frame = new ShutdownFrame(model);
             dbusAgent->addFrame(frame);
-            frame->setScreen(screen);
+            //frame->setScreen(screen);
+            frame->setMonitor(monitor);
             frame->setWindowFlags(frame->windowFlags() | Qt::X11BypassWindowManagerHint);
             property_group->addObject(frame);
             QDBusInterface *inter = nullptr;
@@ -164,7 +167,7 @@ int main(int argc, char *argv[])
         };
 
         MultiScreenManager multi_screen_manager;
-        multi_screen_manager.register_for_mutil_screen(createFrame);
+        multi_screen_manager.register_for_mutil_monitor(createFrame);
 
         QObject::connect(model, &SessionBaseModel::visibleChanged, &multi_screen_manager, &MultiScreenManager::startRaiseContentFrame);
 

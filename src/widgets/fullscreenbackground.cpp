@@ -130,6 +130,11 @@ void FullscreenBackground::setScreen(QScreen *screen)
     updateScreen(screen);
 }
 
+void FullscreenBackground::setMonitor(Monitor *monitor)
+{
+    updateMonitor(monitor);
+}
+
 void FullscreenBackground::setContentVisible(bool contentVisible)
 {
     if (this->contentVisible() == contentVisible)
@@ -229,11 +234,7 @@ void FullscreenBackground::showEvent(QShowEvent *event)
             // 更新窗口位置和大小
             setFixedSize(m_screen->geometry().width(), m_screen->geometry().height());
             updateGeometry();
-        } else {
-            updateScreen(w->screen());
         }
-
-        connect(w, &QWindow::screenChanged, this, &FullscreenBackground::updateScreen);
     }
 
     return QWidget::showEvent(event);
@@ -259,17 +260,17 @@ const QPixmap FullscreenBackground::pixmapHandle(const QPixmap &pixmap)
 
 void FullscreenBackground::updateScreen(QScreen *screen)
 {
-    qDebug() << __FILE__ << __LINE__ << __FUNCTION__ << "UpdateScree: " << screen << screen->geometry();
-    if (screen == m_screen)
-        return;
+//    qDebug() << __FILE__ << __LINE__ << __FUNCTION__ << "UpdateScree: " << screen << screen->geometry();
+//    if (screen == m_screen)
+//        return;
 
-    if (m_screen) {
-        disconnect(m_screen, &QScreen::geometryChanged, this, &FullscreenBackground::updateGeometry);
-    }
+//    if (m_screen) {
+//        disconnect(m_screen, &QScreen::geometryChanged, this, &FullscreenBackground::updateGeometry);
+//    }
 
-    if (screen) {
-        connect(screen, &QScreen::geometryChanged, this, &FullscreenBackground::updateGeometry);
-    }
+//    if (screen) {
+//        connect(screen, &QScreen::geometryChanged, this, &FullscreenBackground::updateGeometry);
+//    }
 
     m_screen = screen;
 
@@ -277,10 +278,41 @@ void FullscreenBackground::updateScreen(QScreen *screen)
         updateGeometry();
 }
 
+void FullscreenBackground::updateMonitor(Monitor *monitor)
+{
+    qDebug() << __FILE__ << __LINE__ << __FUNCTION__ << "UpdateScree: " << monitor << monitor->rect();
+    if (monitor == m_monitor)
+        return;
+
+    if (m_monitor) {
+        disconnect(m_monitor, &Monitor::geometryChanged, this, &FullscreenBackground::updateMonitorGeometry);
+    }
+
+    if (monitor) {
+        connect(monitor, &Monitor::geometryChanged, this, &FullscreenBackground::updateMonitorGeometry);
+    }
+
+    m_monitor = monitor;
+
+    if (m_monitor)
+        updateMonitorGeometry();
+}
+
 void FullscreenBackground::updateGeometry()
 {
-    qDebug() << __FILE__ << __LINE__ << __FUNCTION__ << "updateGeometry: " << m_screen << m_screen->geometry();
-    setGeometry(m_screen->geometry());
+    qDebug() << __FILE__ << __LINE__ << __FUNCTION__ << "updateGeometry: " << m_screen << m_screen->geometry() << size();
+    //setGeometry(m_screen->geometry());
+    QTimer::singleShot(500, this, [&](){
+        setGeometry(m_screen->geometry());
+    });
+}
+
+void FullscreenBackground::updateMonitorGeometry()
+{
+    qDebug() << __FILE__ << __LINE__ << __FUNCTION__ << "updateGeometry: " << m_monitor << m_monitor->rect() << size();
+    QTimer::singleShot(500, this, [&](){
+        setGeometry(m_monitor->rect());
+    });
 }
 
 /********************************************************

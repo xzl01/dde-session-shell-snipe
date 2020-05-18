@@ -29,6 +29,7 @@
 #include "src/session-widgets/sessionbasemodel.h"
 #include "src/widgets/propertygroup.h"
 #include "src/global_util/multiscreenmanager.h"
+#include "src/lightdm-deepin-greeter/greeterscreenmanager.h"
 
 #include <DApplication>
 #include <QtCore/QTranslator>
@@ -246,9 +247,9 @@ int main(int argc, char* argv[])
         return loginFrame;
     };
 
-    MultiScreenManager multi_screen_manager;
+    GreeterScreenManager multi_screen_manager;
     multi_screen_manager.register_for_mutil_screen(createFrame);
-    QObject::connect(model, &SessionBaseModel::visibleChanged, &multi_screen_manager, &MultiScreenManager::startRaiseContentFrame);
+    QObject::connect(model, &SessionBaseModel::visibleChanged, &multi_screen_manager, &GreeterScreenManager::startRaiseContentFrame);
 
     return a.exec();
 }

@@ -122,6 +122,7 @@ set(GLOBAL_UTILS_SRCS
     ./src/global_util/keyboardplatform.h
     ./src/global_util/keyboardplantform_x11.h
     ./src/global_util/keyboardplantform_wayland.h
+    ./src/global_util/monitor.h
     ./src/global_util/xkbparser.cpp
     ./src/global_util/dbus/dbusdisplaymanager.cpp
     ./src/global_util/dbus/dbuslogin1manager.cpp
@@ -141,6 +142,7 @@ set(GLOBAL_UTILS_SRCS
     ./src/global_util/keyboardmonitor.cpp
     ./src/global_util/keyboardplantform_x11.cpp
     ./src/global_util/keyboardplantform_wayland.cpp
+    ./src/global_util/monitor.cpp
 )
 
 set(WIDGETS_SRCS
@@ -237,9 +239,11 @@ set(GREETER_SRCS
     ./src/widgets/sessionwidget.cpp
     ./src/lightdm-deepin-greeter/loginwindow.h
     ./src/lightdm-deepin-greeter/greeterworkek.h
+    ./src/lightdm-deepin-greeter/greeterscreenmanager.h
     ./src/lightdm-deepin-greeter/loginwindow.cpp
     ./src/lightdm-deepin-greeter/greeterworkek.cpp
     ./src/lightdm-deepin-greeter/logincontent.cpp
+    ./src/lightdm-deepin-greeter/greeterscreenmanager.cpp
 )
 
 set(SHUTDOWN_SRCS

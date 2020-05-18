@@ -89,6 +89,8 @@ void ShutdownFrame::hideEvent(QHideEvent *event)
 
     m_model->setIsShow(false);
 
+    qApp->exit();
+
     m_shutdownFrame->recoveryLayout();
 
     return FullscreenBackground::hideEvent(event);
