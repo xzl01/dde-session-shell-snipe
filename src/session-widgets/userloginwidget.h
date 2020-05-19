@@ -28,6 +28,9 @@
 #include <DBlurEffectWidget>
 #include <DFloatingButton>
 
+#include <com_deepin_daemon_appearance.h>
+using Appearance = com::deepin::daemon::Appearance;
+
 DWIDGET_USE_NAMESPACE
 
 class QLabel;
@@ -152,6 +155,7 @@ private:
     uint m_uid;
     bool m_isAlertMessageShow;                             //判断密码错误提示是否显示
     QString m_name;
+    Appearance *m_dbusAppearance;
 };
 
 #endif // USERLOGINWIDGET_H
