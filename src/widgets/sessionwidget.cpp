@@ -143,7 +143,7 @@ void SessionWidget::show()
 
 int SessionWidget::sessionCount() const
 {
-    return m_sessionModel->rowCount(QModelIndex());
+    return m_sessionBtns.size();
 }
 
 const QString SessionWidget::lastSessionName() const
@@ -293,6 +293,7 @@ void SessionWidget::chooseSession()
 void SessionWidget::loadSessionList()
 {
     // add sessions button
+    QMap<QString, QString> strNameMap;
     const int count = m_sessionModel->rowCount(QModelIndex());
     for (int i(0); i != count; ++i) {
         const QString &session_name = m_sessionModel->data(m_sessionModel->index(i), QLightDM::SessionsModel::KeyRole).toString();
@@ -313,6 +314,11 @@ void SessionWidget::loadSessionList()
 
         connect(sbtn, &RoundItemButton::clicked, this, &SessionWidget::onSessionButtonClicked);
 
-        m_sessionBtns.append(sbtn);
+        QMap<QString, QString>::Iterator iter = strNameMap.find(session_name);
+        if (iter == strNameMap.end())
+        {
+            m_sessionBtns.append(sbtn);
+            strNameMap[session_name] = session_name;
+        }
     }
 }
