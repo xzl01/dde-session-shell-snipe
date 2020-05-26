@@ -101,7 +101,9 @@ void MultiScreenManager::monitorRemoved(const QString &path)
     }
     if (!monitor)
         return;
+    m_frameMoniter[monitor]->deleteLater();
     m_frameMoniter.remove(monitor);
+    monitor->deleteLater();
     startRaiseContentFrame();
 }
 
