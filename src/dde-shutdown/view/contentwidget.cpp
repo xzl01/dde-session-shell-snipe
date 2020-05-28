@@ -114,7 +114,7 @@ void ContentWidget::showEvent(QShowEvent *event)
     }
 
     tryGrabKeyboard();
-
+    setFocus();
     m_currentSelectedBtn = m_lockButton;
     m_currentSelectedBtn->updateState(RoundItemButton::Checked);
 }
