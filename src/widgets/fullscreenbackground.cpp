@@ -44,6 +44,7 @@ FullscreenBackground::FullscreenBackground(QWidget *parent)
     : QWidget(parent)
     , m_fadeOutAni(new QVariantAnimation(this))
     , m_imageEffectInter(new ImageEffectInter("com.deepin.daemon.ImageEffect", "/com/deepin/daemon/ImageEffect", QDBusConnection::systemBus(), this))
+    , m_displayInter(new DisplayInter("com.deepin.daemon.Display", "/com/deepin/daemon/Display", QDBusConnection::sessionBus(), this))
 {
 #ifndef QT_DEBUG
 //    if(DGuiApplicationHelper::isXWindowPlatform()) {
@@ -59,7 +60,7 @@ FullscreenBackground::FullscreenBackground(QWidget *parent)
     m_fadeOutAni->setEndValue(0.0f);
 
     installEventFilter(this);
-
+    connect(m_displayInter, &DisplayInter::MonitorsChanged, this, &FullscreenBackground::updateMonitorGeometry);
     connect(m_fadeOutAni, &QVariantAnimation::valueChanged, this, static_cast<void (FullscreenBackground::*)()>(&FullscreenBackground::update));
 }
 
@@ -127,11 +128,23 @@ void FullscreenBackground::updateBackground(const QString &file)
 
 void FullscreenBackground::setScreen(QScreen *screen)
 {
+    if (m_displayInter->primary() == screen->name()) {
+        emit contentVisibleChanged(true);
+        QTimer::singleShot(500, this, [ = ] {
+            m_content->show();
+        });
+    }
     updateScreen(screen);
 }
 
 void FullscreenBackground::setMonitor(Monitor *monitor)
 {
+    if (m_displayInter->primary() == monitor->name()) {
+        emit contentVisibleChanged(true);
+        QTimer::singleShot(500, this, [ = ] {
+            m_content->show();
+        });
+    }
     updateMonitor(monitor);
 }
 
@@ -280,16 +293,18 @@ void FullscreenBackground::updateScreen(QScreen *screen)
 
 void FullscreenBackground::updateMonitor(Monitor *monitor)
 {
-    qDebug() << __FILE__ << __LINE__ << __FUNCTION__ << "UpdateScree: " << monitor << monitor->rect();
+    qDebug() << "Update monitor:" << monitor->name() << monitor->rect();
     if (monitor == m_monitor)
         return;
 
     if (m_monitor) {
         disconnect(m_monitor, &Monitor::geometryChanged, this, &FullscreenBackground::updateMonitorGeometry);
+        disconnect(m_monitor, &Monitor::enableChanged, this, &FullscreenBackground::setVisible);
     }
 
     if (monitor) {
         connect(monitor, &Monitor::geometryChanged, this, &FullscreenBackground::updateMonitorGeometry);
+        connect(monitor, &Monitor::enableChanged, this, &FullscreenBackground::setVisible);
     }
 
     m_monitor = monitor;
@@ -302,19 +317,28 @@ void FullscreenBackground::updateGeometry()
 {
     qDebug() << __FILE__ << __LINE__ << __FUNCTION__ << "updateGeometry: " << m_screen << m_screen->geometry() << size();
     //setGeometry(m_screen->geometry());
-    QTimer::singleShot(500, this, [&](){
+    QTimer::singleShot(0, this, [&]() {
         setGeometry(m_screen->geometry());
     });
 }
 
 void FullscreenBackground::updateMonitorGeometry()
 {
-    qDebug() << __FILE__ << __LINE__ << __FUNCTION__ << "updateGeometry: " << m_monitor << m_monitor->rect() << size();
-    QTimer::singleShot(500, this, [&](){
-//        setGeometry(m_monitor->rect());
-        setGeometry(m_monitor->rect().x(), m_monitor->rect().y(),
-                    m_monitor->rect().width()/qApp->primaryScreen()->devicePixelRatio(),
-                    m_monitor->rect().height()/qApp->primaryScreen()->devicePixelRatio());
+    QList<QDBusObjectPath> monitor = m_displayInter->property("Monitors").value<QList<QDBusObjectPath>>();
+    QTimer::singleShot(0, this, [&]() {
+        qDebug() << "Update monitor geometry:" << m_monitor->name() << m_monitor->rect();
+        for (auto m : m_monitor->modes()) {
+            if (m.width() != m_monitor->rect().width() || m.height() != m_monitor->rect().height())
+                continue;
+
+            setGeometry(m_monitor->rect());
+            move(m_monitor->x(), m_monitor->y());
+            break;
+        }
+        // if (m_monitor->getDisplayMode() == Duplicate && m_monitor->name() != "eDP-1") {
+        //     qDebug() << "Set visible false" << m_monitor->getDisplayMode() << m_monitor->name();
+        //     setVisible(false);
+        // }
     });
 }
 
