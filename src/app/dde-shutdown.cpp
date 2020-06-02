@@ -145,10 +145,8 @@ int main(int argc, char *argv[])
                     if (sessionInter.locked())
                         return;
                     qDebug() << __FILE__ << __LINE__ << ": shutdown showFullScreen, locked :" << sessionInter.locked();
+                    frame->show();
                     frame->updateMonitorGeometry();
-                    QTimer::singleShot(500, [=] {
-                        frame->showFullScreen();
-                    });
                 } else {
                     qDebug() << __FILE__ << __LINE__ << ": shutdown setVisible false";
                     frame->setVisible(false);
