@@ -29,12 +29,16 @@
 #include "src/session-widgets/sessionbasemodel.h"
 #include "src/dde-shutdown/dbusshutdownagent.h"
 
+#define SESSION_SHELL 0x00000082
+
 const QString WallpaperKey = "pictureUri";
 
 ShutdownFrame::ShutdownFrame(SessionBaseModel *const model, QWidget *parent)
     : FullscreenBackground(parent)
     , m_model(model)
 {
+    setWindowFlags(windowFlags() | Qt::WindowStaysOnTopHint | Qt::FramelessWindowHint | Qt::Window | (Qt::WindowFlags)SESSION_SHELL);
+
     m_shutdownFrame = new ContentWidget(this);
     m_shutdownFrame->setModel(model);
     setContent(m_shutdownFrame);
