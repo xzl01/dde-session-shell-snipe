@@ -104,19 +104,26 @@ int main(int argc, char *argv[])
     auto createFrame = [&] (Monitor *monitor) -> QWidget* {
         LockFrame *lockFrame = new LockFrame(model);
         QDBusInterface *inter = nullptr;
+        QDBusInterface *inter1 = nullptr;
         lockFrame->setMonitor(monitor);
         property_group->addObject(lockFrame);
         if (qEnvironmentVariable("XDG_SESSION_TYPE").toLower().contains("wayland")) {
             inter = new QDBusInterface("org.kde.KWin", "/kglobalaccel", "org.kde.KGlobalAccel",
                                                       QDBusConnection::sessionBus(), lockFrame);
+            inter1 = new QDBusInterface("org.kde.KWin", "/KWin", "org.kde.KWin",
+                                                      QDBusConnection::sessionBus(), lockFrame);
         }
         QObject::connect(lockFrame, &LockFrame::requestSwitchToUser, worker, &LockWorker::switchToUser);
         QObject::connect(lockFrame, &LockFrame::requestAuthUser, worker, &LockWorker::authUser);
-        QObject::connect(model, &SessionBaseModel::visibleChanged, [lockFrame, inter](bool v) {
+        QObject::connect(model, &SessionBaseModel::visibleChanged, [lockFrame, inter, inter1](bool v) {
             if (inter) {
                 auto req = inter->call("blockGlobalShortcuts", v);
                 if (req.type() == QDBusMessage::MessageType::ErrorMessage) {
                     qDebug() << "call blockGlobalShortcuts error " << req.errorName() << ":" << req.errorMessage();
+                }
+                auto req1 = inter1->call("disableHotKeysForClient", v);
+                if (req1.type() == QDBusMessage::MessageType::ErrorMessage) {
+                    qDebug() << "call disableHotKeysForClient error " << req1.errorName() << ":" << req1.errorMessage();
                 }
             }
             QDBusInterface launcherInter("com.deepin.dde.Launcher", "/com/deepin/dde/Launcher", "com.deepin.dde.Launcher"
