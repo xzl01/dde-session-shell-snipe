@@ -124,7 +124,7 @@ int main(int argc, char *argv[])
             launcherInter.call("Hide");
             if (v) {
                 qDebug() << __FILE__ << __LINE__ << "dde-lock showFullScreen : " << lockFrame->geometry();
-                lockFrame->showFullScreen();
+                lockFrame->show();
             } else {
                 qDebug() << __FILE__ << __LINE__ << ": dde-lock setVisible false";
                 lockFrame->setVisible(false);
