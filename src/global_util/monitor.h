@@ -15,6 +15,7 @@ class Monitor : public QObject
 public:
     explicit Monitor(QObject *parent = nullptr);
 
+    inline const ResolutionList &modes() const { return m_modes; }
     inline int x() const { return m_x; }
     inline int y() const { return m_y; }
     inline int w() const { return m_w; }
@@ -31,6 +32,7 @@ Q_SIGNALS:
     void wChanged(const int w) const;
     void hChanged(const int h) const;
     void enableChanged(bool enable) const;
+    void modesChanged(const ResolutionList& rl) const;
 
 
 private Q_SLOTS:
@@ -42,6 +44,7 @@ private Q_SLOTS:
     void setName(const QString &name);
     void setPath(const QString &path);
     void setMonitorEnable(bool enable);
+    void setMonitorModes(const ResolutionList& rl);
 
 private:
     int m_x;
@@ -52,6 +55,7 @@ private:
     QString m_path;
     QString m_primary;
     bool m_enable;
+    ResolutionList m_modes;
 };
 
 #endif // MONITOR_H

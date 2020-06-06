@@ -72,3 +72,9 @@ void Monitor::setMonitorEnable(bool enable)
     m_enable = enable;
     Q_EMIT enableChanged(enable);
 }
+
+void Monitor::setMonitorModes(const ResolutionList &rl)
+{
+    m_modes = rl;
+    Q_EMIT modesChanged(rl);
+}

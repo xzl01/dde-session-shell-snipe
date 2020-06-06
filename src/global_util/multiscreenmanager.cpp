@@ -74,6 +74,7 @@ void MultiScreenManager::monitorAdded(const QString &path)
     connect(inter, &MonitorInter::WidthChanged, mon, &Monitor::setW);
     connect(inter, &MonitorInter::HeightChanged, mon, &Monitor::setH);
     connect(inter, &MonitorInter::EnabledChanged, mon, &Monitor::setMonitorEnable);
+    connect(inter, &MonitorInter::ModesChanged, mon, &Monitor::setMonitorModes);
     // NOTE: DO NOT using async dbus call. because we need to have a unique name to distinguish each monitor
     Q_ASSERT(inter->isValid());
     mon->setName(inter->name());
@@ -83,7 +84,7 @@ void MultiScreenManager::monitorAdded(const QString &path)
     mon->setY(inter->y());
     mon->setW(inter->width());
     mon->setH(inter->height());
-
+    mon->setMonitorModes(inter->modes());
     mon->setPrimary(m_displayInter.primary());
 
     m_frameMoniter[mon] = m_registerMonitorFun(mon);
@@ -106,4 +107,3 @@ void MultiScreenManager::monitorRemoved(const QString &path)
     monitor->deleteLater();
     startRaiseContentFrame();
 }
-
