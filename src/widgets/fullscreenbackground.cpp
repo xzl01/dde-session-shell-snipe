@@ -44,6 +44,7 @@ FullscreenBackground::FullscreenBackground(QWidget *parent)
     : QWidget(parent)
     , m_fadeOutAni(new QVariantAnimation(this))
     , m_imageEffectInter(new ImageEffectInter("com.deepin.daemon.ImageEffect", "/com/deepin/daemon/ImageEffect", QDBusConnection::systemBus(), this))
+    , m_displayInter(new DisplayInter("com.deepin.daemon.Display", "/com/deepin/daemon/Display", QDBusConnection::sessionBus(), this))
 {
 #ifndef QT_DEBUG
 //    if(DGuiApplicationHelper::isXWindowPlatform()) {
@@ -137,6 +138,10 @@ void FullscreenBackground::setScreen(QScreen *screen)
 
 void FullscreenBackground::setMonitor(Monitor *monitor)
 {
+    if (m_displayInter->primary() == monitor->name()) {
+        emit contentVisibleChanged(true);
+        m_content->show();
+    }
     updateMonitor(monitor);
 }
 
