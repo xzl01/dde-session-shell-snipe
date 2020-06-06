@@ -211,9 +211,10 @@ bool AuthInterface::checkHaveDisplay(const QJsonArray &array)
     for (auto it = array.constBegin(); it != array.constEnd(); ++it) {
         const QJsonObject &obj = (*it).toObject();
 
-        // If user without desktop or display, this is system service, need skip.
-        if (!obj["Display"].toString().isEmpty() &&
-            !obj["Desktop"].toString().isEmpty()) {
+        // In X11,if user without desktop or display, this is system service, need skip.
+        // In wayland, a user without display is who logined in by tty or ssh, so it need skip.
+        if ((obj["Type"].toString() == "X11" && !obj["Display"].toString().isEmpty() && !obj["Desktop"].toString().isEmpty())
+           || (obj["Type"].toString() == "wayland" && !obj["Display"].toString().isEmpty())){
             return true;
         }
     }
