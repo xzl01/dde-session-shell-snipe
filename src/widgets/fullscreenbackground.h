@@ -55,6 +55,7 @@ public slots:
     void setScreen(QScreen *screen);
     void setMonitor(Monitor *monitor);
     void setContentVisible(bool contentVisible);
+    void updateMonitorGeometry();
 
 signals:
     void contentVisibleChanged(bool contentVisible);
@@ -77,7 +78,6 @@ private:
     void updateScreen(QScreen *screen);
     void updateMonitor(Monitor *monitor);
     void updateGeometry();
-    void updateMonitorGeometry();
     using QWidget::setGeometry;
     using QWidget::resize;
     using QWidget::move;

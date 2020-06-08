@@ -125,6 +125,7 @@ int main(int argc, char *argv[])
             if (v) {
                 qDebug() << __FILE__ << __LINE__ << "dde-lock showFullScreen : " << lockFrame->geometry();
                 lockFrame->show();
+                lockFrame->updateMonitorGeometry();
             } else {
                 qDebug() << __FILE__ << __LINE__ << ": dde-lock setVisible false";
                 lockFrame->setVisible(false);
