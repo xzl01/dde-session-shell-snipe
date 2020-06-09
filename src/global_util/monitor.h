@@ -33,7 +33,7 @@ Q_SIGNALS:
     void wChanged(const int w) const;
     void hChanged(const int h) const;
     void enableChanged(bool enable) const;
-    void modesChanged(const ResolutionList& rl) const;
+    void modesChanged(ResolutionList rl) const;
 
 
 private Q_SLOTS:
@@ -45,7 +45,7 @@ private Q_SLOTS:
     void setName(const QString &name);
     void setPath(const QString &path);
     void setMonitorEnable(bool enable);
-    void setMonitorModes(const ResolutionList& rl);
+    void setMonitorModes(ResolutionList rl);
     void setDisplayMode(uchar displayMode);
 
 private:

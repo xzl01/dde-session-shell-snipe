@@ -50,7 +50,7 @@ FullscreenBackground::FullscreenBackground(QWidget *parent)
 //    if(DGuiApplicationHelper::isXWindowPlatform()) {
 //        setWindowFlags(Qt::WindowStaysOnTopHint | Qt::X11BypassWindowManagerHint);
 //    } else {
-    setWindowFlags(windowFlags() | Qt::WindowStaysOnTopHint | Qt::FramelessWindowHint | Qt::Window);
+        setWindowFlags(windowFlags() | Qt::WindowStaysOnTopHint | Qt::FramelessWindowHint | Qt::Window);
 //    }
 #endif
 
@@ -90,7 +90,7 @@ void FullscreenBackground::updateBackground(const QString &file)
 {
     qDebug() << "input background: " << file;
 
-    auto isPicture = [](const QString & filePath) {
+    auto isPicture = [](const QString &filePath){
         return QFile::exists(filePath) && QFile(filePath).size() && !QPixmap(filePath).isNull() ;
     };
 
@@ -321,21 +321,23 @@ void FullscreenBackground::updateMonitor(Monitor *monitor)
 void FullscreenBackground::updateGeometry()
 {
     qDebug() << __FILE__ << __LINE__ << __FUNCTION__ << "updateGeometry: " << m_screen << m_screen->geometry() << size();
-    setGeometry(m_screen->geometry());
+    //setGeometry(m_screen->geometry());
+    QTimer::singleShot(0, this, [&]() {
+        setGeometry(m_screen->geometry());
+    });
 }
 
 void FullscreenBackground::updateMonitorGeometry()
 {
+    QList<QDBusObjectPath> monitor = m_displayInter->property("Monitors").value<QList<QDBusObjectPath>>();
     QTimer::singleShot(0, this, [&]() {
         qDebug() << "Update monitor geometry:" << m_monitor->name() << m_monitor->rect();
         for (auto m : m_monitor->modes()) {
             if (m.width() != m_monitor->rect().width() || m.height() != m_monitor->rect().height())
                 continue;
 
-            // setGeometry(m_monitor->rect());
-            setGeometry(m_monitor->rect().x(), m_monitor->rect().y(),
-                        m_monitor->rect().width() / qApp->primaryScreen()->devicePixelRatio(),
-                        m_monitor->rect().height() / qApp->primaryScreen()->devicePixelRatio());
+            setGeometry(m_monitor->rect());
+            move(m_monitor->x(), m_monitor->y());
             break;
         }
         // if (m_monitor->getDisplayMode() == Duplicate && m_monitor->name() != "eDP-1") {
