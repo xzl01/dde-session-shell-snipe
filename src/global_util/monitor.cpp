@@ -72,16 +72,3 @@ void Monitor::setMonitorEnable(bool enable)
     m_enable = enable;
     Q_EMIT enableChanged(enable);
 }
-
-void Monitor::setMonitorModes(ResolutionList rl)
-{
-    m_modes = rl;
-    Q_EMIT modesChanged(rl);
-}
-
-void Monitor::setDisplayMode(uchar displayMode)
-{
-    if (m_displayMode != displayMode) {
-        m_displayMode = displayMode;
-    }
-}

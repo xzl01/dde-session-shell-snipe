@@ -46,7 +46,6 @@ void MultiScreenManager::raiseContentFrame()
 
 void MultiScreenManager::onMonitorsChanged(const QList<QDBusObjectPath> & mons)
 {
-    qDebug() << "Monitor changed";
     QList<QString> ops;
     for (const auto *mon : m_frameMoniter.keys())
         ops << mon->path();
@@ -75,7 +74,6 @@ void MultiScreenManager::monitorAdded(const QString &path)
     connect(inter, &MonitorInter::WidthChanged, mon, &Monitor::setW);
     connect(inter, &MonitorInter::HeightChanged, mon, &Monitor::setH);
     connect(inter, &MonitorInter::EnabledChanged, mon, &Monitor::setMonitorEnable);
-    connect(inter, &MonitorInter::ModesChanged, mon, &Monitor::setMonitorModes);
     // NOTE: DO NOT using async dbus call. because we need to have a unique name to distinguish each monitor
     Q_ASSERT(inter->isValid());
     mon->setName(inter->name());
@@ -85,11 +83,9 @@ void MultiScreenManager::monitorAdded(const QString &path)
     mon->setY(inter->y());
     mon->setW(inter->width());
     mon->setH(inter->height());
-    mon->setMonitorModes(inter->modes());
-    mon->setPrimary(m_displayInter.primary());
-    mon->setDisplayMode(m_displayInter.displayMode());
 
-    qDebug() << "Add monitor:" << mon->name() << mon->rect();
+    mon->setPrimary(m_displayInter.primary());
+
     m_frameMoniter[mon] = m_registerMonitorFun(mon);
     startRaiseContentFrame();
 }
@@ -105,7 +101,6 @@ void MultiScreenManager::monitorRemoved(const QString &path)
     }
     if (!monitor)
         return;
-    qDebug() << "Remove monitor:" << monitor->name() << monitor->rect();
     m_frameMoniter[monitor]->deleteLater();
     m_frameMoniter.remove(monitor);
     monitor->deleteLater();
