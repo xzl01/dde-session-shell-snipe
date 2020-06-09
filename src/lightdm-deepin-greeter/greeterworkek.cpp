@@ -322,6 +322,8 @@ void GreeterWorkek::authenticationComplete()
 
     m_authenticating = false;
 
+    emit m_model->authFinished(m_greeter->isAuthenticated());
+
     if (!m_greeter->isAuthenticated()) {
         if (m_password.isEmpty()) {
             qDebug() << "Request GreeterWorkek::authenticationComplete -- fingerprint auth fail" << m_model->currentUser()->name();
