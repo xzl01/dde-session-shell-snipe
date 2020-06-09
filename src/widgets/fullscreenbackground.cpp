@@ -309,10 +309,7 @@ void FullscreenBackground::updateMonitor(Monitor *monitor)
 
     if (monitor) {
         connect(monitor, &Monitor::geometryChanged, this, &FullscreenBackground::updateMonitorGeometry);
-        connect(monitor, &Monitor::enableChanged, this, [&](bool isEnable){
-            if(!isEnable)
-                this->setVisible(isEnable);
-        });
+        connect(monitor, &Monitor::enableChanged, this, &FullscreenBackground::setVisible);
     }
 
     m_monitor = monitor;
