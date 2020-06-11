@@ -226,6 +226,9 @@ void GreeterWorkek::oneKeyLogin()
         switchToUser(user_ptr);
         m_model->setCurrentUser(user_ptr);
         userAuthForLightdm(user_ptr);
+        QTimer::singleShot(300, this, [ = ] {
+            m_firstTimeLogin = false;
+        });
     } else {
         m_firstTimeLogin = false;
         onCurrentUserChanged(m_lockInter->CurrentUser());
