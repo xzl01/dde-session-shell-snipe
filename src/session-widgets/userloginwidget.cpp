@@ -388,6 +388,24 @@ void UserLoginWidget::mousePressEvent(QMouseEvent *event)
     emit clicked();
 }
 
+void UserLoginWidget::keyPressEvent(QKeyEvent *event)
+{
+    switch (event->key()) {
+    case Qt::Key_CapsLock:
+        //网上找到的方法判断caps键状态
+        if (event->nativeModifiers()==0) {
+            //Caps Lock is A
+            emit capslockStatusChanged(true);
+        } else {
+            //Caps Lock is a event->nativeModifiers()==2
+            emit capslockStatusChanged(false);
+        }
+        break;
+    default:
+        break;
+    }
+}
+
 void UserLoginWidget::paintEvent(QPaintEvent *event)
 {
     Q_UNUSED(event);
@@ -552,6 +570,7 @@ void UserLoginWidget::initConnect()
     connect(m_kbLayoutWidget, &KbLayoutWidget::setButtonClicked, m_kbLayoutBorder, &DArrowRectangle::hide);
     //大小写锁定状态改变
     connect(m_capslockMonitor, &KeyboardMonitor::capslockStatusChanged, m_passwordEdit, &DPasswordEditEx::capslockStatusChanged);
+    connect(this,&UserLoginWidget::capslockStatusChanged,m_passwordEdit, &DPasswordEditEx::capslockStatusChanged);
     connect(m_passwordEdit, &DPasswordEditEx::toggleKBLayoutWidget, this, &UserLoginWidget::toggleKBLayoutWidget);
     connect(m_passwordEdit, &DPasswordEditEx::selectionChanged, this, &UserLoginWidget::hidePasswordEditMessage);
 }
