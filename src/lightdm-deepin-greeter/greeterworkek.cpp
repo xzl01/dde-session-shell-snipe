@@ -40,7 +40,6 @@ GreeterWorkek::GreeterWorkek(SessionBaseModel *const model, QObject *parent)
                                          QDBusConnection::systemBus(), this))
     , m_isThumbAuth(false)
     , m_authenticating(false)
-    , m_firstTimeLogin(true)
     , m_password(QString())
 {
     if (m_AuthenticateInter->isValid()) {
@@ -212,10 +211,6 @@ void GreeterWorkek::checkDBusServer(bool isvalid)
 
 void GreeterWorkek::oneKeyLogin()
 {
-    if (!m_firstTimeLogin) {
-        onCurrentUserChanged(m_lockInter->CurrentUser());
-        return;
-    }
     // 多用户一键登陆
     auto user_firstlogin = m_AuthenticateInter->PreOneKeyLogin(AuthFlag::Fingerprint);
     user_firstlogin.waitForFinished();
@@ -223,14 +218,9 @@ void GreeterWorkek::oneKeyLogin()
 
     auto user_ptr = m_model->findUserByName(user_firstlogin);
     if (user_ptr.get() != nullptr && !user_firstlogin.isError()) {
-        switchToUser(user_ptr);
         m_model->setCurrentUser(user_ptr);
         userAuthForLightdm(user_ptr);
-        QTimer::singleShot(300, this, [ = ] {
-            m_firstTimeLogin = false;
-        });
     } else {
-        m_firstTimeLogin = false;
         onCurrentUserChanged(m_lockInter->CurrentUser());
     }
 }
@@ -239,11 +229,6 @@ void GreeterWorkek::onCurrentUserChanged(const QString &user)
 {
     const QJsonObject obj = QJsonDocument::fromJson(user.toUtf8()).object();
     m_currentUserUid = static_cast<uint>(obj["Uid"].toInt());
-
-    if (m_firstTimeLogin) {
-        qDebug() << "Request Auth_GreeterWorkek::onCurrentUserChanged -- first time login and return";
-        return;
-    }
 
     for (std::shared_ptr<User> user_ptr : m_model->userList()) {
         if (!user_ptr->isLogin() && user_ptr->uid() == m_currentUserUid) {
