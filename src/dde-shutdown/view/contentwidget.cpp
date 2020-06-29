@@ -186,8 +186,6 @@ bool ContentWidget::handleKeyPress(QKeyEvent *event)
 void ContentWidget::resizeEvent(QResizeEvent *event)
 {
     QFrame::resizeEvent(event);
-
-    m_buttonSpacer->changeSize(0, (height() - m_shutdownButton->height()) / 2);
 }
 
 bool ContentWidget::event(QEvent *event)
@@ -609,7 +607,7 @@ void ContentWidget::initUI()
     QVBoxLayout *defaultpageLayout = new QVBoxLayout;
     buttonLayout->setMargin(0);
     buttonLayout->setSpacing(10);
-    buttonLayout->addStretch();
+    buttonLayout->addStretch(1);
     buttonLayout->addWidget(m_shutdownButton);
     buttonLayout->addWidget(m_restartButton);
     buttonLayout->addWidget(m_suspendButton);
@@ -618,7 +616,7 @@ void ContentWidget::initUI()
     buttonLayout->addWidget(m_switchUserBtn);
     if(m_switchSystemBtn) buttonLayout->addWidget(m_switchSystemBtn);
     buttonLayout->addWidget(m_logoutButton);
-    buttonLayout->addStretch(0);
+    buttonLayout->addStretch(1);
 
     defaultpageLayout->setMargin(0);
 #ifdef QT_DEBUG
@@ -627,9 +625,9 @@ void ContentWidget::initUI()
     defaultpageLayout->addWidget(m_debugHint);
     defaultpageLayout->setAlignment(m_debugHint, Qt::AlignCenter);
 #endif // QT_DEBUG
-    defaultpageLayout->addSpacerItem(m_buttonSpacer = new QSpacerItem(0, 0));
+    defaultpageLayout->addStretch(1);
     defaultpageLayout->addLayout(buttonLayout);
-    defaultpageLayout->addStretch();
+    defaultpageLayout->addStretch(1);
     m_normalView->setLayout(defaultpageLayout);
 
     m_mainLayout = new QStackedLayout;
