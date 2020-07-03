@@ -395,10 +395,12 @@ void UserLoginWidget::keyPressEvent(QKeyEvent *event)
         //网上找到的方法判断caps键状态
         if (event->nativeModifiers()==0) {
             //Caps Lock is A
-            emit capslockStatusChanged(true);
+            WriteFileCapsStatus("A");
+            emit capslockStatusChanged(true);    
         } else {
             //Caps Lock is a event->nativeModifiers()==2
-            emit capslockStatusChanged(false);
+            WriteFileCapsStatus("a");
+            emit capslockStatusChanged(false); 
         }
         break;
     default:
@@ -461,9 +463,28 @@ void UserLoginWidget::initUI()
     m_passwordEdit->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
     m_passwordEdit->setFixedHeight(DDESESSIONCC::PASSWDLINEEDIT_HEIGHT);
     m_passwordEdit->lineEdit()->setAlignment(Qt::AlignCenter);
-    m_passwordEdit->capslockStatusChanged(m_capslockMonitor->isCapslockOn());
+    //m_passwordEdit->capslockStatusChanged(m_capslockMonitor->isCapslockOn());
     m_passwordEdit->lineEdit()->setFocusPolicy(Qt::StrongFocus);
     m_passwordEdit->lineEdit()->installEventFilter(this);
+
+    //临时解决方案:（libinput未找到方法获取静态Caps按键状态）Task:28261，
+    //通过快捷键调用dde-osd的显示时，写入当前Caps状态到文件,在dde-session-shell锁屏等初始化UI时获取Caps按键状态显示
+    QFile file("/tmp/caps_stu");
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        //系统初始登录时，创建caps_stu使用,更改权限,供dde-osd显示状态读取写入
+        QProcess::execute("touch /tmp/caps_stu");
+        QProcess::execute("chmod 777 /tmp/caps_stu");
+        QProcess::execute("echo a > /tmp/caps_stu");//default caps status
+        m_passwordEdit->capslockStatusChanged(false);
+    }else {
+        QByteArray capsStuStr = file.readAll();
+        if (QString(capsStuStr) == "A")
+            m_passwordEdit->capslockStatusChanged(true);
+        else
+            m_passwordEdit->capslockStatusChanged(false);
+
+        file.close();
+    }
 
     m_kbLayoutBorder->hide();
     m_kbLayoutBorder->setBackgroundColor(QColor(102, 102, 102));    //255*0.2
@@ -720,6 +741,35 @@ void UserLoginWidget::updateNameLabel()
     if (width > labelMaxWidth) {
         QString str = m_nameLbl->fontMetrics().elidedText(m_name, Qt::ElideRight, labelMaxWidth);
         m_nameLbl->setText(str);
+    }
+}
+
+//读取caps状态值，大写返回True 小写返回False
+bool UserLoginWidget::ReadFileCapsStatus()
+{
+    QFile file("/tmp/caps_stu");
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        return false;
+    }else {
+        QByteArray capsStuStr = file.readAll();
+        file.close();
+        if (QString(capsStuStr) == "A")
+            return true;
+        else
+            return false;
+    }
+}
+
+//写入的caps状态值，通过session-shell界面上操作读取/写入最新Caps状态
+void UserLoginWidget::WriteFileCapsStatus(QByteArray val)
+{
+    QFile file("/tmp/caps_stu");
+    if (!file.open(QIODevice::ReadWrite | QIODevice::Text)) {
+        qDebug() << "Open file /tmp/caps_stu Error";
+    }else {
+        file.flush();
+        file.write(val);
+        file.close();
     }
 }
 

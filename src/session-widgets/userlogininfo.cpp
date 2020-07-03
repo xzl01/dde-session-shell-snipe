@@ -34,6 +34,7 @@ UserLoginInfo::UserLoginInfo(SessionBaseModel *model, QObject *parent)
     , m_userLoginWidget(new UserLoginWidget)
     , m_userExpiredWidget(new UserExpiredWidget)
     , m_userFrameList(new UserFrameList)
+    , m_sessionManager(new SessionManager("com.deepin.SessionManager", "/com/deepin/SessionManager", QDBusConnection::sessionBus(), this))
 {
     m_userLoginWidget->setWidgetWidth(DDESESSIONCC::PASSWDLINEEIDT_WIDTH);
     m_userExpiredWidget->setFixedWidth(DDESESSIONCC::PASSWDLINEEIDT_WIDTH);
@@ -119,6 +120,15 @@ void UserLoginInfo::initConnect()
     connect(m_userFrameList, &UserFrameList::clicked, this, &UserLoginInfo::hideUserFrameList);
     connect(m_userFrameList, &UserFrameList::requestSwitchUser, this, &UserLoginInfo::receiveSwitchUser);
     connect(m_model, &SessionBaseModel::abortConfirmChanged, this, &UserLoginInfo::abortConfirm);
+
+    connect(m_sessionManager,&SessionManager::LockedChanged,this,[=](bool v) {
+        if (v) {
+            //锁屏变化时更新caps状态显示
+            bool on = m_userLoginWidget->ReadFileCapsStatus();
+            qDebug() << "lockchanged & caps state: " << on;
+            emit m_userLoginWidget->capslockStatusChanged(on);
+        }
+    });
 }
 
 void UserLoginInfo::abortConfirm(bool abort)

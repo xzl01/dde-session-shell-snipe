@@ -27,6 +27,13 @@
 
 #include <memory>
 
+#include "src/global_util/dbus/dbuslockservice.h"
+//#include "src/global_util/dbus/dbuslogin1manager.h"
+
+#include <com_deepin_sessionmanager.h>
+
+using SessionManager = com::deepin::SessionManager;
+
 class User;
 class UserLoginWidget;
 class UserExpiredWidget;
@@ -68,6 +75,8 @@ private:
     QPointer<UserExpiredWidget> m_userExpiredWidget;
     UserFrameList *m_userFrameList;
     QList<QMetaObject::Connection> m_currentUserConnects;
+    SessionManager *m_sessionManager;
+    DBusLockService *m_lockInter;
 };
 
 #endif // USERLOGININFO_H
