@@ -63,7 +63,7 @@ void ControlWidget::initUI()
     m_virtualKBBtn->hide();
     m_virtualKBBtn->setIconSize(BUTTON_ICON_SIZE);
     m_virtualKBBtn->setFixedSize(BUTTON_SIZE);
-    m_virtualKBBtn->setFocusPolicy(Qt::ClickFocus);
+    m_virtualKBBtn->setFocusPolicy(Qt::TabFocus);
     m_virtualKBBtn->setAutoExclusive(true);
     m_virtualKBBtn->setBackgroundRole(DPalette::Button);
     m_virtualKBBtn->installEventFilter(this);
@@ -74,7 +74,7 @@ void ControlWidget::initUI()
     m_switchUserBtn->setIcon(QIcon::fromTheme(":/img/bottom_actions/userswitch_normal.svg"));
     m_switchUserBtn->setIconSize(BUTTON_ICON_SIZE);
     m_switchUserBtn->setFixedSize(BUTTON_SIZE);
-    m_switchUserBtn->setFocusPolicy(Qt::ClickFocus);
+    m_switchUserBtn->setFocusPolicy(Qt::TabFocus);
     m_switchUserBtn->setAutoExclusive(true);
     m_switchUserBtn->setBackgroundRole(DPalette::Button);
     m_switchUserBtn->installEventFilter(this);
@@ -83,7 +83,7 @@ void ControlWidget::initUI()
     m_powerBtn->setIcon(QIcon(":/img/bottom_actions/shutdown_normal.svg"));
     m_powerBtn->setIconSize(BUTTON_ICON_SIZE);
     m_powerBtn->setFixedSize(BUTTON_SIZE);
-    m_powerBtn->setFocusPolicy(Qt::ClickFocus);
+    m_powerBtn->setFocusPolicy(Qt::TabFocus);
     m_powerBtn->setAutoExclusive(true);
     m_powerBtn->setBackgroundRole(DPalette::Button);
     m_powerBtn->installEventFilter(this);
@@ -158,7 +158,7 @@ void ControlWidget::setSessionSwitchEnable(const bool visible)
         m_sessionBtn->setFixedSize(BUTTON_SIZE);
         m_sessionBtn->setAutoExclusive(true);
         m_sessionBtn->setBackgroundRole(DPalette::Button);
-        m_sessionBtn->setFocusPolicy(Qt::ClickFocus);
+        m_sessionBtn->setFocusPolicy(Qt::TabFocus);
 #ifndef SHENWEI_PLATFORM
         m_sessionBtn->installEventFilter(this);
 #else
@@ -351,6 +351,14 @@ void ControlWidget::focusOutEvent(QFocusEvent *)
     }
     break;
     case FocusHasIn: {
+        while (m_btnList.at(m_index)->isVisible() == false) {
+            m_index++;
+            if (m_index >= m_btnList.length()) {
+                m_index = m_btnList.length() - 1;
+                break;
+            }
+        }
+
         m_btnList.at(m_index)->setFocus();
     }
     break;
