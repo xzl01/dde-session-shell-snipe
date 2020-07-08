@@ -39,7 +39,7 @@ LoginWindow::LoginWindow(SessionBaseModel *const model, QWidget *parent)
     });
 
     setContent(m_loginContent);
-    m_loginContent->hide();
+    m_loginContent->show();
 
     connect(m_loginContent, &LockContent::requestBackground, this, [ = ](const QString & wallpaper) {
         updateBackground(wallpaper);
