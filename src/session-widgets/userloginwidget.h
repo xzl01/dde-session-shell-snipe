@@ -129,6 +129,7 @@ private:
     void refreshKBLayoutWidgetPosition();
     void receiveUserKBLayoutChanged(const QString &layout);
     void updateNameLabel();
+    void resetPowerIcon();
 
 private:
     DBlurEffectWidget *m_blurEffectWidget;         //阴影窗体
@@ -156,10 +157,11 @@ private:
     QHBoxLayout *m_nameLayout;
     QFrame *m_nameFrame;
     uint m_uid;
-    bool m_isAlertMessageShow;                             //判断密码错误提示是否显示
+    bool m_isAlertMessageShow;                     //判断密码错误提示是否显示
     QString m_name;
-    QTimer *timer;                                     //切换图标计时器
+    QTimer *timer;                                 //切换图标计时器
     int index = 0;
+    int m_action;                                  //重启或关机行为记录
 };
 
 #endif // USERLOGINWIDGET_H

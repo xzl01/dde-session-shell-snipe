@@ -52,9 +52,11 @@ LockWorker::LockWorker(SessionBaseModel *const model, QObject *parent)
             m_sessionManager->RequestHibernate();
             break;
         case SessionBaseModel::PowerAction::RequireRestart:
+            m_authFramework->Authenticate(m_model->currentUser());
             model->setPowerAction(SessionBaseModel::PowerAction::RequireRestart);
             return;
         case SessionBaseModel::PowerAction::RequireShutdown:
+            m_authFramework->Authenticate(m_model->currentUser());
             model->setPowerAction(SessionBaseModel::PowerAction::RequireShutdown);
             return;
         default:

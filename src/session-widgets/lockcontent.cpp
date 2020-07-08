@@ -221,7 +221,8 @@ void LockContent::onStatusChanged(SessionBaseModel::ModeStatus status)
 
 void LockContent::mouseReleaseEvent(QMouseEvent *event)
 {
-    if (m_model->currentModeState() == SessionBaseModel::ModeStatus::ConfirmPasswordMode)
+    if (m_model->currentModeState() == SessionBaseModel::ModeStatus::ConfirmPasswordMode ||
+        m_model->currentModeState() == SessionBaseModel::ModeStatus::PasswordMode)
         m_model->setAbortConfirm(false);
     else {
         restoreCenterContent();
