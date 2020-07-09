@@ -38,8 +38,6 @@
 #include <QDir>
 #include <DGuiApplicationHelper>
 
-#define SESSION_SHELL 0x00800000
-
 DGUI_USE_NAMESPACE
 
 FullscreenBackground::FullscreenBackground(QWidget *parent)
@@ -52,7 +50,7 @@ FullscreenBackground::FullscreenBackground(QWidget *parent)
 //    if(DGuiApplicationHelper::isXWindowPlatform()) {
 //        setWindowFlags(Qt::WindowStaysOnTopHint | Qt::X11BypassWindowManagerHint);
 //    } else {
-        setWindowFlags(windowFlags() | Qt::WindowStaysOnTopHint | Qt::FramelessWindowHint | Qt::Window | static_cast<Qt::WindowFlags>(SESSION_SHELL));
+        setWindowFlags(windowFlags() | Qt::WindowStaysOnTopHint | Qt::FramelessWindowHint | Qt::Window);
 //    }
 #endif
 
