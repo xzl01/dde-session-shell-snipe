@@ -231,8 +231,13 @@ void UserLoginWidget::updateUI()
 
 void UserLoginWidget::ShutdownPrompt(SessionBaseModel::PowerAction action)
 {
-    m_action = action;
-    resetPowerIcon();
+    if (action == SessionBaseModel::PowerAction::RequireRestart) {
+        m_lockButton->setIcon(QIcon(":/img/bottom_actions/reboot.svg"));
+    } else if (action == SessionBaseModel::PowerAction::RequireShutdown) {
+        m_lockButton->setIcon(QIcon(":/img/bottom_actions/shutdown.svg"));
+    } else {
+        m_lockButton->setIcon(DStyle::SP_LockElement);
+    }
 }
 
 bool UserLoginWidget::inputInfoCheck(bool is_server)
@@ -762,17 +767,6 @@ void UserLoginWidget::WriteFileCapsStatus(QByteArray val)
         file.flush();
         file.write(val);
         file.close();
-    }
-}
-
-void UserLoginWidget::resetPowerIcon()
-{
-    if (m_action == SessionBaseModel::PowerAction::RequireRestart) {
-        m_lockButton->setIcon(QIcon(":/img/bottom_actions/reboot.svg"));
-    } else if (m_action == SessionBaseModel::PowerAction::RequireShutdown) {
-        m_lockButton->setIcon(QIcon(":/img/bottom_actions/shutdown.svg"));
-    } else {
-        m_lockButton->setIcon(DStyle::SP_LockElement);
     }
 }
 

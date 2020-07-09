@@ -80,6 +80,12 @@ void DPasswordEditEx::initUI()
     m_capsButton->setIcon(QIcon(":/icons/dedpin/builtin/caps_lock.svg"));
     m_capsButton->setFixedWidth(m_capsButton->iconSize().width());
 
+    //设置禁止输入中文
+    QRegExp reg("^((?![\u4e00-\u9fa5]).)*");
+    QValidator*validator = new QRegExpValidator(reg);
+    this->lineEdit()->setValidator(validator);
+    this->lineEdit()->setAttribute(Qt::WA_InputMethodEnabled, false);
+
     QHBoxLayout *layout = new QHBoxLayout;
     layout->addWidget(m_KBButton);
     layout->addStretch();
