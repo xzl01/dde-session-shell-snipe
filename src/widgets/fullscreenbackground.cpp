@@ -54,6 +54,8 @@ FullscreenBackground::FullscreenBackground(QWidget *parent)
 //    }
 #endif
 
+    setAttribute(Qt::WA_NativeWindow);
+    windowHandle()->setProperty("_d_dwayland_window-type", "session-shell");
     QPalette pal(this->palette());
     pal.setColor(QPalette::Background, QColor(0,0,0,0));
     this->setAutoFillBackground(true);

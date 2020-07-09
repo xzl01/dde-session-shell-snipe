@@ -125,7 +125,6 @@ int main(int argc, char *argv[])
             dbusAgent->addFrame(frame);
             //frame->setScreen(screen);
             frame->setMonitor(monitor);
-            frame->setWindowFlags(frame->windowFlags() | Qt::X11BypassWindowManagerHint);
             property_group->addObject(frame);
             QDBusInterface *inter = nullptr;
             if (qEnvironmentVariable("XDG_SESSION_TYPE").toLower().contains("wayland")) {
