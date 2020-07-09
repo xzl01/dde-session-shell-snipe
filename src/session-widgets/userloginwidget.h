@@ -129,6 +129,7 @@ private:
     void refreshKBLayoutWidgetPosition();
     void receiveUserKBLayoutChanged(const QString &layout);
     void updateNameLabel();
+    void updatePowerAction();
 
 private:
     DBlurEffectWidget *m_blurEffectWidget;         //阴影窗体
@@ -137,6 +138,7 @@ private:
     DPasswordEditEx *m_passwordEdit;               //密码输入框
     LockPasswordWidget *m_lockPasswordWidget;      //密码锁定后,错误信息提示框
     SessionBaseModel::AuthType m_authType;         //认证类型
+    SessionBaseModel::PowerAction m_powerAction;   //电源行为
     DLineEditEx *m_accountEdit;
     DFloatingButton *m_lockButton;                 //解锁按钮
     DArrowRectangle *m_kbLayoutBorder;             //键盘布局异性框类

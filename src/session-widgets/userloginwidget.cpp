@@ -231,13 +231,8 @@ void UserLoginWidget::updateUI()
 
 void UserLoginWidget::ShutdownPrompt(SessionBaseModel::PowerAction action)
 {
-    if (action == SessionBaseModel::PowerAction::RequireRestart) {
-        m_lockButton->setIcon(QIcon(":/img/bottom_actions/reboot.svg"));
-    } else if (action == SessionBaseModel::PowerAction::RequireShutdown) {
-        m_lockButton->setIcon(QIcon(":/img/bottom_actions/shutdown.svg"));
-    } else {
-        m_lockButton->setIcon(DStyle::SP_LockElement);
-    }
+    m_powerAction = action;
+    updatePowerAction();
 }
 
 bool UserLoginWidget::inputInfoCheck(bool is_server)
@@ -741,6 +736,23 @@ void UserLoginWidget::updateNameLabel()
     }
 }
 
+/**
+* @brief UserLoginWidget::updatePowerAction 根据电源行为更新解锁按键图标
+*/
+void UserLoginWidget::updatePowerAction()
+{
+    if (m_powerAction == SessionBaseModel::PowerAction::RequireRestart) {
+        m_lockButton->setIcon(QIcon(":/img/bottom_actions/reboot.svg"));
+    } else if (m_powerAction == SessionBaseModel::PowerAction::RequireShutdown) {
+        m_lockButton->setIcon(QIcon(":/img/bottom_actions/shutdown.svg"));
+    } else {
+        if (m_authType == SessionBaseModel::LightdmType)
+            m_lockButton->setIcon(DStyle::SP_ArrowNext);
+        else
+            m_lockButton->setIcon(DStyle::SP_LockElement);
+    }
+}
+
 //读取caps状态值，大写返回True 小写返回False
 bool UserLoginWidget::ReadFileCapsStatus()
 {
@@ -807,7 +819,7 @@ void UserLoginWidget::unlockFailedAni()
             delete timer;
             timer = nullptr;
             index = 0;
-            m_lockButton->setIcon(DStyle::SP_LockElement);
+            updatePowerAction();
         }
     });
     timer->start(20);
