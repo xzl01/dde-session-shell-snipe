@@ -310,7 +310,13 @@ void GreeterWorkek::authenticationComplete()
 
     m_authenticating = false;
 
-    emit m_model->authFinished(m_greeter->isAuthenticated());
+    if (m_greeter->isAuthenticated()) {
+        QTimer::singleShot(1200, this, [ = ] {
+            emit m_model->authFinished(true);
+        });
+    } else {
+        emit m_model->authFinished(false);
+    }
 
     if (!m_greeter->isAuthenticated()) {
         if (m_password.isEmpty()) {
@@ -364,12 +370,9 @@ void GreeterWorkek::authenticationComplete()
 
     // NOTE(kirigaya): It is not necessary to display the login animation.
     emit requestUpdateBackground(m_model->currentUser()->desktopBackgroundPath());
-    QTimer::singleShot(200, this, [&](){
-        emit m_model->authFinished(true);
-    });
 
 #ifndef DISABLE_LOGIN_ANI
-    QTimer::singleShot(1000, this, startSessionSync);
+    QTimer::singleShot(1200, this, startSessionSync);
 #else
     startSessionSync();
 #endif

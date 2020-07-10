@@ -92,8 +92,6 @@ void UserLoginWidget::resetAllState()
 //密码连续输入错误5次，设置提示信息
 void UserLoginWidget::setFaildMessage(const QString &message, SessionBaseModel::AuthFaildType type)
 {
-    qDebug() << "fun setFaildMessage";
-    qDebug() << "message" << message;
     if (m_isLock && !message.isEmpty()) {
         m_lockPasswordWidget->setMessage(message);
         m_accountEdit->lineEdit()->setEnabled(false);
@@ -116,7 +114,6 @@ void UserLoginWidget::setFaildMessage(const QString &message, SessionBaseModel::
 //密码输入错误,设置错误信息
 void UserLoginWidget::setFaildTipMessage(const QString &message, SessionBaseModel::AuthFaildType type)
 {
-    qDebug() << "setFaildMessage()" << message;
     m_accountEdit->lineEdit()->setEnabled(true);
     m_passwordEdit->hideLoadSlider();
 
