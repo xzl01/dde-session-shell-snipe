@@ -451,6 +451,7 @@ void UserLoginWidget::initUI()
     m_passwordEdit->lineEdit()->setContextMenuPolicy(Qt::NoContextMenu);
     m_passwordEdit->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
     m_passwordEdit->setFixedHeight(DDESESSIONCC::PASSWDLINEEDIT_HEIGHT);
+    m_passwordEdit->setFixedWidth(DDESESSIONCC::PASSWDLINEEIDT_WIDTH);
     m_passwordEdit->lineEdit()->setAlignment(Qt::AlignCenter);
     //m_passwordEdit->capslockStatusChanged(m_capslockMonitor->isCapslockOn());
     m_passwordEdit->lineEdit()->setFocusPolicy(Qt::StrongFocus);
@@ -481,8 +482,8 @@ void UserLoginWidget::initUI()
     m_kbLayoutBorder->setBorderWidth(0);
     m_kbLayoutBorder->setMargin(0);
     m_kbLayoutBorder->setContent(m_kbLayoutWidget);
-    m_kbLayoutBorder->setFixedWidth(DDESESSIONCC::PASSWDLINEEIDT_WIDTH);
-    m_kbLayoutWidget->setFixedWidth(DDESESSIONCC::PASSWDLINEEIDT_WIDTH);
+    m_kbLayoutBorder->setFixedWidth(DDESESSIONCC::LAYOUTBUTTON_WIDTH);
+    m_kbLayoutWidget->setFixedWidth(DDESESSIONCC::LAYOUTBUTTON_WIDTH);
 
     m_lockPasswordWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
     m_lockPasswordWidget->setLockIconVisible(false);

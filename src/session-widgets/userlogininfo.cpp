@@ -36,8 +36,8 @@ UserLoginInfo::UserLoginInfo(SessionBaseModel *model, QObject *parent)
     , m_userFrameList(new UserFrameList)
     , m_sessionManager(new SessionManager("com.deepin.SessionManager", "/com/deepin/SessionManager", QDBusConnection::sessionBus(), this))
 {
-    m_userLoginWidget->setWidgetWidth(DDESESSIONCC::PASSWDLINEEIDT_WIDTH);
-    m_userExpiredWidget->setFixedWidth(DDESESSIONCC::PASSWDLINEEIDT_WIDTH);
+    m_userLoginWidget->setWidgetWidth(DDESESSIONCC::LAYOUTBUTTON_WIDTH);
+    m_userExpiredWidget->setFixedWidth(DDESESSIONCC::LAYOUTBUTTON_WIDTH);
     m_userFrameList->setModel(model);
     initConnect();
 }

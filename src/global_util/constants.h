@@ -35,7 +35,8 @@ namespace DDESESSIONCC
 static const QString CONFIG_FILE("/var/lib/AccountsService/users/");
 static const QString DEFAULT_CURSOR_THEME("/usr/share/icons/default/index.theme");
 static const QString LAST_USER_CONFIG("/var/lib/lightdm/lightdm-deepin-greeter");
-static const int PASSWDLINEEIDT_WIDTH = 280;
+static const int PASSWDLINEEIDT_WIDTH = 260;
+static const int LAYOUTBUTTON_WIDTH =  280;
 static const int PASSWDLINEEDIT_HEIGHT = 36;
 static const int LAYOUTBUTTON_HEIGHT =  36;
 
