@@ -181,8 +181,15 @@ void FullscreenBackground::paintEvent(QPaintEvent *e)
     painter.setRenderHint(QPainter::SmoothPixmapTransform);
     const float current_ani_value = m_fadeOutAni->currentValue().toFloat();
 
-    const QRect trueRect(QPoint(0, 0), QSize(size() * devicePixelRatioF()));
+    QRect backRect;
+    if (m_monitor)
+        backRect = QRect(m_monitor->rect().x(), m_monitor->rect().y(),
+                         m_monitor->rect().width()/qApp->primaryScreen()->devicePixelRatio(),
+                         m_monitor->rect().height()/qApp->primaryScreen()->devicePixelRatio());
+    else
+        backRect = QRect(QPoint(0, 0), size());
 
+    const QRect trueRect(QPoint(0, 0), QSize(backRect.size()));
     if (!m_background.isNull()) {
         // tr is need redraw rect, sourceRect need correct upper left corner
         painter.drawPixmap(trueRect,
@@ -215,7 +222,15 @@ void FullscreenBackground::leaveEvent(QEvent *event)
 
 void FullscreenBackground::resizeEvent(QResizeEvent *event)
 {
-    m_content->resize(size());
+    if (m_monitor) {
+        QRect backRect(m_monitor->rect().x(), m_monitor->rect().y(),
+                       m_monitor->rect().width()/qApp->primaryScreen()->devicePixelRatio(),
+                       m_monitor->rect().height()/qApp->primaryScreen()->devicePixelRatio());
+        m_content->resize(backRect.size());
+        setGeometry(backRect);
+    } else {
+        m_content->resize(size());
+    }
 
     m_backgroundCache = pixmapHandle(m_background);
     m_fakeBackgroundCache = pixmapHandle(m_fakeBackground);
