@@ -141,14 +141,14 @@ void MultiUsersWarningView::setAction(const Actions action)
 
 void MultiUsersWarningView::toggleButtonState()
 {
-    if (m_actionBtn->isChecked()) {
-        m_actionBtn->setChecked(false);
-        m_cancelBtn->setChecked(true);
-        m_currentBtn = m_cancelBtn;
-    } else {
+    if (m_actionBtn->hasFocus()) {
         m_cancelBtn->setChecked(false);
         m_actionBtn->setChecked(true);
         m_currentBtn = m_actionBtn;
+    } else {
+        m_actionBtn->setChecked(false);
+        m_cancelBtn->setChecked(true);
+        m_currentBtn = m_cancelBtn;
     }
 }
 

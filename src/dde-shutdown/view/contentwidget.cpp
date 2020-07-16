@@ -124,7 +124,12 @@ bool ContentWidget::handleKeyPress(QKeyEvent *event)
     switch (event->key()) {
     case Qt::Key_Escape: onCancel(); break;
     case Qt::Key_Return:
-    case Qt::Key_Enter: enterKeyPushed(); break;
+    case Qt::Key_Enter: {
+        if (m_warningView)
+            m_warningView->toggleButtonState();
+        enterKeyPushed();
+        break;
+    }
     case Qt::Key_Tab: {
         if (m_systemMonitor && m_currentSelectedBtn->isVisible() && m_systemMonitor->isVisible()) {
             if (m_currentSelectedBtn && m_currentSelectedBtn->isChecked()) {
