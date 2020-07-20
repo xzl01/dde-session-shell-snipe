@@ -70,22 +70,6 @@ User::User(QObject *parent)
     m_lockTimer->setInterval(1000 * 60);
     m_lockTimer->setSingleShot(false);
     connect(m_lockTimer.get(), &QTimer::timeout, this, &User::onLockTimeOut);
-    QFile openFile("/var/lib/lightdm/1.json");
-    if(!openFile.open(QIODevice::ReadOnly)) {
-        qDebug() << "File open error";
-        return ;
-    } else {
-        QByteArray allData = openFile.readAll();
-        QJsonDocument jsonDocRead(QJsonDocument::fromJson(allData));
-        QJsonObject rootObj = jsonDocRead.object();
-        m_isLock = rootObj["isLock"].toBool();
-        m_startTime = time_t(rootObj["startTime"].toInt());
-        if (m_isLock) {
-            m_tryNum = 0;
-            startLock(false);
-        }
-        openFile.close();
-    }
 }
 
 User::User(const User &user)
@@ -100,6 +84,11 @@ User::User(const User &user)
     , m_lockTimer(user.m_lockTimer)
 {
 
+}
+
+User::~User()
+{
+    userInfoRecordOperate(false);
 }
 
 bool User::operator==(const User &user) const
@@ -186,21 +175,72 @@ void User::onLockTimeOut()
         m_lockTimer->start();
     }
 
+    QJsonObject userValue;
+    userValue.insert("isLock", m_isLock);
+    userValue.insert("startTime", int(time(nullptr)));
+
+    userInfoRecordOperate(true, userValue);
+
+    emit lockChanged(m_tryNum == 0);
+}
+
+/**
+ * @brief 检查用户账户本地存储信息
+ */
+void User::checkUserInfo()
+{
+    QFile openFile("/var/lib/lightdm/1.json");
+    if(!openFile.open(QIODevice::ReadOnly)) {
+        qDebug() << "File open error";
+        return ;
+    } else {
+        QString strUid = QString::number(m_uid);
+        QByteArray allData = openFile.readAll();
+        QJsonDocument jsonDocRead(QJsonDocument::fromJson(allData));
+        openFile.close();
+        QJsonObject rootObj = jsonDocRead.object();
+        if (rootObj.contains(strUid)) {
+            QJsonValue jsonValue = rootObj.value(strUid);
+            if (jsonValue.isObject()) {
+                QJsonObject usrValue = jsonValue.toObject();
+                m_isLock = usrValue["isLock"].toBool();
+                m_startTime = time_t(usrValue["startTime"].toInt());
+                if (m_isLock) {
+                    m_tryNum = 0;
+                    startLock(false);
+                }
+            }
+        }
+    }
+}
+
+/**
+ * @brief 用户记录信息增删操作
+ */
+void User::userInfoRecordOperate(bool add, const QJsonObject &value)
+{
     QFile file("/var/lib/lightdm/1.json");
     if(!file.open( QIODevice::ReadWrite)) {
         qDebug() << "File open error";
+        return;
     }
+    QString strUid = QString::number(m_uid);
+    QJsonParseError Jsonerror;
+    QByteArray allData = file.readAll();
+    QJsonDocument jsonDoc(QJsonDocument::fromJson(allData, &Jsonerror));
+    qDebug() << Jsonerror.errorString();
+    QJsonObject jsonObject = jsonDoc.object();
 
-    QJsonObject jsonObject;
-    jsonObject.insert("isLock", m_isLock);
-    jsonObject.insert("startTime", int(time(nullptr)));
-    QJsonDocument jsonDoc;
+    if (add)
+        jsonObject.insert(strUid, value);
+    else
+        jsonObject.remove(strUid);
+
     jsonDoc.setObject(jsonObject);
 
+    file.resize(0);
     file.write(jsonDoc.toJson());
     file.close();
-
-    emit lockChanged(m_tryNum == 0);
 }
 
 NativeUser::NativeUser(const QString &path, QObject *parent)
@@ -236,6 +276,7 @@ NativeUser::NativeUser(const QString &path, QObject *parent)
     m_locale = m_userInter->locale();
 
     setPath(path);
+    checkUserInfo();
 }
 
 void NativeUser::setCurrentLayout(const QString &layout)
@@ -296,6 +337,7 @@ ADDomainUser::ADDomainUser(uint uid, QObject *parent)
     : User(parent)
 {
     m_uid = uid;
+    checkUserInfo();
 }
 
 void ADDomainUser::setUserDisplayName(const QString &name)

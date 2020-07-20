@@ -24,6 +24,7 @@ public:
 
     User(QObject *parent);
     User(const User &user);
+    ~User();
 
 signals:
     void displayNameChanged(const QString &displayname) const;
@@ -72,6 +73,12 @@ public:
     virtual QStringList kbLayoutList() { return QStringList(); }
     virtual QString currentKBLayout() { return QString(); }
     void onLockTimeOut();
+
+protected:
+    void checkUserInfo();
+
+private:
+    void userInfoRecordOperate(bool add, const QJsonObject &value = QJsonObject());
 
 protected:
     bool m_isLogind;
