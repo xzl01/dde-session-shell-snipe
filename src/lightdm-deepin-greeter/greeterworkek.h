@@ -50,6 +50,7 @@ private:
     Authenticate      *m_AuthenticateInter;
     bool               m_isThumbAuth;
     bool               m_authenticating;
+    bool               m_showAuthResult;
     QString            m_password;
 };
 

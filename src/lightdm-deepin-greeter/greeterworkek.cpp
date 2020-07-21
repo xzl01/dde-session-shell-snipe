@@ -40,6 +40,7 @@ GreeterWorkek::GreeterWorkek(SessionBaseModel *const model, QObject *parent)
                                          QDBusConnection::systemBus(), this))
     , m_isThumbAuth(false)
     , m_authenticating(false)
+    , m_showAuthResult(false)
     , m_password(QString())
 {
     if (m_AuthenticateInter->isValid()) {
@@ -220,6 +221,7 @@ void GreeterWorkek::oneKeyLogin()
     if (user_ptr.get() != nullptr && !user_firstlogin.isError()) {
         m_model->setCurrentUser(user_ptr);
         userAuthForLightdm(user_ptr);
+        m_showAuthResult = true;
     } else {
         onCurrentUserChanged(m_lockInter->CurrentUser());
     }
@@ -311,9 +313,15 @@ void GreeterWorkek::authenticationComplete()
     m_authenticating = false;
 
     if (m_greeter->isAuthenticated()) {
-        QTimer::singleShot(1200, this, [ = ] {
+        if (m_showAuthResult) {
+            // s5一键开机登陆时需要显示认证成功
+            m_showAuthResult = false;
+            QTimer::singleShot(1200, this, [ = ] {
+                emit m_model->authFinished(true);
+            });
+        } else {
             emit m_model->authFinished(true);
-        });
+        }
     } else {
         emit m_model->authFinished(false);
     }
