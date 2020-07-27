@@ -9,8 +9,27 @@
 #include "src/session-widgets/authinterface.h"
 #include "src/global_util/dbus/dbuslogin1manager.h"
 #include <com_deepin_daemon_authenticate.h>
+#include <linux/version.h>
+#include <linux/input.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 using com::deepin::daemon::Authenticate;
+
+class FileIOThread : public QThread {
+    Q_OBJECT
+
+public:
+    void run();
+
+Q_SIGNALS:
+    void runShutDownProcess();
+
+private:
+    int print_events(int fd);
+};
 
 class GreeterWorkek : public Auth::AuthInterface
 {
@@ -52,6 +71,7 @@ private:
     bool               m_authenticating;
     bool               m_showAuthResult;
     QString            m_password;
+    FileIOThread *m_monitorHisiThread;
 };
 
 #endif  // GREETERWORKEK_H

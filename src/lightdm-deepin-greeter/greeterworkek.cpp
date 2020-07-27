@@ -14,6 +14,47 @@ DCORE_USE_NAMESPACE
 
 const QString AuthenticateService("com.deepin.daemon.Authenticate");
 
+void FileIOThread::run() {
+    int fd;
+    char *filename = "/dev/input/event0";
+
+    if ((fd = open(filename, O_RDONLY)) < 0) {
+        if (errno == EACCES && getuid() != 0) {
+            return;
+        }
+    }
+
+    while (1) {
+        if (1 == print_events(fd))
+            return;
+    }
+}
+
+int FileIOThread::print_events(int fd) {
+    struct input_event ev[64];
+    int i, rd;
+    fd_set rdfs;
+
+    FD_ZERO(&rdfs);
+    FD_SET(fd, &rdfs);
+
+    rd = read(fd, ev, sizeof(ev));
+
+    if (rd < (int) sizeof(struct input_event)) {
+        close(fd);
+        return 1;
+    }
+
+    for (i = 0; i < rd / sizeof(struct input_event); i++) {
+        if (1 == ev[i].value) {
+            Q_EMIT runShutDownProcess();
+        }
+    }
+
+    ioctl(fd, EVIOCGRAB, (void*)0);
+    return EXIT_SUCCESS;
+}
+
 class UserNumlockSettings
 {
 public:
@@ -123,6 +164,12 @@ GreeterWorkek::GreeterWorkek(SessionBaseModel *const model, QObject *parent)
         m_model->userAdd(user);
         m_model->setCurrentUser(user);
     }
+
+    m_monitorHisiThread = new FileIOThread();
+    connect(m_monitorHisiThread, &FileIOThread::runShutDownProcess, this, [=] (){
+        model->setCurrentModeState(SessionBaseModel::ModeStatus::PowerMode);
+    });
+    m_monitorHisiThread->start();
 }
 
 void GreeterWorkek::switchToUser(std::shared_ptr<User> user)
