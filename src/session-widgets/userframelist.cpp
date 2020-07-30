@@ -44,6 +44,11 @@ UserFrameList::UserFrameList(QWidget *parent)
     initUI();
 }
 
+UserFrameList::~UserFrameList()
+{
+    delete currentSelectedUser;
+}
+
 //设置SessionBaseModel，创建用户列表窗体
 void UserFrameList::setModel(SessionBaseModel *model)
 {

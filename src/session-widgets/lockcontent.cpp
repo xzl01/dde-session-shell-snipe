@@ -124,6 +124,11 @@ LockContent::LockContent(SessionBaseModel *const model, QWidget *parent)
     });
 }
 
+LockContent::~LockContent()
+{
+    delete m_userLoginInfo;
+}
+
 void LockContent::onCurrentUserChanged(std::shared_ptr<User> user)
 {
     if (user.get() == nullptr) return; // if dbus is async

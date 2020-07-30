@@ -55,6 +55,7 @@ signals:
 
 public slots:
     void showUserList();
+    void visibleChangedFrame(bool isVisible);
 
 protected:
     void keyPressEvent(QKeyEvent *e) Q_DECL_OVERRIDE;

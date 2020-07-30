@@ -45,6 +45,7 @@ class UserLoginInfo : public QObject
     Q_OBJECT
 public:
     explicit UserLoginInfo(SessionBaseModel *model, QObject *parent = nullptr);
+    ~UserLoginInfo();
     void initConnect();
     void setUser(std::shared_ptr<User> user);
     UserLoginWidget *getUserLoginWidget();

@@ -42,6 +42,7 @@ class UserFrameList : public QWidget
     Q_OBJECT
 public:
     explicit UserFrameList(QWidget *parent = nullptr);
+    ~UserFrameList();
     void setModel(SessionBaseModel *model);
 
 signals:

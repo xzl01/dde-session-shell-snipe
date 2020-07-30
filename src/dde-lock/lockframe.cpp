@@ -65,6 +65,32 @@ void LockFrame::showUserList()
     m_model->setCurrentModeState(SessionBaseModel::ModeStatus::UserMode);
 }
 
+void LockFrame::visibleChangedFrame(bool isVisible)
+{
+    QDBusInterface *inter = nullptr;
+    QDBusInterface *inter1 = nullptr;
+    if (qEnvironmentVariable("XDG_SESSION_TYPE").toLower().contains("wayland")) {
+        inter = new QDBusInterface("org.kde.KWin", "/kglobalaccel", "org.kde.KGlobalAccel",
+                                                  QDBusConnection::sessionBus(), this);
+        inter1 = new QDBusInterface("org.kde.KWin", "/KWin", "org.kde.KWin",
+                                                  QDBusConnection::sessionBus(), this);
+    }
+
+    if (inter) {
+        auto req = inter->call("blockGlobalShortcuts", isVisible);
+        auto req1 = inter1->call("disableHotKeysForClient", isVisible);
+    }
+    QDBusInterface launcherInter("com.deepin.dde.Launcher", "/com/deepin/dde/Launcher", "com.deepin.dde.Launcher"
+                                 , QDBusConnection::sessionBus());
+    launcherInter.call("Hide");
+    if (isVisible) {
+        updateMonitorGeometry();
+        show();
+    } else {
+        setVisible(isVisible);
+    }
+}
+
 void LockFrame::keyPressEvent(QKeyEvent *e)
 {
     switch (e->key()) {
@@ -94,5 +120,6 @@ void LockFrame::hideEvent(QHideEvent *event)
 
 LockFrame::~LockFrame()
 {
-
+    //+ 防止插拔HDMI显示屏出现崩溃问题，需要析构时调用对应delete释放资源；
+    delete m_content;
 }
