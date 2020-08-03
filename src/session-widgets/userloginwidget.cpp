@@ -728,6 +728,7 @@ void UserLoginWidget::updateNameLabel()
     if (m_loginLabel->isVisible())
         labelMaxWidth -= (m_loginLabel->pixmap()->width() + Margins);
 
+    m_nameLbl->setFixedWidth(labelMaxWidth);
     if (width > labelMaxWidth) {
         QString str = m_nameLbl->fontMetrics().elidedText(m_name, Qt::ElideRight, labelMaxWidth);
         m_nameLbl->setText(str);
