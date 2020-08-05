@@ -106,8 +106,6 @@ public slots:
     void hidePasswordEditMessage();
     void unlockSuccessAni();
     void unlockFailedAni();
-    bool ReadFileCapsStatus();
-    void WriteFileCapsStatus(QByteArray val);
 
 protected:
     void resizeEvent(QResizeEvent *event) override;

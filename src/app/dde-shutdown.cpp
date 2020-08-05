@@ -158,18 +158,6 @@ int main(int argc, char *argv[])
             });
             QObject::connect(frame, &ShutdownFrame::buttonClicked, frame, [ = ](const Actions action)
             {
-                if (action == Actions::Logout) {
-                    //注销时，caps会自动灯灭，更新caps状态为小写
-                    QFile file("/tmp/caps_stu");
-                    if (!file.open(QIODevice::ReadWrite | QIODevice::Text)) {
-                        qDebug() << "Open file /tmp/caps_stu Error";
-                    }else {
-                        file.flush();
-                        file.write("a");
-                        file.close();
-                    }
-                }
-
                 dbusAgent->sync(action);
             });
 

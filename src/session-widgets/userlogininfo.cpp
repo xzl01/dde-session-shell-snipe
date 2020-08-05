@@ -125,13 +125,17 @@ void UserLoginInfo::initConnect()
     connect(m_userFrameList, &UserFrameList::clicked, this, &UserLoginInfo::hideUserFrameList);
     connect(m_userFrameList, &UserFrameList::requestSwitchUser, this, &UserLoginInfo::receiveSwitchUser);
     connect(m_model, &SessionBaseModel::abortConfirmChanged, this, &UserLoginInfo::abortConfirm);
-
     connect(m_sessionManager,&SessionManager::LockedChanged,this,[=](bool v) {
         if (v) {
             //锁屏变化时更新caps状态显示
-            bool on = m_userLoginWidget->ReadFileCapsStatus();
-            qDebug() << "lockchanged & caps state: " << on;
-            emit m_userLoginWidget->capslockStatusChanged(on);
+            QDBusInterface *inter =nullptr;
+            inter = new QDBusInterface("com.deepin.daemon.Keybinding",
+                                            "/com/deepin/daemon/Keybinding",
+                                                "com.deepin.daemon.Keybinding",
+                                                    QDBusConnection::sessionBus(),this);
+            QDBusReply<qint32> reply = inter->call("GetCapsLockState");
+            m_userLoginWidget->capslockStatusChanged(reply.value()==1 ? true : false);
+            inter->deleteLater();
         }
     });
 }

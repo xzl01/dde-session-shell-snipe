@@ -27,9 +27,6 @@
 
 #include <memory>
 
-#include "src/global_util/dbus/dbuslockservice.h"
-//#include "src/global_util/dbus/dbuslogin1manager.h"
-
 #include <com_deepin_sessionmanager.h>
 
 using SessionManager = com::deepin::SessionManager;
@@ -77,7 +74,6 @@ private:
     UserFrameList *m_userFrameList;
     QList<QMetaObject::Connection> m_currentUserConnects;
     SessionManager *m_sessionManager;
-    DBusLockService *m_lockInter;
 };
 
 #endif // USERLOGININFO_H
