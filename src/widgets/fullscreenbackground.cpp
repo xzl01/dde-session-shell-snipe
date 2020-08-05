@@ -91,45 +91,47 @@ void FullscreenBackground::updateBackground (const QString &file)
         image.loadFromData ( (const unsigned char *) memory.data(), memory.size());
         if (image.isNull()) {
             qDebug() << "input background: " << file << " is invalid image file.";
-            findSystemDefaultImage (image);
+            image.load(getBlurBackground(file));
         }
         memory.detach();
     } else {
-        if (QFile::exists (file)) {
-            image.load (file);
-        } else {
-            findSystemDefaultImage (image);
-        }
+        image.load(getBlurBackground(file));
     }
+
     updateBackground (image);
 }
 
-void FullscreenBackground::findSystemDefaultImage (QPixmap& image)
+QString FullscreenBackground::getBlurBackground (const QString &file)
 {
     auto isPicture = [] (const QString & filePath) {
         return QFile::exists (filePath) && QFile (filePath).size() && !QPixmap (filePath).isNull() ;
     };
 
-    QString bgPath;
-    QDir dir ("/usr/share/wallpapers/deepin");
-    if (dir.exists()) {
-        dir.setFilter (QDir::Files);
-        QFileInfoList list = dir.entryInfoList();
-        foreach (QFileInfo f, list) {
-            if (f.baseName() == "desktop") {
-                bgPath = f.filePath();
-                break;
+    QString bg_path = file;
+    if(!isPicture(bg_path)) {
+        QDir dir ("/usr/share/wallpapers/deepin");
+        if (dir.exists()) {
+            dir.setFilter (QDir::Files);
+            QFileInfoList list = dir.entryInfoList();
+            foreach (QFileInfo f, list) {
+                if (f.baseName() == "desktop") {
+                    bg_path = f.filePath();
+                    break;
+                }
             }
         }
+
+        if (!QFile::exists (bg_path)) {
+            bg_path = DEFAULT_BACKGROUND;
+        }
     }
-    if (!QFile::exists (bgPath)) {
-        bgPath = DEFAULT_BACKGROUND;
-    }
-    QString imageEffect = m_imageEffectInter->Get ("", bgPath);
+
+    QString imageEffect = m_imageEffectInter->Get ("", bg_path);
     if (!isPicture (imageEffect)) {
-        imageEffect = bgPath;
+        imageEffect = DEFAULT_BACKGROUND;
     }
-    image.load (imageEffect);
+
+    return imageEffect;
 }
 
 

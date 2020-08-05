@@ -80,7 +80,7 @@ private:
 
 private:
     void updateScreen(QScreen *screen);
-    void findSystemDefaultImage (QPixmap& image);
+    QString getBlurBackground(const QString &file);
     void updateGeometry();
     using QWidget::setGeometry;
     using QWidget::resize;
