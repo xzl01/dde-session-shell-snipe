@@ -52,12 +52,28 @@ void MultiScreenManager::onMonitorsChanged(const QList<QDBusObjectPath> & mons)
 
     qDebug() << mons.size();
     QList<QString> pathList;
+    QList<Monitor *> monitors;
+    Monitor *primaryMonitor;
     for (const auto op : mons) {
         const QString path = op.path();
         pathList << path;
         qDebug() << path;
-        if (!ops.contains(path))
-            monitorAdded(path);
+        if (!ops.contains(path)) {
+           Monitor *monitor = monitorAdded(path);
+           // 主屏队列后移
+            if (monitor->isPrimary()) {
+                primaryMonitor = monitor;
+                continue;
+            }
+            monitors << monitor;
+        }
+    }
+    monitors << primaryMonitor;
+
+    // 主屏最后new，保证多屏复制模式下显示在最上面，wayland环境下，widget->raise()函数不生效
+    for (Monitor *mon : monitors) {
+        m_frameMoniter[mon] = m_registerMonitorFun(mon);
+        startRaiseContentFrame();
     }
 
     for (const auto op : ops)
@@ -65,7 +81,7 @@ void MultiScreenManager::onMonitorsChanged(const QList<QDBusObjectPath> & mons)
             monitorRemoved(op);
 }
 
-void MultiScreenManager::monitorAdded(const QString &path)
+Monitor *MultiScreenManager::monitorAdded(const QString &path)
 {
     MonitorInter *inter = new MonitorInter("com.deepin.daemon.Display", path, QDBusConnection::sessionBus(), this);
     Monitor *mon = new Monitor(this);
@@ -87,8 +103,7 @@ void MultiScreenManager::monitorAdded(const QString &path)
     mon->setMonitorModes(inter->modes());
     mon->setPrimary(m_displayInter.primary());
 
-    m_frameMoniter[mon] = m_registerMonitorFun(mon);
-    startRaiseContentFrame();
+    return mon;
 }
 
 void MultiScreenManager::monitorRemoved(const QString &path)

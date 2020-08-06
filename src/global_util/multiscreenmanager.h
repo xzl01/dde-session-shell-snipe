@@ -25,7 +25,7 @@ public:
     void onMonitorsChanged(const QList<QDBusObjectPath> & mons);
 private:
     void raiseContentFrame();
-    void monitorAdded(const QString &path);
+    Monitor *monitorAdded(const QString &path);
     void monitorRemoved(const QString &path);
 
 private:

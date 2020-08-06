@@ -24,6 +24,7 @@ public:
     inline const QString name() const { Q_ASSERT(!m_name.isEmpty()); return m_name; }
     inline const QString path() const { return m_path; }
     inline bool enable() const { return m_enable; }
+    inline bool isPrimary() {return m_primary == m_name; }
 
 Q_SIGNALS:
     void geometryChanged() const;
