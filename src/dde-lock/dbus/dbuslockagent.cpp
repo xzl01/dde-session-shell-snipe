@@ -16,7 +16,7 @@ void DBusLockAgent::setModel(SessionBaseModel *const model)
 
 void DBusLockAgent::Show()
 {
-    if (!isDeepinAuth()) {
+    if (QFile::exists(ICBC_CONF_FILE)) {
         return;
     }
     InternalShow();
@@ -24,7 +24,7 @@ void DBusLockAgent::Show()
 
 void DBusLockAgent::ShowAuth(bool active)
 {
-    if (!isDeepinAuth()) {
+    if (QFile::exists(ICBC_CONF_FILE)) {
         return;
     }
     Show();
@@ -70,7 +70,7 @@ void DBusLockAgent::SwitchTTYAndShow()
 
 void DBusLockAgent::SwitchTTY() 
 {
-    QDBusMessage send = QDBusMessage::createMethodCall("org.freedesktop.login1","/org/freedesktop/login1/session/self","org.freedesktop.login1.Session","Activate");
+    QDBusMessage send = QDBusMessage::createMethodCall("org.freedesktop.login1", "/org/freedesktop/login1/session/self", "org.freedesktop.login1.Session","Activate");
     QDBusMessage ret = QDBusConnection::systemBus().call(send);
     if (ret.type() == QDBusMessage::ErrorMessage) {
         qWarning() << "call org.freedesktop.login1 /org/freedesktop/login1/session/self org.freedesktop.login1.Session Activate error: " << ret;
@@ -89,7 +89,7 @@ void DBusLockAgent::InternalShow()
 
 void DBusLockAgent::ShowUserList()
 {
-    if (!isDeepinAuth()) {
+    if (QFile::exists(ICBC_CONF_FILE)) {
         return;
     }
     emit m_model->showUserList();

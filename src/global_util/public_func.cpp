@@ -87,24 +87,24 @@ QString readSharedImage(uid_t uid, int purpose)
     return shareKey;
 }
 
-
 /**
- * @brief 是否使用域管认证。
- *
- * @return true 使用域管认证
- * @return false 使用系统认证
+ * @brief 判断某一个GSettings是否已安装且指定的键的值是否为true
+ * 
+ * @param id GSettings的ID
+ * @param path GSettings的路径
+ * @param keyName 键名
+ * @return true true表示已配置为true
+ * @return false false表示GSettings未安装或已安装但其值被设置为false
  */
-bool isDeepinAuth()
+bool isSettingConfigured(const QString& id, const QString& path, const QString keyName) 
 {
-    const char* controlId = "com.deepin.dde.auth.control";
-    const char* controlPath = "/com/deepin/dde/auth/control/";
-    if (QGSettings::isSchemaInstalled (controlId)) {
-        QGSettings controlObj (controlId, controlPath);
-        bool bUseDeepinAuth =  controlObj.get ("use-deepin-auth").toBool();
-    #ifdef QT_DEBUG
-        qDebug() << "----------use deepin auth: " << bUseDeepinAuth;
-    #endif
-        return bUseDeepinAuth;
+    if (!QGSettings::isSchemaInstalled(id.toUtf8())) {
+        return false;
     }
-    return true;
+    QGSettings setting(id.toUtf8(), path.toUtf8());
+    QVariant v = setting.get(keyName);
+    if (!v.isValid()) {
+        return false;
+    }
+    return v.toBool();
 }

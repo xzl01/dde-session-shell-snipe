@@ -33,6 +33,8 @@
 #include <QSettings>
 #include <QString>
 
+#define ICBC_CONF_FILE "/etc/deepin/icbc.conf"
+
 QPixmap loadPixmap(const QString &file);
 
 /**
@@ -67,11 +69,14 @@ T findValueByQSettings(const QStringList &configFiles,
 }
 
 /**
- * @brief 是否使用深度认证，不使用域管认证。
+ * @brief 判断某一个GSettings是否已安装且指定的键的值是否为true
  * 
- * @return true 使用深度认证
- * @return false 使用域管认证
+ * @param id GSettings的ID
+ * @param path GSettings的路径
+ * @param keyName 键名
+ * @return true true表示已配置为true
+ * @return false false表示GSettings未安装或已安装但其值被设置为false
  */
-bool isDeepinAuth();
+bool isSettingConfigured(const QString& id, const QString& path, const QString keyName);
 
 #endif // PUBLIC_FUNC_H

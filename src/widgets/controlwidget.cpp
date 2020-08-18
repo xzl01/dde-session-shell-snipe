@@ -24,6 +24,7 @@
  */
 
 #include "controlwidget.h"
+#include "src/global_util/public_func.h"
 
 #include <QHBoxLayout>
 #include <dimagebutton.h>
@@ -83,14 +84,18 @@ void ControlWidget::initUI()
     m_powerBtn->installEventFilter(this);
 
     m_btnList.append(m_virtualKBBtn);
-    m_btnList.append(m_switchUserBtn);
+    if (!QFile::exists(ICBC_CONF_FILE)) {
+        m_btnList.append(m_switchUserBtn);
+    }
     m_btnList.append(m_powerBtn);
 
     m_mainLayout->setMargin(0);
     m_mainLayout->setSpacing(26);
     m_mainLayout->addStretch();
     m_mainLayout->addWidget(m_virtualKBBtn, 0, Qt::AlignBottom);
-    m_mainLayout->addWidget(m_switchUserBtn, 0, Qt::AlignBottom);
+    if (!QFile::exists(ICBC_CONF_FILE)) {
+        m_mainLayout->addWidget(m_switchUserBtn, 0, Qt::AlignBottom);
+    }
     m_mainLayout->addWidget(m_powerBtn, 0, Qt::AlignBottom);
     m_mainLayout->addSpacing(60);
 
@@ -129,8 +134,12 @@ void ControlWidget::hideTips()
 
 void ControlWidget::setUserSwitchEnable(const bool visible)
 {
-    m_switchUserBtn->setVisible(visible);
-    if (!visible) {
+    bool bVisible =  visible;
+    if (QFile::exists(ICBC_CONF_FILE)) {
+        bVisible = false;
+    }
+    m_switchUserBtn->setVisible(bVisible);
+    if (!bVisible) {
         m_focusState = FocusNo;
         setFocusPolicy(Qt::TabFocus);
     }
