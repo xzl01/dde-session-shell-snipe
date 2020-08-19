@@ -27,7 +27,7 @@ void DBusLockAgent::ShowAuth(bool active)
     if (!isDeepinAuth()) {
         return;
     }
-    qDebug() << "DBusLockAgent::ShowAuth signal disabled.";
+    Show();
     emit m_model->activeAuthChanged(!active);
 }
 
