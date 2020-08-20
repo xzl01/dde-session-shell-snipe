@@ -129,7 +129,6 @@ void UserFrameList::onUserClicked()
 
     currentSelectedUser = widget;
     emit requestSwitchUser(m_model->findUserByUid(widget->uid()));
-    emit clicked();
 }
 
 

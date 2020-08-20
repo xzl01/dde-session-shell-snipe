@@ -121,14 +121,22 @@ void UserLoginInfo::initConnect()
     //UserFrameList
     connect(m_userFrameList, &UserFrameList::clicked, this, &UserLoginInfo::hideUserFrameList);
     connect(m_userFrameList, &UserFrameList::requestSwitchUser, this, &UserLoginInfo::receiveSwitchUser);
-    connect(m_model, &SessionBaseModel::abortConfirmChanged, this, &UserLoginInfo::abortConfirm);
+    connect(m_model, &SessionBaseModel::abortConfirmChanged, this, &UserLoginInfo::onAbortConfirmChanged);
 
+}
+
+void UserLoginInfo::onAbortConfirmChanged(bool abort)
+{
+    if (!abort) {
+        m_model->setCurrentModeState(SessionBaseModel::ModeStatus::PasswordMode);
+    }
+
+    abortConfirm(abort);
 }
 
 void UserLoginInfo::abortConfirm(bool abort)
 {
     if (!abort) {
-        m_model->setCurrentModeState(SessionBaseModel::ModeStatus::PasswordMode);
         m_model->setPowerAction(SessionBaseModel::PowerAction::RequireNormal);
     }
 
