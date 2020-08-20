@@ -381,18 +381,21 @@ bool ContentWidget::beforeInvokeAction(const Actions action)
                 break;
             }
         }
-        view->setAcceptVisible(isAccept);
 
-        if (action == Shutdown)
+        if (action == Shutdown) {
             view->setAcceptReason(tr("Shut down"));
-        else if (action == Restart || action == SwitchSystem)
+            view->setAcceptVisible(isAccept);
+        } else if (action == Restart || action == SwitchSystem) {
             view->setAcceptReason(tr("Reboot"));
-        else if (action == Suspend)
+            view->setAcceptVisible(isAccept);
+        } else if (action == Suspend)
             view->setAcceptReason(tr("Suspend"));
         else if (action == Hibernate)
             view->setAcceptReason(tr("Hibernate"));
-        else if (action == Logout)
+        else if (action == Logout) {
             view->setAcceptReason(tr("Log out"));
+            view->setAcceptVisible(isAccept);
+        }
 
         m_warningView = view;
         m_mainLayout->addWidget(m_warningView);
@@ -493,8 +496,20 @@ void ContentWidget::shutDownFrameActions(const Actions action)
     switch (action) {
     case Shutdown:       m_sessionInterface->RequestShutdown();      break;
     case Restart:        m_sessionInterface->RequestReboot();        break;
-    case Suspend:        m_sessionInterface->RequestSuspend();       break;
-    case Hibernate:      m_sessionInterface->RequestHibernate();     break;
+    case Suspend: {
+        //mark sp2 RequestSuspend
+        //m_model->setIsShow(false);
+        //QTimer::singleShot(200, this, [ = ] {m_sessionInterface->RequestSuspend();});
+        m_sessionInterface->RequestSuspend();
+        break;
+    }
+    case Hibernate: {
+        //mark sp2 RequestHibernate
+        //m_model->setIsShow(false);
+        //QTimer::singleShot(200, this, [ = ] {m_sessionInterface->RequestHibernate();});
+        m_sessionInterface->RequestHibernate();
+        break;
+    }
     case Lock:           m_sessionInterface->RequestLock();          break;
     case Logout:         m_sessionInterface->RequestLogout();        break;
     case SwitchSystem: {
@@ -521,6 +536,7 @@ void ContentWidget::shutDownFrameActions(const Actions action)
 
 void ContentWidget::currentWorkspaceChanged()
 {
+    //mark sp2有更新,但是依赖dde-kwin的sp2版本,所以回退到0102的提交
     QDBusPendingCall call = m_wmInter->GetCurrentWorkspaceBackground();
     QDBusPendingCallWatcher *watcher = new QDBusPendingCallWatcher(call, this);
     connect(watcher, &QDBusPendingCallWatcher::finished, [ = ] {
@@ -555,7 +571,17 @@ void ContentWidget::updateWallpaper(const QString &path)
 
 void ContentWidget::onUserListChanged(QList<std::shared_ptr<User> > list)
 {
-    m_switchUserBtn->setVisible(list.size() > 1);
+    const bool allowShowUserSwitchButton = m_model->allowShowUserSwitchButton();
+    const bool alwaysShowUserSwitchButton = m_model->alwaysShowUserSwitchButton();
+    bool haveLogindUser = true;
+
+    if (m_model->isServerModel() && m_model->currentType() == SessionBaseModel::LightdmType) {
+        haveLogindUser = !m_model->logindUser().isEmpty();
+    }
+    m_switchUserBtn->setVisible((alwaysShowUserSwitchButton ||
+                                          (allowShowUserSwitchButton &&
+                                          (list.size() > (m_model->isServerModel() ? 0 : 1)))) &&
+                                          haveLogindUser);
 }
 
 void ContentWidget::enableHibernateBtn(bool enable)

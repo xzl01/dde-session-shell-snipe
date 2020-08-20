@@ -33,6 +33,7 @@
 #include <DGuiApplicationHelper>
 
 #include <DLog>
+#include <unistd.h>
 
 #include "src/dde-shutdown/app/shutdownframe.h"
 #include "src/session-widgets/sessionbasemodel.h"
@@ -96,7 +97,7 @@ int main(int argc, char *argv[])
 
     QDBusConnection session = QDBusConnection::sessionBus();
     if (!session.registerService(DBUS_NAME) ||
-            !app.setSingleInstance(QString("dde-shutdown"), DApplication::UserScope)) {
+            !app.setSingleInstance(QString("dde-shutdown%1").arg(getuid()), DApplication::UserScope)) {
         qWarning() << "dde-shutdown is running...";
 
         if (!parser.isSet(daemon)) {
@@ -180,6 +181,8 @@ int main(int argc, char *argv[])
 
         return app.exec();
     }
+
+
 
     qWarning() << "have unknow error!";
     return -1;

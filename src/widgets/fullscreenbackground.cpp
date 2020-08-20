@@ -37,8 +37,11 @@
 #include <QWindow>
 #include <QDir>
 #include <DGuiApplicationHelper>
+#include <unistd.h>
+#include "src/session-widgets/framedatabind.h"
 
 DGUI_USE_NAMESPACE
+#define  DEFAULT_BACKGROUND "/usr/share/backgrounds/default_background.jpg"
 
 FullscreenBackground::FullscreenBackground(QWidget *parent)
     : QWidget(parent)
@@ -71,6 +74,10 @@ FullscreenBackground::FullscreenBackground(QWidget *parent)
     connect(m_fadeOutAni, &QVariantAnimation::valueChanged, this, static_cast<void (FullscreenBackground::*)()>(&FullscreenBackground::update));
 }
 
+FullscreenBackground::~FullscreenBackground()
+{
+}
+
 bool FullscreenBackground::contentVisible() const
 {
     return m_content && m_content->isVisible();
@@ -90,51 +97,71 @@ void FullscreenBackground::updateBackground(const QPixmap &background)
 
 void FullscreenBackground::updateBackground(const QString &file)
 {
-    qDebug() << "input background: " << file;
+    //mark 会导致延greeter的背景及用户头像, 有比较明显延时刷出
+    QPixmap image;
+    QSharedMemory memory (file);
+    if (memory.attach()) {
+        image.loadFromData ( (const unsigned char *) memory.data(), memory.size());
+        if (image.isNull()) {
+            qDebug() << "input background: " << file << " is invalid image file.";
+            image.load(getBlurBackground(file));
+        }
+        memory.detach();
+    } else {
+        image.load(getBlurBackground(file));
+    }
 
-    auto isPicture = [](const QString &filePath){
-        return QFile::exists(filePath) && QFile(filePath).size() && !QPixmap(filePath).isNull() ;
+    updateBackground (image);
+}
+
+QString FullscreenBackground::getBlurBackground (const QString &file)
+{
+    auto isPicture = [] (const QString & filePath) {
+        return QFile::exists (filePath) && QFile (filePath).size() && !QPixmap (filePath).isNull() ;
     };
 
-    const QUrl url(file);
-    if (url.isLocalFile())
-        return updateBackground(url.path());
-
-    if (m_bgPath == file)
-        return;
-
-    if (isPicture(file)) {
-        m_bgPath = file;
-
-    } else {
-        QDir dir("/usr/share/wallpapers/deepin");
+    QString bg_path = file;
+    if (!isPicture(bg_path)) {
+        QDir dir ("/usr/share/wallpapers/deepin");
         if (dir.exists()) {
-            dir.setFilter(QDir::Files);
+            dir.setFilter (QDir::Files);
             QFileInfoList list = dir.entryInfoList();
             foreach (QFileInfo f, list) {
                 if (f.baseName() == "desktop") {
-                    m_bgPath = f.filePath();
+                    bg_path = f.filePath();
                     break;
                 }
             }
         }
 
-        if (!QFile::exists(m_bgPath)) {
-            m_bgPath = "/usr/share/backgrounds/default_background.jpg";
+        if (!QFile::exists (bg_path)) {
+            bg_path = DEFAULT_BACKGROUND;
         }
     }
 
-    QString imageEffect = m_imageEffectInter->Get("", m_bgPath);
+    QString imageEffect = m_imageEffectInter->Get ("", bg_path);
+    if (!isPicture (imageEffect)) {
+        imageEffect = DEFAULT_BACKGROUND;
+    }
 
-    if (!isPicture(imageEffect)) imageEffect = m_bgPath;
-
-    updateBackground(QPixmap(imageEffect));
-
-    Q_ASSERT(QFileInfo(m_bgPath).isFile());
+    return imageEffect;
 }
+
 
 void FullscreenBackground::setScreen(QScreen *screen)
 {
+    QScreen *primary_screen = QGuiApplication::primaryScreen();
+    if(primary_screen == screen) {
+        m_content->show();
+        m_primaryShowFinished = true;
+        emit contentVisibleChanged(true);
+    } else {
+        QTimer::singleShot(1000, this, [ = ] {
+            m_primaryShowFinished = true;
+            setMouseTracking(true);
+        });
+    }
+
     updateScreen(screen);
 }
 
@@ -165,12 +192,30 @@ void FullscreenBackground::setContentVisible(bool contentVisible)
 
 void FullscreenBackground::setContent(QWidget *const w)
 {
-    Q_ASSERT(m_content.isNull());
+    //Q_ASSERT(m_content.isNull());
 
     m_content = w;
     m_content->setParent(this);
     m_content->raise();
     m_content->move(0, 0);
+}
+
+void FullscreenBackground::setIsBlackMode(bool is_black)
+{
+    if(m_isBlackMode == is_black) return;
+
+    m_isBlackMode = is_black;
+    FrameDataBind::Instance()->updateValue("PrimaryShowFinished", !is_black);
+    m_content->setVisible(!is_black);
+    emit contentVisibleChanged(!is_black);
+
+    update();
+}
+
+void FullscreenBackground::setIsHibernateMode(){
+    updateGeometry();
+    m_content->show();
+    emit contentVisibleChanged(true);
 }
 
 void FullscreenBackground::paintEvent(QPaintEvent *e)
@@ -190,27 +235,33 @@ void FullscreenBackground::paintEvent(QPaintEvent *e)
         backRect = QRect(QPoint(0, 0), size());
 
     const QRect trueRect(QPoint(0, 0), QSize(backRect.size()));
-    if (!m_background.isNull()) {
-        // tr is need redraw rect, sourceRect need correct upper left corner
-        painter.drawPixmap(trueRect,
-                           m_backgroundCache,
-                           QRect(trueRect.topLeft(), trueRect.size() * m_backgroundCache.devicePixelRatioF()));
-    }
+    if(!m_isBlackMode) {
+        if (!m_background.isNull()) {
+            // tr is need redraw rect, sourceRect need correct upper left corner
+            painter.drawPixmap(trueRect,
+                               m_backgroundCache,
+                               QRect(trueRect.topLeft(), trueRect.size() * m_backgroundCache.devicePixelRatioF()));
+        }
 
-    if (!m_fakeBackground.isNull()) {
-        // draw background
-        painter.setOpacity(current_ani_value);
-        painter.drawPixmap(trueRect,
-                           m_fakeBackgroundCache,
-                           QRect(trueRect.topLeft(), trueRect.size() * m_fakeBackgroundCache.devicePixelRatioF()));
-        painter.setOpacity(1);
+        if (!m_fakeBackground.isNull()) {
+            // draw background
+            painter.setOpacity(current_ani_value);
+            painter.drawPixmap(trueRect,
+                               m_fakeBackgroundCache,
+                               QRect(trueRect.topLeft(), trueRect.size() * m_fakeBackgroundCache.devicePixelRatioF()));
+            painter.setOpacity(1);
+        }
+    } else {
+        painter.fillRect(trueRect, Qt::black);
     }
 }
 
 void FullscreenBackground::enterEvent(QEvent *event)
 {
-    m_content->show();
-    emit contentVisibleChanged(true);
+    if(m_primaryShowFinished) {
+        m_content->show();
+        emit contentVisibleChanged(true);
+    }
 
     return QWidget::enterEvent(event);
 }
@@ -236,6 +287,14 @@ void FullscreenBackground::resizeEvent(QResizeEvent *event)
     m_fakeBackgroundCache = pixmapHandle(m_fakeBackground);
 
     return QWidget::resizeEvent(event);
+}
+
+void FullscreenBackground::mouseMoveEvent(QMouseEvent *event)
+{
+    m_content->show();
+    emit contentVisibleChanged(true);
+
+    return QWidget::mouseMoveEvent(event);
 }
 
 void FullscreenBackground::keyPressEvent(QKeyEvent *e)
@@ -270,9 +329,9 @@ void FullscreenBackground::showEvent(QShowEvent *event)
 const QPixmap FullscreenBackground::pixmapHandle(const QPixmap &pixmap)
 {
     const QSize trueSize { size() *devicePixelRatioF() };
-    QPixmap pix = pixmap.scaled(trueSize,
-                                Qt::KeepAspectRatioByExpanding,
-                                Qt::SmoothTransformation);
+    QPixmap pix;
+    if (!pixmap.isNull())
+        pix = pixmap.scaled(trueSize, Qt::KeepAspectRatioByExpanding, Qt::SmoothTransformation);
 
     pix = pix.copy(QRect((pix.width() - trueSize.width()) / 2,
                          (pix.height() - trueSize.height()) / 2,

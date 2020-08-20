@@ -47,8 +47,13 @@ class FullscreenBackground : public QWidget
     Q_PROPERTY(bool contentVisible READ contentVisible WRITE setContentVisible NOTIFY contentVisibleChanged)
 
 public:
-    explicit FullscreenBackground(QWidget *parent = nullptr);
+    enum DisplayMode {
+        CopyMode = 1,
+        ExpandMode = 2
+    };
 
+    explicit FullscreenBackground(QWidget *parent = nullptr);
+    ~FullscreenBackground();
     bool contentVisible() const;
 
 public slots:
@@ -58,6 +63,8 @@ public slots:
     void setMonitor(Monitor *monitor);
     void setContentVisible(bool contentVisible);
     void updateMonitorGeometry();
+    void setIsBlackMode(bool is_black);
+    void setIsHibernateMode();
 
 signals:
     void contentVisibleChanged(bool contentVisible);
@@ -73,18 +80,19 @@ private:
     void enterEvent(QEvent *event) Q_DECL_OVERRIDE;
     void leaveEvent(QEvent *event) Q_DECL_OVERRIDE;
     void resizeEvent(QResizeEvent *event) Q_DECL_OVERRIDE;
+    void mouseMoveEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
 
     const QPixmap pixmapHandle(const QPixmap &pixmap);
 
 private:
     void updateScreen(QScreen *screen);
     void updateMonitor(Monitor *monitor);
+    QString getBlurBackground(const QString &file);
     void updateGeometry();
     using QWidget::setGeometry;
     using QWidget::resize;
     using QWidget::move;
 
-    QString m_bgPath;
     QPixmap m_background;
     QPixmap m_fakeBackground;
     QPixmap m_backgroundCache;
@@ -95,6 +103,9 @@ private:
     Monitor *m_monitor = nullptr;
     ImageEffectInter *m_imageEffectInter = nullptr;
     DisplayInter *m_displayInter = nullptr;
+    bool m_primaryShowFinished = false;
+    bool m_isBlackMode = false;
+    bool m_isHibernateMode = false;
 };
 
 #endif // FULLSCREENBACKGROUND_H

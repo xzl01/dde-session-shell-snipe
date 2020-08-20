@@ -47,6 +47,8 @@ private:
     int listen(Display *display);
     static int xinput_version(Display *display);
     static void select_events(Display* display);
+
+    Display *m_disp = nullptr;
 };
 
 #endif // KEYBOARDPLANTFORM_X11_H

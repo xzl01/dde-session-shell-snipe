@@ -10,6 +10,7 @@
 
 #include <QJsonArray>
 #include <QObject>
+#include <QGSettings>
 #include <memory>
 
 using AccountsInter = com::deepin::daemon::Accounts;
@@ -32,6 +33,12 @@ public:
     virtual void onUserAdded(const QString &user);
     virtual void onUserRemove(const QString &user);
 
+    enum SwitchUser {
+        Always = 0,
+        Ondemand,
+        Disabled
+    };
+
 protected:
     void initDBus();
     void initData();
@@ -40,11 +47,14 @@ protected:
 
     bool checkHaveDisplay(const QJsonArray &array);
     bool isLogined(uint uid);
+    void checkConfig();
     void checkPowerInfo();
     void checkVirtualKB();
     void checkSwap();
     bool isDeepin();
     QString getFileContent(QString path = "/proc/cmdline ");
+    bool gsettingsExist(const QString& key);
+    QVariant getGSettings(const QString& key);
 
     template <typename T>
     T valueByQSettings(const QString & group,
@@ -61,6 +71,7 @@ protected:
     AccountsInter *    m_accountsInter;
     LoginedInter*      m_loginedInter;
     DBusLogin1Manager* m_login1Inter;
+    QGSettings*        m_gsettings = nullptr;
     uint               m_lastLogoutUid;
     uint               m_currentUserUid;
     std::list<uint>    m_loginUserList;

@@ -94,6 +94,7 @@ void DPasswordEditEx::initUI()
     lineEdit()->setLayout(layout);
 
     connect(lineEdit(), &QLineEdit::textChanged, this, &DPasswordEditEx::onTextChanged);
+    connect(m_KBButton, &QPushButton::clicked, this, &DPasswordEditEx::toggleKBLayoutWidget);
 }
 
 void DPasswordEditEx::initAnimation()
@@ -117,12 +118,11 @@ void DPasswordEditEx::initAnimation()
 void DPasswordEditEx::setKBLayoutList(QStringList kbLayoutList)
 {
     m_KBLayoutList = kbLayoutList;
+
     if (kbLayoutList.size() > 1) {
-        //连接点击键盘布局Action槽函数
-        connect(m_KBButton, &QPushButton::clicked, this, &DPasswordEditEx::toggleKBLayoutWidget);
+        receiveUserKBLayoutChanged(kbLayoutList[0]);
     } else {
-        //解除点击键盘布局Action槽函数
-        disconnect(m_KBButton, &QPushButton::clicked, this, &DPasswordEditEx::toggleKBLayoutWidget);
+        m_KBButton->hide();
     }
 }
 
@@ -132,6 +132,11 @@ void DPasswordEditEx::receiveUserKBLayoutChanged(const QString &layout)
 
     QString layoutName = layout;
     layoutName = layoutName.split(";").first();
+
+    // special mark in Japanese
+    if(layoutName.contains("/")) {
+        layoutName = layoutName.split("/").last();
+    }
 
     if (m_KBLayoutList.size() == 1) {
         layoutName = "";

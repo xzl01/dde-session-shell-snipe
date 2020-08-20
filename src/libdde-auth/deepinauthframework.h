@@ -18,7 +18,6 @@ public:
     ~DeepinAuthFramework();
 
     friend class AuthAgent;
-
     bool isAuthenticate() const;
     int GetAuthType();
 
@@ -27,6 +26,7 @@ public slots:
     void Responsed(const QString &password);
 
 private:
+    static void* pamAuthWorker(void *arg);
     const QString RequestEchoOff(const QString &msg);
     const QString RequestEchoOn(const QString &msg);
     void DisplayErrorMsg(const QString &msg);
@@ -36,10 +36,9 @@ private:
 private:
     DeepinAuthInterface *m_interface;
     QPointer<AuthAgent> m_authagent;
-    QThread* m_authThread = nullptr;
     std::shared_ptr<User> m_currentUser = nullptr;
-
     QString m_password;
+    pthread_t m_pamAuth = 0;
 };
 
 #endif // DEEPINAUTHFRAMEWORK_H

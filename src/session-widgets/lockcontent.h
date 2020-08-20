@@ -59,6 +59,7 @@ protected:
 
 protected:
     void updateBackground(const QString &path);
+    void updateTimeFormat(bool use24);
     void onBlurDone(const QString &source, const QString &blur, bool status);
     void toggleVirtualKB();
     void updateVirtualKBPosition();
@@ -78,7 +79,6 @@ protected:
     TimeWidget *m_timeWidget;
     MediaWidget *m_mediaWidget;
     UserLoginInfo *m_userLoginInfo;
-    QDBusInterface *m_24HourFormatInter;
     int m_failures = 0;
     SessionManager *m_sessionManager;
 };

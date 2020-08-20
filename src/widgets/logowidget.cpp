@@ -53,9 +53,12 @@ void LogoWidget::initUI() {
 //    setFixedSize(240, 40);
 
     m_logoLabel = new QLabel();
-    m_logoLabel->setPixmap(systemLogo());
+    QPixmap logo = systemLogo();
+    m_logoLabel->setPixmap(logo);
     m_logoLabel->setObjectName("Logo");
-    m_logoLabel->setFixedSize(128, 48);
+    m_logoLabel->setFixedSize(logo.size().rwidth(), logo.size().rheight());
+    //修复社区版deepin的显示不全的问题 2020/04/11
+    m_logoLabel->setScaledContents(true);
 
     m_logoVersionLabel = new QLabel;
     m_logoVersionLabel->setObjectName("LogoVersion");
@@ -83,22 +86,15 @@ void LogoWidget::initUI() {
 }
 
 QString LogoWidget::getVersion() {
-    QSettings settings("/etc/deepin-version", QSettings::IniFormat);
-    settings.setIniCodec(QTextCodec::codecForName("utf8"));
-    QString item = "Release";
-    ///////////system version
-    QString version = settings.value(item + "/Version").toString();
-    //////////system type
-    QString localKey =QString("%1/Type[%2]").arg(item).arg(m_locale);
-    QString finalKey =QString("%1/Type").arg(item);
+    QString version;
+    if (DSysInfo::isDeepin()) {
+        version = QString("%1 %2").arg(DSysInfo::deepinVersion())
+                                  .arg(DSysInfo::uosEditionName(m_locale));
+    } else {
+        version = QString("%1 %2").arg(DSysInfo::productVersion())
+                                  .arg(DSysInfo::productTypeString());
+    }
 
-    QString type = settings.value(localKey, settings.value(finalKey)).toString();
-    //////////system release version
-    QString milestone = settings.value("Addition/Milestone").toString();
-
-    qDebug() << "Deepin Version:" << version << type;
-
-//    return QString("%1 %2 %3").arg(version).arg(type).arg(milestone);
     return version;
 }
 

@@ -37,13 +37,14 @@ signals:
     void currentKBLayoutChanged(const QString &layout);
     void lockChanged(bool lock);
     void noPasswdLoginChanged(bool no_passw);
+    void use24HourFormatChanged(bool use24);
 
 public:
     bool operator==(const User &user) const;
     const QString name() const { return m_userName; }
 
     bool isLogin() const { return m_isLogind; }
-    uint uid() const { return m_uid; }
+    uid_t uid() const { return m_uid; }
 
     const QString locale() const { return m_locale; }
     void setLocale(const QString &locale);
@@ -52,6 +53,7 @@ public:
     virtual bool isPasswordExpired() const { return false; }
     virtual bool isUserIsvalid() const;
     virtual bool isDoMainUser() const { return m_isServer; }
+    virtual bool is24HourFormat() const { return true; }
 
     void setisLogind(bool isLogind);
     virtual void setCurrentLayout(const QString &layout) { Q_UNUSED(layout); }
@@ -84,7 +86,7 @@ protected:
     bool m_isLogind;
     bool m_isLock;
     bool m_isServer = false;
-    uint m_uid;
+    uid_t m_uid = INT_MAX;
     uint m_lockNum; // minute basis
     uint m_tryNum; // try number
     QString m_userName;
@@ -114,6 +116,7 @@ public:
     bool isNoPasswdGrp() const override;
     bool isPasswordExpired() const override;
     bool isUserIsvalid() const override;
+    bool is24HourFormat() const override;
 
 private:
     UserInter *m_userInter;
@@ -124,12 +127,12 @@ class ADDomainUser : public User
     Q_OBJECT
 
 public:
-    ADDomainUser(uint uid, QObject *parent = nullptr);
+    ADDomainUser(uid_t uid, QObject *parent = nullptr);
 
     void setUserDisplayName(const QString &name);
     void setUserName(const QString &name);
     void setUserInter(UserInter *user_inter);
-    void setUid(uint uid);
+    void setUid(uid_t uid);
     void setIsServerUser(bool is_server);
 
     QString displayName() const override;

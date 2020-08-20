@@ -27,9 +27,12 @@
 #include "src/session-widgets/lockcontent.h"
 #include "src/session-widgets/sessionbasemodel.h"
 #include "src/session-widgets/userinfo.h"
+#include "src/session-widgets/hibernatewidget.h"
 
 #include <QApplication>
 #include <QWindow>
+
+
 
 LockFrame::LockFrame(SessionBaseModel *const model, QWidget *parent)
     : FullscreenBackground(parent)
@@ -42,21 +45,90 @@ LockFrame::LockFrame(SessionBaseModel *const model, QWidget *parent)
         if (user != nullptr) updateBackground(user->greeterBackgroundPath());
     });
 
+    Hibernate = new HibernateWidget(this);
+    Hibernate->hide();
     m_content = new LockContent(model);
-    setContent(m_content);
     m_content->hide();
+    setContent(m_content);
+
     connect(m_content, &LockContent::requestSwitchToUser, this, &LockFrame::requestSwitchToUser);
     connect(m_content, &LockContent::requestAuthUser, this, &LockFrame::requestAuthUser);
     connect(m_content, &LockContent::requestSetLayout, this, &LockFrame::requestSetLayout);
     connect(m_content, &LockContent::requestBackground, this, static_cast<void (LockFrame::*)(const QString &)>(&LockFrame::updateBackground));
+    connect(model, &SessionBaseModel::blackModeChanged, this, &FullscreenBackground::setIsBlackMode);
+    connect(model, &SessionBaseModel::HibernateModeChanged, this, [&](bool is_hibernate){
+        if(is_hibernate){
+            m_content->hide();
+            setContent(Hibernate);
+            setIsHibernateMode();     //更新大小 现示动画
+        }else{
+            Hibernate->hide();
+            setContent(m_content);
+        }
+    });
     connect(model, &SessionBaseModel::showUserList, this, &LockFrame::showUserList);
     connect(m_content, &LockContent::unlockActionFinish,this, [ = ]() {
         Q_EMIT requestEnableHotzone(true);
         hide();
     });
     connect(model, &SessionBaseModel::authFinished, this, [ = ](bool success){
+        qDebug() << "SessionBaseModel::authFinished -- success status : " << success;
         m_content->beforeUnlockAction(success);
     });
+}
+
+bool LockFrame::eventFilter(QObject *watched, QEvent *event)
+{
+    if (event->type() == QEvent::KeyRelease) {
+        QString  keyValue = "";
+        switch (static_cast<QKeyEvent *>(event)->key()) {
+        case Qt::Key_NumLock: {
+            keyValue = "numlock";
+            break;
+        }
+        case Qt::Key_TouchpadOn: {
+            keyValue = "touchpad-on";
+            break;
+        }
+        case Qt::Key_TouchpadOff: {
+            keyValue = "touchpad-off";
+            break;
+        }
+        case Qt::Key_TouchpadToggle: {
+            keyValue = "touchpad-toggle";
+            break;
+        }
+        case Qt::Key_CapsLock: {
+            keyValue = "capslock";
+            break;
+        }
+        case Qt::Key_VolumeDown: {
+            keyValue = "audio-lower-volume";
+            break;
+        }
+        case Qt::Key_VolumeUp: {
+            keyValue = "audio-raise-volume";
+            break;
+        }
+        case Qt::Key_VolumeMute: {
+            keyValue = "audio-mute";
+            break;
+        }
+        case Qt::Key_MonBrightnessUp: {
+            keyValue = "mon-brightness-up";
+            break;
+        }
+        case Qt::Key_MonBrightnessDown: {
+            keyValue = "mon-brightness-down";
+            break;
+        }
+        }
+
+        if (keyValue != "") {
+            emit sendKeyValue(keyValue);
+        }
+    }
+    return FullscreenBackground::eventFilter(watched, event);
 }
 
 void LockFrame::showUserList()

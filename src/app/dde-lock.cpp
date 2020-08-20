@@ -43,6 +43,8 @@
 #include <QDBusInterface>
 #include <QDesktopWidget>
 #include <DGuiApplicationHelper>
+#include <QMovie>
+#include <unistd.h>
 
 DCORE_USE_NAMESPACE
 DWIDGET_USE_NAMESPACE
@@ -98,8 +100,13 @@ int main(int argc, char *argv[])
     SessionBaseModel *model = new SessionBaseModel(SessionBaseModel::AuthType::LockType);
     LockWorker *worker = new LockWorker(model); //
     PropertyGroup *property_group = new PropertyGroup(worker);
+    qDebug() << "Supported animated file formats:" << QMovie::supportedFormats();
 
     property_group->addProperty("contentVisible");
+
+    DBusLockAgent agent;
+    agent.setModel(model);
+    DBusLockFrontService service(&agent);
 
     auto createFrame = [&] (Monitor *monitor) -> QWidget* {
         LockFrame *lockFrame = new LockFrame(model);
@@ -109,6 +116,10 @@ int main(int argc, char *argv[])
         QObject::connect(lockFrame, &LockFrame::requestSwitchToUser, worker, &LockWorker::switchToUser);
         QObject::connect(lockFrame, &LockFrame::requestAuthUser, worker, &LockWorker::authUser);
         QObject::connect(model, &SessionBaseModel::visibleChanged, lockFrame, &LockFrame::visibleChangedFrame);
+        QObject::connect(model, &SessionBaseModel::visibleChanged, lockFrame, &LockFrame::setVisible);
+        QObject::connect(model, &SessionBaseModel::visibleChanged, lockFrame,[&](bool visible) {
+            emit service.Visible(visible);
+        });
         QObject::connect(model, &SessionBaseModel::showUserList, lockFrame, &LockFrame::showUserList);
         QObject::connect(lockFrame, &LockFrame::requestSetLayout, worker, &LockWorker::setLayout);
         QObject::connect(lockFrame, &LockFrame::requestEnableHotzone, worker, &LockWorker::enableZoneDetected, Qt::UniqueConnection);
@@ -116,6 +127,19 @@ int main(int argc, char *argv[])
 
         qDebug() << "create dde-lock window & setVisible " << model->isShow();
         lockFrame->setVisible(model->isShow());
+
+        QObject::connect(lockFrame, &LockFrame::sendKeyValue, [&](QString key) {
+             emit service.ChangKey(key);
+        });
+
+        if (isDeepinAuth()) {
+            lockFrame->setVisible(model->isShow());
+            emit service.Visible(true);
+        } else {
+            model->setIsShow(false);
+            lockFrame->setVisible(false);
+        }
+
         return lockFrame;
     };
 
@@ -124,15 +148,10 @@ int main(int argc, char *argv[])
 
     QObject::connect(model, &SessionBaseModel::visibleChanged, &multi_screen_manager, &MultiScreenManager::startRaiseContentFrame);
 
-    DBusLockAgent agent;
-    agent.setModel(model);
-    DBusLockFrontService service(&agent);
-    Q_UNUSED(service);
-
     QDBusConnection conn = QDBusConnection::sessionBus();
     if (!conn.registerService(DBUS_NAME) ||
             !conn.registerObject("/com/deepin/dde/lockFront", &agent) ||
-            !app.setSingleInstance(QString("dde-lock"), DApplication::UserScope)) {
+            !app.setSingleInstance(QString("dde-lock%1").arg(getuid()), DApplication::UserScope)) {
         qDebug() << "register dbus failed"<< "maybe lockFront is running..." << conn.lastError();
 
         if (!runDaemon) {
@@ -145,7 +164,7 @@ int main(int argc, char *argv[])
             }
         }
     } else {
-        if (!runDaemon) {
+        if (isDeepinAuth() && !runDaemon) {
             if (showUserList) {
                 emit model->showUserList();
             } else {

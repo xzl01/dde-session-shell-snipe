@@ -54,3 +54,23 @@ void DBusLockFrontService::ShowAuth(bool active)
 {
     parent()->ShowAuth(active);
 }
+
+void DBusLockFrontService::Suspend(bool enable)
+{
+    parent()->Suspend(enable);
+}
+
+void DBusLockFrontService::Hibernate(bool enable)
+{
+    parent()->Hibernate(enable);
+}
+
+/**
+ * @brief 自动切换到此用户的TTY并显示锁屏程序。此功能虽然为域管开发，但非域管情景也可以使用
+ * 
+ */
+void DBusLockFrontService::SwitchTTYAndShow() 
+{
+    parent()->SwitchTTYAndShow();
+}
+

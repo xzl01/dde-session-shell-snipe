@@ -35,6 +35,7 @@ LockWorker::LockWorker(SessionBaseModel *const model, QObject *parent)
 
     //该信号用来处理初始化lock、锁屏或者切换用户(锁屏+登陆)三种场景的指纹认证
     QObject::connect(model, &SessionBaseModel::visibleChanged, this, [ = ](bool visible){
+        qDebug() << "SessionBaseModel::visibleChanged -- visible status :" << visible;
         auto user = m_model->currentUser();
         if(visible && user->uid() == m_currentUserUid) {
             m_authFramework->Authenticate(user);
@@ -112,7 +113,7 @@ LockWorker::LockWorker(SessionBaseModel *const model, QObject *parent)
 
     // init ADDomain User
     if (DSysInfo::deepinType() == DSysInfo::DeepinServer || valueByQSettings<bool>("", "loginPromptInput", false)) {
-        std::shared_ptr<User> user = std::make_shared<ADDomainUser>(0);
+        std::shared_ptr<User> user = std::make_shared<ADDomainUser>(INT_MAX);
         static_cast<ADDomainUser *>(user.get())->setUserDisplayName("...");
         static_cast<ADDomainUser *>(user.get())->setIsServerUser(true);
         m_model->setIsServerModel(true);
@@ -216,8 +217,6 @@ void LockWorker::lockServiceEvent(quint32 eventType, quint32 pid, const QString 
     if (username != m_model->currentUser()->name())
         return;
 
-    qDebug() << eventType << pid << username << message;
-
     // Don't show password prompt from standard pam modules since
     // we'll provide our own prompt or just not.
     const QString msg = message.simplified() == "Password:" ? "" : message;
@@ -264,6 +263,7 @@ void LockWorker::lockServiceEvent(quint32 eventType, quint32 pid, const QString 
 
 void LockWorker::onUnlockFinished(bool unlocked)
 {
+    qDebug() << "LockWorker::onUnlockFinished -- unlocked status : " << unlocked;
     emit m_model->authFinished(unlocked);
 
     if (unlocked) {
@@ -302,6 +302,7 @@ void LockWorker::onUnlockFinished(bool unlocked)
 
 void LockWorker::onCurrentUserChanged(const QString &user)
 {
+    qDebug() << "LockWorker::onCurrentUserChanged -- change to :" << user;
     const QJsonObject obj = QJsonDocument::fromJson(user.toUtf8()).object();
     auto user_cur = static_cast<uint>(obj["Uid"].toInt());
     if (user_cur == m_currentUserUid) {

@@ -100,10 +100,10 @@ ShutdownFrame::~ShutdownFrame()
 {
 }
 
-ShutdownFrontDBus::ShutdownFrontDBus(DBusShutdownAgent *parent, SessionBaseModel *model)
-    : QDBusAbstractAdaptor(parent)
-    , m_parent(parent)
-    , m_model(model)
+ShutdownFrontDBus::ShutdownFrontDBus(DBusShutdownAgent *parent,SessionBaseModel* model)
+    :QDBusAbstractAdaptor(parent)
+    ,m_parent(parent)
+    ,m_model(model)
 {
     m_sessionInter = new SessionManagerInter("com.deepin.SessionManager", "/com/deepin/SessionManager",
                                 QDBusConnection::sessionBus(), this);
@@ -151,6 +151,6 @@ void ShutdownFrontDBus::SwitchUser()
 
 void ShutdownFrontDBus::Show()
 {
-    if(m_model != nullptr && !m_model->isLocked())
+    if ( m_model != nullptr && !m_model->isLocked() )
         m_parent->Show();
 }

@@ -3,6 +3,7 @@
 #include <unistd.h>
 #include <pwd.h>
 #include <grp.h>
+#include "src/global_util/public_func.h"
 
 #define LOCK_AUTH_NUM 5
 
@@ -245,7 +246,6 @@ void User::userInfoRecordOperate(bool add, const QJsonObject &value)
 
 NativeUser::NativeUser(const QString &path, QObject *parent)
     : User(parent)
-
     , m_userInter(new UserInter(ACCOUNT_DBUS_SERVICE, path, QDBusConnection::systemBus(), this))
 {
     connect(m_userInter, &UserInter::IconFileChanged, this, &NativeUser::avatarChanged);
@@ -270,6 +270,7 @@ NativeUser::NativeUser(const QString &path, QObject *parent)
     connect(m_userInter, &UserInter::HistoryLayoutChanged, this, &NativeUser::kbLayoutListChanged);
     connect(m_userInter, &UserInter::LayoutChanged, this, &NativeUser::currentKBLayoutChanged);
     connect(m_userInter, &UserInter::NoPasswdLoginChanged, this, &NativeUser::noPasswdLoginChanged);
+    connect(m_userInter, &UserInter::Use24HourFormatChanged, this, &NativeUser::use24HourFormatChanged);
 
     m_userName = m_userInter->userName();
     m_uid = m_userInter->uid().toInt();
@@ -297,7 +298,12 @@ QString NativeUser::avatarPath() const
 
 QString NativeUser::greeterBackgroundPath() const
 {
-    return toLocalFile(m_userInter->greeterBackground());
+    //mark sp2取的背景图跟sp1不一样了
+    const QString& shareKey = readSharedImage (m_uid, 1);
+    if (shareKey.isEmpty()) {
+        return "/home/" + m_userName + "/.cache/dde-preload/blur-images/1.jpg";
+    }
+    return shareKey;
 }
 
 QString NativeUser::desktopBackgroundPath() const
@@ -333,7 +339,14 @@ bool NativeUser::isUserIsvalid() const
     return m_userInter->isValid() && !m_userName.isEmpty();
 }
 
-ADDomainUser::ADDomainUser(uint uid, QObject *parent)
+bool NativeUser::is24HourFormat() const
+{
+    if(!isUserIsvalid()) m_userInter->use24HourFormat();
+
+    return true;
+}
+
+ADDomainUser::ADDomainUser(uid_t uid, QObject *parent)
     : User(parent)
 {
     m_uid = uid;
@@ -369,7 +382,7 @@ void ADDomainUser::setUserInter(UserInter *user_inter)
     m_userInter = user_inter;
 }
 
-void ADDomainUser::setUid(uint uid)
+void ADDomainUser::setUid(uid_t uid)
 {
     if (m_uid == uid) {
         return;

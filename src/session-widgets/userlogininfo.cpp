@@ -49,6 +49,7 @@ UserLoginInfo::~UserLoginInfo()
 
 void UserLoginInfo::setUser(std::shared_ptr<User> user)
 {
+    qDebug() << "UserLoginInfo::setUser" << user->name() << user->greeterBackgroundPath();
     for (auto connect : m_currentUserConnects) {
         m_user->disconnect(connect);
     }
@@ -117,6 +118,10 @@ void UserLoginInfo::initConnect()
         emit requestSetLayout(m_user, value);
     });
     connect(m_userLoginWidget, &UserLoginWidget::unlockActionFinish, this, [&]{
+        if (!m_userLoginWidget.isNull()) {
+            //由于添加锁跳动会冲掉"验证完成"。这里只能临时关闭清理输入框
+            m_userLoginWidget->resetAllState();
+        }
         emit unlockActionFinish();
     });
     connect(m_userExpiredWidget, &UserExpiredWidget::changePasswordFinished, this, &UserLoginInfo::changePasswordFinished);
@@ -168,6 +173,7 @@ void UserLoginInfo::beforeUnlockAction(bool is_finish)
 
 UserLoginWidget *UserLoginInfo::getUserLoginWidget()
 {
+    qDebug() << "UserLoginInfo::getUserLoginWidget" << m_user.get();
     m_userExpiredWidget->resetAllState();
     return m_userLoginWidget;
 }

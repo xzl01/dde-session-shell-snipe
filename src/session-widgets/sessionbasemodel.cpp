@@ -14,6 +14,7 @@ SessionBaseModel::SessionBaseModel(AuthType type, QObject *parent)
     , m_sessionManagerInter(nullptr)
     , m_hasSwap(false)
     , m_isShow(false)
+    , m_isServerModel(false)
     , m_canSleep(false)
     , m_isLockNoPassword(false)
     , m_currentType(type)
@@ -32,6 +33,13 @@ SessionBaseModel::SessionBaseModel(AuthType type, QObject *parent)
             });
         }
     }
+
+    if ( m_currentType == UnknowAuthType ) {
+        connect(m_sessionManagerInter,&SessionManager::LockedChanged,this,[this](bool locked) {
+            if ( !locked )
+                this->setIsShow(false);
+        });
+    }
 }
 
 std::shared_ptr<User> SessionBaseModel::findUserByUid(const uint uid) const
@@ -42,7 +50,7 @@ std::shared_ptr<User> SessionBaseModel::findUserByUid(const uint uid) const
         }
     }
 
-    qWarning() << "Wrong, you shouldn't be here!";
+    qDebug() << "Wrong, you shouldn't be here!";
     return std::shared_ptr<User>(nullptr);
 }
 
@@ -56,7 +64,7 @@ std::shared_ptr<User> SessionBaseModel::findUserByName(const QString &name) cons
         }
     }
 
-    qWarning() << "Wrong, you shouldn't be here!";
+    qDebug() << "Wrong, you shouldn't be here!";
     return std::shared_ptr<User>(nullptr);
 }
 
@@ -250,6 +258,11 @@ void SessionBaseModel::setAbortConfirm(bool abortConfirm)
     emit abortConfirmChanged(abortConfirm);
 }
 
+bool SessionBaseModel::isLocked()
+{
+    return m_sessionManagerInter && m_sessionManagerInter->locked();
+}
+
 void SessionBaseModel::setIsLockNoPassword(bool LockNoPassword)
 {
    if (m_isLockNoPassword == LockNoPassword) return;
@@ -257,7 +270,16 @@ void SessionBaseModel::setIsLockNoPassword(bool LockNoPassword)
     m_isLockNoPassword = LockNoPassword;
 }
 
-bool SessionBaseModel::isLocked()
+void SessionBaseModel::setIsBlackModel(bool is_black)
 {
-    return m_sessionManagerInter && m_sessionManagerInter->locked();
+    if(m_isBlackMode == is_black) return;
+
+    m_isBlackMode = is_black;
+    emit blackModeChanged(is_black);
+}
+
+void SessionBaseModel::setIsHibernateModel(bool is_Hibernate){
+    if(m_isHibernateMode == is_Hibernate) return;
+    m_isHibernateMode = is_Hibernate;
+    emit HibernateModeChanged(is_Hibernate);
 }

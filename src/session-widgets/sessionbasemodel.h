@@ -93,10 +93,17 @@ public:
     inline bool isLockNoPassword() const { return m_isLockNoPassword; }
     void setIsLockNoPassword(bool LockNoPassword);
 
+    inline bool isBlackMode() const { return m_isBlackMode; }
+    void setIsBlackModel(bool is_black);
+
+    inline bool isHibernateMode() const {return m_isHibernateMode; }
+    void setIsHibernateModel(bool is_Hibernate);
+
 signals:
     void onUserAdded(std::shared_ptr<User> user);
     void onUserRemoved(const uint uid);
     void currentUserChanged(std::shared_ptr<User> user);
+    void authTipsMessage(const QString &message, AuthFaildType type = KEYBOARD);
     void authFaildMessage(const QString &message, AuthFaildType type = KEYBOARD);
     void authFaildTipsMessage(const QString &message, AuthFaildType type = KEYBOARD);
     void authFinished(bool success);
@@ -115,6 +122,8 @@ signals:
     void lockChanged(bool lock);
     void userListLoginedChanged(QList<std::shared_ptr<User>> list);
     void activeAuthChanged(bool active);
+    void blackModeChanged(bool is_black);
+    void HibernateModeChanged(bool is_hibernate);//休眠信号改变
 
 private:
     com::deepin::SessionManager *m_sessionManagerInter;
@@ -129,6 +138,8 @@ private:
     bool m_alwaysShowUserSwitchButton;
     bool m_abortConfirm;
     bool m_isLockNoPassword;
+    bool m_isBlackMode;
+    bool m_isHibernateMode;
     AuthType m_currentType;
     QList<std::shared_ptr<User>> m_userList;
     std::shared_ptr<User> m_currentUser;

@@ -26,7 +26,12 @@
 
 #include <darrowrectangle.h>
 #include <DBlurEffectWidget>
+#include <DClipEffectWidget>
 #include <DFloatingButton>
+
+#include <com_deepin_daemon_appearance.h>
+using Appearance = com::deepin::daemon::Appearance;
+using DClipEffectWidget = Dtk::Widget::DClipEffectWidget;
 
 DWIDGET_USE_NAMESPACE
 
@@ -128,6 +133,8 @@ private:
     void receiveUserKBLayoutChanged(const QString &layout);
     void updateNameLabel();
     void updatePowerAction();
+    void resetPowerIcon();
+    void updateClipPath();
 
 private:
     DBlurEffectWidget *m_blurEffectWidget;         //阴影窗体
@@ -140,6 +147,7 @@ private:
     DLineEditEx *m_accountEdit;
     DFloatingButton *m_lockButton;                 //解锁按钮
     DArrowRectangle *m_kbLayoutBorder;             //键盘布局异性框类
+    DClipEffectWidget* m_kbLayoutClip=nullptr;     //键盘布局裁减类
     KbLayoutWidget *m_kbLayoutWidget;              //键盘布局窗体
     WidgetShowType m_showType;                     //窗体显示模式,分为无密码登录模式\正常模式\ID和密码登录模式
     QVBoxLayout *m_userLayout;                     //用户输入框布局
@@ -156,10 +164,13 @@ private:
     QHBoxLayout *m_nameLayout;
     QFrame *m_nameFrame;
     uint m_uid;
-    bool m_isAlertMessageShow;                     //判断密码错误提示是否显示
+    bool m_isAlertMessageShow;                      //判断密码错误提示是否显示
     QString m_name;
-    QTimer *timer;                                 //切换图标计时器
-    int index = 0;
+    QTimer *timer;                                  //切换图标计时器
+    int m_indexSuc = 0;
+    int m_indexFail = 0;
+    int m_action;                                   //重启或关机行为记录
+    Appearance *m_dbusAppearance;
 };
 
 #endif // USERLOGINWIDGET_H

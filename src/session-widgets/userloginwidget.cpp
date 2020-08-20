@@ -63,6 +63,10 @@ UserLoginWidget::UserLoginWidget(QWidget *parent)
     , m_capslockMonitor(KeyboardMonitor::instance())
     , m_isAlertMessageShow(false)
     , timer(new QTimer(this))
+    , m_dbusAppearance(new Appearance("com.deepin.daemon.Appearance",
+                                       "/com/deepin/daemon/Appearance",
+                                       QDBusConnection::sessionBus(),
+                                       this))
 {
     initUI();
     initConnect();
@@ -122,7 +126,10 @@ void UserLoginWidget::setFaildTipMessage(const QString &message, SessionBaseMode
         return;
     }
 
-    m_passwordEdit->showAlertMessage(message, 1000);
+    m_passwordEdit->lineEdit()->clear();
+    m_passwordEdit->hideLoadSlider();
+    m_passwordEdit->showAlertMessage(message, 3000);
+    m_passwordEdit->raise();
 }
 
 //设置窗体显示模式
@@ -158,7 +165,7 @@ void UserLoginWidget::updateUI()
 {
     m_lockPasswordWidget->hide();
     m_accountEdit->hide();
-    m_nameLbl->show();
+    m_nameLbl->hide();
     switch (m_showType) {
     case NoPasswordType: {
         bool isNopassword = true;
@@ -172,11 +179,13 @@ void UserLoginWidget::updateUI()
         m_lockPasswordWidget->setVisible(m_isLock);
 
         m_lockButton->show();
+        m_nameLbl->show();
         break;
     }
     case NormalType: {
         m_passwordEdit->setVisible(!m_isLock);
         m_lockButton->show();
+        m_nameLbl->show();
         m_lockPasswordWidget->setVisible(m_isLock);
         m_passwordEdit->lineEdit()->setFocus();
         break;
@@ -200,11 +209,13 @@ void UserLoginWidget::updateUI()
         break;
     }
     case UserFrameType: {
+        m_nameLbl->show();
         m_passwordEdit->hide();
         m_lockButton->hide();
         break;
     }
     case UserFrameLoginType: {
+        m_nameLbl->show();
         m_passwordEdit->hide();
         m_lockButton->hide();
         break;
@@ -218,18 +229,15 @@ void UserLoginWidget::updateUI()
     } else if (m_passwordEdit->isVisible())
         setFocusProxy(m_passwordEdit->lineEdit());
 
-    //让窗口执行一次resizeEvent，以便正确更新背景阴影位置
-    if (m_isServerMode) {
-        resize(size());
-    } else {
-        refreshBlurEffectPosition();
-    }
 }
 
 void UserLoginWidget::ShutdownPrompt(SessionBaseModel::PowerAction action)
 {
     m_powerAction = action;
     updatePowerAction();
+    m_action = action;
+
+    resetPowerIcon();
 }
 
 bool UserLoginWidget::inputInfoCheck(bool is_server)
@@ -292,10 +300,11 @@ void UserLoginWidget::toggleKBLayoutWidget()
         // 必须要将它作为主窗口的子控件
         m_kbLayoutBorder->setParent(window());
         m_kbLayoutBorder->setVisible(true);
-        m_kbLayoutBorder->raise();
         refreshKBLayoutWidgetPosition();
+        m_kbLayoutBorder->raise();
     }
     FrameDataBind::Instance()->updateValue("UserLoginKBLayout", m_kbLayoutBorder->isVisible());
+    updateClipPath();
 }
 
 void UserLoginWidget::refreshKBLayoutWidgetPosition()
@@ -304,6 +313,7 @@ void UserLoginWidget::refreshKBLayoutWidgetPosition()
                                                                          m_passwordEdit->geometry().bottomLeft().y()));
     m_kbLayoutBorder->move(point.x(), point.y());
     m_kbLayoutBorder->setArrowX(15);
+    updateClipPath();
 }
 
 //设置密码输入框不可用
@@ -321,6 +331,10 @@ void UserLoginWidget::disablePassword(bool disable, uint lockNum)
 
     if (disable) {
         setFaildMessage(tr("Please try again %n minute(s) later", "", lockNum));
+    }
+
+    if ( false == disable && true == m_isServerMode){
+        m_accountEdit->lineEdit()->setEnabled(true);
     }
 }
 
@@ -355,7 +369,7 @@ void UserLoginWidget::refreshBlurEffectPosition()
 //窗体resize事件,更新阴影窗体的位置
 void UserLoginWidget::resizeEvent(QResizeEvent *event)
 {
-    QTimer::singleShot(0, this, &UserLoginWidget::refreshBlurEffectPosition);
+    refreshBlurEffectPosition();
     QTimer::singleShot(0, this, &UserLoginWidget::refreshKBLayoutWidgetPosition);
 
     return QWidget::resizeEvent(event);
@@ -368,6 +382,7 @@ void UserLoginWidget::showEvent(QShowEvent *event)
     m_lockPasswordWidget->setFixedSize(QSize(m_passwordEdit->width(), m_passwordEdit->height()));
 
     updateNameLabel();
+    adjustSize();
     return QWidget::showEvent(event);
 }
 
@@ -384,10 +399,10 @@ void UserLoginWidget::keyPressEvent(QKeyEvent *event)
         //网上找到的方法判断caps键状态
         if (event->nativeModifiers()==0) {
             //Caps Lock is A
-            emit capslockStatusChanged(true);    
+            emit capslockStatusChanged(true);
         } else {
             //Caps Lock is a event->nativeModifiers()==2
-            emit capslockStatusChanged(false); 
+            emit capslockStatusChanged(false);
         }
         break;
     default:
@@ -445,6 +460,7 @@ void UserLoginWidget::initUI()
     m_nameLbl->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
     DFontSizeManager::instance()->bind(m_nameLbl, DFontSizeManager::T2);
     m_nameLbl->setAlignment(Qt::AlignCenter);
+    m_nameLbl->setTextFormat(Qt::TextFormat::PlainText);
 
     m_passwordEdit->lineEdit()->setContextMenuPolicy(Qt::NoContextMenu);
     m_passwordEdit->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
@@ -472,6 +488,9 @@ void UserLoginWidget::initUI()
     m_kbLayoutBorder->setContent(m_kbLayoutWidget);
     m_kbLayoutBorder->setFixedWidth(DDESESSIONCC::LAYOUTBUTTON_WIDTH);
     m_kbLayoutWidget->setFixedWidth(DDESESSIONCC::LAYOUTBUTTON_WIDTH);
+
+    m_kbLayoutClip=new Dtk::Widget::DClipEffectWidget(m_kbLayoutBorder);
+    updateClipPath();
 
     m_lockPasswordWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
     m_lockPasswordWidget->setLockIconVisible(false);
@@ -572,6 +591,20 @@ void UserLoginWidget::initConnect()
     connect(this,&UserLoginWidget::capslockStatusChanged,m_passwordEdit, &DPasswordEditEx::capslockStatusChanged);
     connect(m_passwordEdit, &DPasswordEditEx::toggleKBLayoutWidget, this, &UserLoginWidget::toggleKBLayoutWidget);
     connect(m_passwordEdit, &DPasswordEditEx::selectionChanged, this, &UserLoginWidget::hidePasswordEditMessage);
+
+    //窗体活动颜色改变
+    connect(m_dbusAppearance, &Appearance::QtActiveColorChanged , [this](const QString& Color) {
+        QPalette passwdPalatte = m_passwordEdit->palette();
+        QPalette lockPalatte = m_lockButton->palette();
+
+        if (passwdPalatte.color(QPalette::Highlight).name() == Color || lockPalatte.color(QPalette::Highlight).name() == Color )
+            return;
+
+        lockPalatte.setColor(QPalette::Highlight,Color);
+        passwdPalatte.setColor(QPalette::Highlight,Color);
+        m_passwordEdit->setPalette(passwdPalatte);
+        m_lockButton->setPalette(lockPalatte);
+    });
 }
 
 //设置用户名
@@ -652,6 +685,8 @@ void UserLoginWidget::updateKBLayout(const QStringList &list)
 {
     m_kbLayoutWidget->updateButtonList(list);
     m_kbLayoutBorder->setContent(m_kbLayoutWidget);
+    m_passwordEdit->setKBLayoutList(list);
+    updateClipPath();
 }
 
 void UserLoginWidget::hideKBLayout()
@@ -661,18 +696,14 @@ void UserLoginWidget::hideKBLayout()
 
 void UserLoginWidget::setKBLayoutList(QStringList kbLayoutList)
 {
-    qDebug() << "keyboardlayout---UserLoginWidget---setKBLayoutList:" << kbLayoutList;
-
     m_KBLayoutList = kbLayoutList;
     updateKBLayout(m_KBLayoutList);
-    m_passwordEdit->setKBLayoutList(kbLayoutList);
 }
 
 void UserLoginWidget::setDefaultKBLayout(const QString &layout)
 {
-    qDebug() << "keyboardlayout---UserLoginWidget---setDefaultKBLayout:" << layout;
-
     m_kbLayoutWidget->setDefault(layout);
+    updateClipPath();
 }
 
 void UserLoginWidget::clearPassWord()
@@ -699,6 +730,26 @@ void UserLoginWidget::setSelected(bool isSelected)
 {
     m_isSelected = isSelected;
     update();
+}
+
+void UserLoginWidget::updateClipPath()
+{
+    if (!m_kbLayoutClip)
+        return;
+    QRectF rc (0, 0, DDESESSIONCC::PASSWDLINEEIDT_WIDTH, m_kbLayoutBorder->height());
+    qInfo() << "m_kbLayoutBorder->arrowHeight()-->" << rc.height();
+    int iRadius = 20;
+    QPainterPath path;
+    path.lineTo (0, 0);
+    path.lineTo (rc.width(), 0);
+    path.lineTo (rc.width(), rc.height() - iRadius);
+    path.arcTo (rc.width() - iRadius, rc.height() - iRadius, iRadius, iRadius, 0, -90);
+    path.lineTo (rc.width() - iRadius, rc.height());
+    path.lineTo (iRadius, rc.height());
+    path.arcTo (0, rc.height() - iRadius, iRadius, iRadius, -90, -90);
+    path.lineTo (0, rc.height() - iRadius);
+    path.lineTo (0, 0);
+    m_kbLayoutClip->setClipPath (path);
 }
 
 void UserLoginWidget::hidePasswordEditMessage()
@@ -743,21 +794,39 @@ void UserLoginWidget::updatePowerAction()
     }
 }
 
+void UserLoginWidget::resetPowerIcon()
+{
+    if (m_action == SessionBaseModel::PowerAction::RequireRestart) {
+        m_lockButton->setIcon(QIcon(":/img/bottom_actions/reboot.svg"));
+    } else if (m_action == SessionBaseModel::PowerAction::RequireShutdown) {
+        m_lockButton->setIcon(QIcon(":/img/bottom_actions/shutdown.svg"));
+    } else {
+        m_lockButton->setIcon(DStyle::SP_LockElement);
+    }
+}
+
 void UserLoginWidget::unlockSuccessAni()
 {
-    if(timer == nullptr)
-        timer = new QTimer(this);
+    if(timer != nullptr) {
+        timer->stop();
+        delete timer;
+        timer = nullptr;
+        m_indexFail = 0;
+        m_lockButton->setIcon(DStyle::SP_LockElement);
+    }
+    timer = new QTimer(this);
+
     connect(timer, &QTimer::timeout, [&](){
-        if((index % 12) <= 11){
-            QString s = QString(":/img/unlockTrue/unlock_%1.svg").arg(index % 12);
+        if((m_indexSuc % 12) <= 11){
+            QString s = QString(":/img/unlockTrue/unlock_%1.svg").arg(m_indexSuc % 12);
             m_lockButton->setIcon(QIcon(s));
         }
-        index++;
-        if(index == 15){
+        m_indexSuc++;
+        if(m_indexSuc >= 15){
             timer->stop();
             delete timer;
             timer = nullptr;
-            index = 0;
+            m_indexSuc = 0;
             emit unlockActionFinish();
             m_lockButton->setIcon(DStyle::SP_LockElement);
         }
@@ -767,20 +836,29 @@ void UserLoginWidget::unlockSuccessAni()
 
 void UserLoginWidget::unlockFailedAni()
 {
-    if(timer == nullptr)
-        timer = new QTimer(this);
+    m_passwordEdit->lineEdit()->clear();
+    m_passwordEdit->hideLoadSlider();
+    if(timer != nullptr) {
+        timer->stop();
+        delete timer;
+        timer = nullptr;
+        m_indexSuc = 0;
+        m_lockButton->setIcon(DStyle::SP_LockElement);
+    }
+    timer = new QTimer(this);
+
     connect(timer, &QTimer::timeout, [&](){
-        if((index%16) <= 15){
-            QString s = QString(":/img/unlockFalse/unlock_error_%1.svg").arg(index % 16);
+        if((m_indexFail%16) <= 15){
+            QString s = QString(":/img/unlockFalse/unlock_error_%1.svg").arg(m_indexFail % 16);
             m_lockButton->setIcon(QIcon(s));
         }
-        index++;
-        if(index == 20){
+        m_indexFail++;
+        if(m_indexFail >= 20){
             timer->stop();
             delete timer;
             timer = nullptr;
-            index = 0;
-            updatePowerAction();
+            m_indexFail = 0;
+            resetPowerIcon();
         }
     });
     timer->start(20);

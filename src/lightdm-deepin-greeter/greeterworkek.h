@@ -70,6 +70,7 @@ private:
     bool               m_isThumbAuth;
     bool               m_authenticating;
     bool               m_showAuthResult;
+    bool               m_firstTimeLogin;
     QString            m_password;
     FileIOThread *m_monitorHisiThread;
 };

@@ -160,14 +160,15 @@ int KeyboardPlantformX11::listen(Display *display)
 KeyboardPlantformX11::KeyboardPlantformX11(QObject *parent)
     : KeyBoardPlatform(parent)
 {
-
+    m_disp = XOpenDisplay(nullptr);
 }
 
 bool KeyboardPlantformX11::isCapslockOn()
 {
     bool result;
     unsigned int n = 0;
-    static Display* d = QX11Info::display();
+    //static Display* d = QX11Info::display();
+    Display* d = m_disp;
 
     XkbGetIndicatorState(d, XkbUseCoreKbd, &n);
     result = (n & 0x01) != 0;
@@ -179,7 +180,8 @@ bool KeyboardPlantformX11::isNumlockOn()
 {
     bool result;
     unsigned int n = 0;
-    static Display* d = QX11Info::display();
+    //static Display* d = QX11Info::display();
+    Display* d = m_disp;
 
     XkbGetIndicatorState(d, XkbUseCoreKbd, &n);
     result = (n & 0x02) != 0;
@@ -189,7 +191,8 @@ bool KeyboardPlantformX11::isNumlockOn()
 
 bool KeyboardPlantformX11::setNumlockStatus(const bool &on)
 {
-    Display* d = QX11Info::display();
+    //Display* d = QX11Info::display();
+    Display* d = m_disp;
 
     XKeyboardState x;
     XGetKeyboardControl(d, &x);
@@ -215,7 +218,8 @@ bool KeyboardPlantformX11::setNumlockStatus(const bool &on)
 
 void KeyboardPlantformX11::run()
 {
-    Display* display = XOpenDisplay(nullptr);
+    //Display* display = XOpenDisplay(nullptr);
+    Display* display = m_disp;
     int event, error;
 
     if (!XQueryExtension(display, "XInputExtension", &xi2_opcode, &event, &error)) {
