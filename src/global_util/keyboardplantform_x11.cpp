@@ -160,18 +160,18 @@ int KeyboardPlantformX11::listen(Display *display)
 KeyboardPlantformX11::KeyboardPlantformX11(QObject *parent)
     : KeyBoardPlatform(parent)
 {
-    m_disp = XOpenDisplay(nullptr);
 }
 
 bool KeyboardPlantformX11::isCapslockOn()
 {
     bool result;
     unsigned int n = 0;
-    //static Display* d = QX11Info::display();
-    Display* d = m_disp;
+    Display* d = XOpenDisplay(nullptr);
 
     XkbGetIndicatorState(d, XkbUseCoreKbd, &n);
     result = (n & 0x01) != 0;
+
+    XCloseDisplay(d);
 
     return result;
 }
@@ -180,19 +180,18 @@ bool KeyboardPlantformX11::isNumlockOn()
 {
     bool result;
     unsigned int n = 0;
-    //static Display* d = QX11Info::display();
-    Display* d = m_disp;
+    Display* d = XOpenDisplay(nullptr);
 
     XkbGetIndicatorState(d, XkbUseCoreKbd, &n);
     result = (n & 0x02) != 0;
 
+    XCloseDisplay(d);
     return result;
 }
 
 bool KeyboardPlantformX11::setNumlockStatus(const bool &on)
 {
-    //Display* d = QX11Info::display();
-    Display* d = m_disp;
+    Display* d = XOpenDisplay(nullptr);
 
     XKeyboardState x;
     XGetKeyboardControl(d, &x);
@@ -213,13 +212,13 @@ bool KeyboardPlantformX11::setNumlockStatus(const bool &on)
     int releseExit = XTestFakeKeyEvent(d, keycode, False, CurrentTime);
     XFlush(d);
 
+    XCloseDisplay(d);
     return pressExit == 0 && releseExit == 0;
 }
 
 void KeyboardPlantformX11::run()
 {
-    //Display* display = XOpenDisplay(nullptr);
-    Display* display = m_disp;
+    Display* display = XOpenDisplay(nullptr);
     int event, error;
 
     if (!XQueryExtension(display, "XInputExtension", &xi2_opcode, &event, &error)) {

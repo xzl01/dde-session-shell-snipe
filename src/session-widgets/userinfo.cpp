@@ -298,12 +298,8 @@ QString NativeUser::avatarPath() const
 
 QString NativeUser::greeterBackgroundPath() const
 {
-    //mark sp2取的背景图跟sp1不一样了
-    const QString& shareKey = readSharedImage (m_uid, 1);
-    if (shareKey.isEmpty()) {
-        return "/home/" + m_userName + "/.cache/dde-preload/blur-images/1.jpg";
-    }
-    return shareKey;
+    //mark sp2的dde-preload取背景方式还不稳定，先回退到sp1
+    return toLocalFile(m_userInter->greeterBackground());
 }
 
 QString NativeUser::desktopBackgroundPath() const
