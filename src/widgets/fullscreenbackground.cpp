@@ -88,6 +88,7 @@ void FullscreenBackground::updateBackground(const QString &file)
     QPixmap image;
     QSharedMemory memory (file);
     if (memory.attach()) {
+        qDebug() << "shared memory background: " << file;
         image.loadFromData ( (const unsigned char *) memory.data(), memory.size());
         if (image.isNull()) {
             qDebug() << "input background: " << file << " is invalid image file.";
@@ -127,6 +128,7 @@ QString FullscreenBackground::getBlurBackground (const QString &file)
     }
 
     QString imageEffect = m_imageEffectInter->Get ("", bg_path);
+    qDebug() << "image effect file:" << imageEffect;
     if (!isPicture (imageEffect)) {
         imageEffect = DEFAULT_BACKGROUND;
     }
