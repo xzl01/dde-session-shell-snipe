@@ -31,7 +31,6 @@ find_package(Qt5 COMPONENTS
     Concurrent
     X11Extras
     DBus
-    Multimedia
     Xml
     Svg
 REQUIRED)
@@ -47,7 +46,6 @@ set(Qt_LIBS
     Qt5::DBus
     Qt5::Widgets
     Qt5::X11Extras
-    Qt5::Multimedia
     Qt5::Xml
     Qt5::Svg
 )
@@ -299,7 +297,6 @@ target_link_libraries(dde-lock PRIVATE
     ${Qt5X11Extras_LIBRARIES}
     ${Qt5DBus_LIBRARIES}
     ${Qt5Network_LIBRARIES}
-    ${Qt5Multimedia_LIBRARIES}
     ${QGSettings_LIBRARIES}
 )
 
@@ -331,7 +328,6 @@ target_link_libraries(dde-shutdown PRIVATE
     ${Qt5X11Extras_LIBRARIES}
     ${Qt5DBus_LIBRARIES}
     ${Qt5Network_LIBRARIES}
-    ${Qt5Multimedia_LIBRARIES}
     ${QGSettings_LIBRARIES}
 )
 
@@ -368,7 +364,6 @@ target_link_libraries(lightdm-deepin-greeter PRIVATE
     ${Qt5X11Extras_LIBRARIES}
     ${Qt5DBus_LIBRARIES}
     ${Qt5Network_LIBRARIES}
-    ${Qt5Multimedia_LIBRARIES}
     ${QGSettings_LIBRARIES}
     ${Greeter_LIBRARIES}
 )
