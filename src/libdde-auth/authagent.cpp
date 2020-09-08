@@ -47,21 +47,20 @@ void AuthAgent::Authenticate(const QString& username)
 
     //息屏状态下亮屏，由于后端没有亮屏信号，只能用此临时办法
     system("xset dpms force on");
-    QString msg = QString();
 
-    if (rc == PAM_SUCCESS) {
-        msg = "succes";
-    } else {
+    if (rc != PAM_SUCCESS) {
         qDebug() << Q_FUNC_INFO << pam_strerror(m_pamHandle, rc);
     }
 
-    rc = pam_end(m_pamHandle, rc);
-    if (rc != PAM_SUCCESS) {
-         qDebug() << "pam_end() failed: %s" << pam_strerror(m_pamHandle, rc);
+    int re = pam_end(m_pamHandle, rc);
+    if (re != PAM_SUCCESS) {
+         qDebug() << "pam_end() failed: %s" << pam_strerror(m_pamHandle, re);
     }
 
-    m_isCondition = true;
-    emit respondResult(msg);
+    bool is_success = (rc == PAM_SUCCESS) && (re == PAM_SUCCESS);
+
+    m_isCondition = 0;
+    emit respondResult(is_success ? "success" : QString());
 }
 
 int AuthAgent::GetAuthType()
