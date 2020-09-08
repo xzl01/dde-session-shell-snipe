@@ -97,6 +97,13 @@ void FullscreenBackground::updateBackground(const QPixmap &background)
 
 void FullscreenBackground::updateBackground(const QString &file)
 {
+    //前后设置的图片一致的时候，不用加载图片，减少加载时间
+    if (!file.isEmpty() && m_bgPath.compare(file, Qt::CaseSensitive) == 0) {
+        return;
+    }
+
+    m_bgPath = file;
+
     //mark 会导致延greeter的背景及用户头像, 有比较明显延时刷出
     QPixmap image;
     QSharedMemory memory (file);

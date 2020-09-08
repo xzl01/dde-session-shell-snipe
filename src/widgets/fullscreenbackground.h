@@ -93,6 +93,7 @@ private:
     using QWidget::resize;
     using QWidget::move;
 
+    QString m_bgPath;
     QPixmap m_background;
     QPixmap m_fakeBackground;
     QPixmap m_backgroundCache;

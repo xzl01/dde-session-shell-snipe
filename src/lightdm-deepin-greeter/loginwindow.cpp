@@ -33,9 +33,14 @@ LoginWindow::LoginWindow(SessionBaseModel *const model, QWidget *parent)
     : FullscreenBackground(parent)
     , m_loginContent(new LoginContent(model, this))
 {
+    //共享内存加载图片较慢，导致主界面显示的时候背景图片没有显示出。
+    hide();
+
     QTimer::singleShot(0, this, [ = ] {
         auto user = model->currentUser();
         if (user != nullptr) updateBackground(user->greeterBackgroundPath());
+        //在背景加载完成以后显示主界面
+        show();
     });
 
     setContent(m_loginContent);
