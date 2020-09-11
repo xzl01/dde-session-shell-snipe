@@ -26,6 +26,7 @@
 #include "darrowrectangle.h"
 #include <QApplication>
 #include <dgraphicsgloweffect.h>
+#include <QPainterPath>
 
 DWIDGET_USE_NAMESPACE
 
