@@ -22,6 +22,8 @@ using PowerInter = com::deepin::daemon::Power;
 using namespace Auth;
 DCORE_USE_NAMESPACE
 
+const QString AuthenticateService("com.deepin.daemon.Authenticate");
+
 LockWorker::LockWorker(SessionBaseModel *const model, QObject *parent)
     : AuthInterface(model, parent)
     , m_authenticating(false)
@@ -29,6 +31,9 @@ LockWorker::LockWorker(SessionBaseModel *const model, QObject *parent)
     , m_lockInter(new DBusLockService(LOCKSERVICE_NAME, LOCKSERVICE_PATH, QDBusConnection::systemBus(), this))
     , m_hotZoneInter(new DBusHotzone("com.deepin.daemon.Zone", "/com/deepin/daemon/Zone", QDBusConnection::sessionBus(), this))
     , m_sessionManager(new SessionManager("com.deepin.SessionManager", "/com/deepin/SessionManager", QDBusConnection::sessionBus(), this))
+    , m_AuthenticateInter(new Authenticate(AuthenticateService,
+                                          "/com/deepin/daemon/Authenticate",
+                                          QDBusConnection::systemBus(), this))
 {
     m_currentUserUid = getuid();
     m_authFramework = new DeepinAuthFramework(this, this);
@@ -85,9 +90,22 @@ LockWorker::LockWorker(SessionBaseModel *const model, QObject *parent)
     });
 
     connect(m_lockInter, &DBusLockService::Event, this, &LockWorker::lockServiceEvent);
+
+    //切换用户一键登录
+    connect(this, &LockWorker::oneKeyLoginMatchFalse, this, &LockWorker::checkUserOneKeyLogin);
     connect(model, &SessionBaseModel::onStatusChanged, this, [ = ](SessionBaseModel::ModeStatus status) {
-        if (status == SessionBaseModel::ModeStatus::PowerMode) {
+        switch (status) {
+        case SessionBaseModel::ModeStatus::PasswordMode:
+            resetLightdmAuth(m_model->currentUser(), 100, true);
+            break;
+        case SessionBaseModel::ModeStatus::UserMode:
+            checkUserOneKeyLogin();
+            break;
+        case SessionBaseModel::ModeStatus::PowerMode:
             checkPowerInfo();
+            break;
+        default:
+            break;
         }
     });
 
@@ -134,6 +152,7 @@ void LockWorker::switchToUser(std::shared_ptr<User> user)
     json["Uid"] = static_cast<int>(user->uid());
     json["Type"] = user->type();
 
+    qDebug() << QString(QJsonDocument(json).toJson(QJsonDocument::Compact));
     m_lockInter->SwitchToUser(QString(QJsonDocument(json).toJson(QJsonDocument::Compact))).waitForFinished();
 
     if (user->isLogin()) {
@@ -184,6 +203,7 @@ void LockWorker::onDisplayTextInfo(const QString &msg)
 
 void LockWorker::onPasswordResult(const QString &msg)
 {
+    qDebug() << "msg" << msg;
     onUnlockFinished(!msg.isEmpty());
 
     if(msg.isEmpty()) {
@@ -315,4 +335,61 @@ void LockWorker::onCurrentUserChanged(const QString &user)
     } else {
         return;
     }
+}
+
+void LockWorker::checkUserOneKeyLogin()
+{
+    // 切换用户指纹一键登陆
+    QDBusPendingCall call = m_AuthenticateInter->CheckUserPreOneKeyLogin(AuthFlag::Fingerprint);
+    QDBusPendingCallWatcher *watcher = new QDBusPendingCallWatcher(call, this);
+    connect(watcher, &QDBusPendingCallWatcher::finished, [ = ] {
+        if (!call.isError()) {
+            QDBusPendingReply<QString> user_firstlogin = call.reply();
+            qDebug() << "GreeterWorkek::onFirstTimeLogin -- FirstTime Login User Name is : " << user_firstlogin;
+            auto user_ptr = m_model->findUserByName(user_firstlogin);
+            if (user_ptr.get() == nullptr)
+                emit oneKeyLoginMatchFalse();
+            if (user_ptr.get() != nullptr && !user_firstlogin.isError()) {
+                switchToUserOneKeyLogin(user_ptr);
+                if (m_model->currentUser()->name() == user_firstlogin) {
+                    resetLightdmAuth(user_ptr, 100, true);
+                }
+            }
+        } else{
+            qDebug() << "call dbus CheckUserPreOneKeyLogin error:" << call.error().message();
+        }
+        watcher->deleteLater();
+    });
+}
+
+void LockWorker::resetLightdmAuth(std::shared_ptr<User> user, int delay_time, bool is_respond)
+{
+//    if (user->isLock()) {return;}
+
+    QTimer::singleShot(delay_time, this, [ = ] {
+        m_authFramework->Authenticate(user);
+        if (is_respond) {
+            authUser(m_password);
+        }
+    });
+}
+
+void LockWorker::switchToUserOneKeyLogin(std::shared_ptr<User> user)
+{
+
+    qDebug() << "switch user from" << m_model->currentUser()->name() << " to " << user->name();
+
+    // clear old password
+    m_password.clear();
+    m_authenticating = false;
+
+    // if type is lock, switch to greeter
+    QJsonObject json;
+    json["Uid"] = static_cast<int>(user->uid());
+    json["Type"] = user->type();
+
+    qDebug() << QString(QJsonDocument(json).toJson(QJsonDocument::Compact));
+    m_lockInter->SwitchToUser(QString(QJsonDocument(json).toJson(QJsonDocument::Compact))).waitForFinished();
+
+    QProcess::startDetached("dde-switchtogreeter", QStringList() << user->name());
 }

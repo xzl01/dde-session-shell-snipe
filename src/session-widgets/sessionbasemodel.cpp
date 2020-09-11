@@ -54,7 +54,7 @@ std::shared_ptr<User> SessionBaseModel::findUserByUid(const uint uid) const
     return std::shared_ptr<User>(nullptr);
 }
 
-std::shared_ptr<User> SessionBaseModel::findUserByName(const QString &name) const
+std::shared_ptr<User> SessionBaseModel::findUserByName(const QString &name)
 {
     if (name.isEmpty()) return std::shared_ptr<User>(nullptr);
 
@@ -63,7 +63,6 @@ std::shared_ptr<User> SessionBaseModel::findUserByName(const QString &name) cons
             return user;
         }
     }
-
     qDebug() << "Wrong, you shouldn't be here!";
     return std::shared_ptr<User>(nullptr);
 }

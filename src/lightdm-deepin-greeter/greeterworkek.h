@@ -50,6 +50,7 @@ public:
 
 signals:
     void requestUpdateBackground(const QString &path);
+    void oneKeyLoginMatchFalse();
 
 private:
     void checkDBusServer(bool isvalid);
@@ -62,6 +63,7 @@ private:
     void saveNumlockStatus(std::shared_ptr<User> user, const bool &on);
     void recoveryUserKBState(std::shared_ptr<User> user);
     void resetLightdmAuth(std::shared_ptr<User> user,int delay_time, bool is_respond);
+    void checkUserOneKeyLogin();
 
 private:
     QLightDM::Greeter *m_greeter;
