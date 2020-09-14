@@ -233,7 +233,7 @@ void UserLoginWidget::ShutdownPrompt(SessionBaseModel::PowerAction action)
 {
     m_action = action;
 
-    resetPowerIcon();
+    resetPowerIcon(false);
 }
 
 bool UserLoginWidget::inputInfoCheck(bool is_server)
@@ -740,13 +740,13 @@ void UserLoginWidget::updateNameLabel()
     }
 }
 
-void UserLoginWidget::resetPowerIcon()
+void UserLoginWidget::resetPowerIcon(bool isLocking)
 {
     if (m_action == SessionBaseModel::PowerAction::RequireRestart) {
         m_lockButton->setIcon(QIcon(":/img/bottom_actions/reboot.svg"));
     } else if (m_action == SessionBaseModel::PowerAction::RequireShutdown) {
         m_lockButton->setIcon(QIcon(":/img/bottom_actions/shutdown.svg"));
-    } else {
+    } else if (isLocking) {
         m_lockButton->setIcon(DStyle::SP_LockElement);
     }
 }
@@ -786,7 +786,7 @@ void UserLoginWidget::unlockFailedAni()
             m_lockButton->setIcon(QIcon(QString(":/img/unlockFalse/unlock_error_%1.svg").arg(m_timerIndex)));
         }  else {
             m_aniTimer->stop();
-            resetPowerIcon();
+            resetPowerIcon(true);
         }
 
         m_timerIndex++;
