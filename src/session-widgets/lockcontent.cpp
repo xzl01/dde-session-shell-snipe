@@ -131,7 +131,7 @@ void LockContent::onCurrentUserChanged(std::shared_ptr<User> user)
 
     m_user = user;
 
-    m_currentUserConnects << connect(user.get(), &User::greeterBackgroundPathChanged, this, &LockContent::updateBackground, Qt::UniqueConnection)
+    m_currentUserConnects << connect(user.get(), &User::greeterBackgroundPathChanged, this, &LockContent::requestBackground, Qt::UniqueConnection)
                           << connect(user.get(), &User::use24HourFormatChanged, this, &LockContent::updateTimeFormat, Qt::UniqueConnection);
 
     //lixin
@@ -139,7 +139,6 @@ void LockContent::onCurrentUserChanged(std::shared_ptr<User> user)
 
     //TODO: refresh blur image
     QTimer::singleShot(0, this, [ = ] {
-        updateBackground(user->greeterBackgroundPath());
         updateTimeFormat(user->is24HourFormat());
     });
 }
@@ -258,14 +257,6 @@ void LockContent::restoreCenterContent()
 void LockContent::restoreMode()
 {
     m_model->setCurrentModeState(SessionBaseModel::ModeStatus::PasswordMode);
-}
-
-void LockContent::updateBackground(const QString &path)
-{
-    //    const QString &wallpaper = m_imageBlurInter->Get(path);
-
-    //    emit requestBackground(wallpaper.isEmpty() ? path : wallpaper);
-    emit requestBackground(path);
 }
 
 void LockContent::updateTimeFormat(bool use24)
