@@ -801,7 +801,10 @@ void UserLoginWidget::resetPowerIcon()
     } else if (m_action == SessionBaseModel::PowerAction::RequireShutdown) {
         m_lockButton->setIcon(QIcon(":/img/bottom_actions/shutdown.svg"));
     } else {
-        m_lockButton->setIcon(DStyle::SP_LockElement);
+        if (m_authType == SessionBaseModel::LightdmType)
+            m_lockButton->setIcon(DStyle::SP_ArrowNext);
+        else
+            m_lockButton->setIcon(DStyle::SP_LockElement);
     }
 }
 
