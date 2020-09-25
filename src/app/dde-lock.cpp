@@ -122,17 +122,12 @@ int main(int argc, char *argv[])
         QObject::connect(lockFrame, &LockFrame::requestEnableHotzone, worker, &LockWorker::enableZoneDetected, Qt::UniqueConnection);
         QObject::connect(lockFrame, &LockFrame::destroyed, property_group, &PropertyGroup::removeObject);
         QObject::connect(lockFrame, &LockFrame::sendKeyValue, [&](QString key) {
-             emit service.ChangKey(key);
+            emit service.ChangKey(key);
         });
 
-        if (isDeepinAuth()) {
-            lockFrame->setVisible(model->isShow());
-            emit service.Visible(true);
-        } else {
-            model->setIsShow(false);
-            lockFrame->setVisible(false);
-        }
-        
+        lockFrame->setVisible(model->isShow());
+        emit service.Visible(true);
+
         return lockFrame;
     };
 
@@ -157,7 +152,7 @@ int main(int argc, char *argv[])
             }
         }
     } else {
-        if (isDeepinAuth() && !runDaemon) {
+        if (!runDaemon) {
             if (showUserList) {
                 emit model->showUserList();
             } else {
