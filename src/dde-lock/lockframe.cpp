@@ -28,7 +28,6 @@
 #include "src/session-widgets/sessionbasemodel.h"
 #include "src/session-widgets/userinfo.h"
 #include "src/session-widgets/hibernatewidget.h"
-#include "src/global_util/public_func.h"
 
 #include <QApplication>
 #include <QWindow>
@@ -134,10 +133,6 @@ bool LockFrame::event(QEvent *event)
 
 void LockFrame::showUserList()
 {
-    if (QFile::exists(ICBC_CONF_FILE)) {
-        hide();
-        return;
-    }
     show();
     m_model->setCurrentModeState(SessionBaseModel::ModeStatus::UserMode);
 }

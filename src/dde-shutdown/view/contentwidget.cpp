@@ -558,21 +558,17 @@ void ContentWidget::updateWallpaper(const QString &path)
 
 void ContentWidget::onUserListChanged(QList<std::shared_ptr<User> > list)
 {
-    if (QFile::exists(ICBC_CONF_FILE)) {
-        m_switchUserBtn->setVisible(false);
-    } else {
-        const bool allowShowUserSwitchButton = m_model->allowShowUserSwitchButton();
-        const bool alwaysShowUserSwitchButton = m_model->alwaysShowUserSwitchButton();
-        bool haveLogindUser = true;
+    const bool allowShowUserSwitchButton = m_model->allowShowUserSwitchButton();
+    const bool alwaysShowUserSwitchButton = m_model->alwaysShowUserSwitchButton();
+    bool haveLogindUser = true;
 
-        if (m_model->isServerModel() && m_model->currentType() == SessionBaseModel::LightdmType) {
-            haveLogindUser = !m_model->logindUser().isEmpty();
-        }
-        m_switchUserBtn->setVisible((alwaysShowUserSwitchButton ||
-                                            (allowShowUserSwitchButton &&
-                                            (list.size() > (m_model->isServerModel() ? 0 : 1)))) &&
-                                            haveLogindUser);
+    if (m_model->isServerModel() && m_model->currentType() == SessionBaseModel::LightdmType) {
+        haveLogindUser = !m_model->logindUser().isEmpty();
     }
+    m_switchUserBtn->setVisible((alwaysShowUserSwitchButton ||
+                                          (allowShowUserSwitchButton &&
+                                          (list.size() > (m_model->isServerModel() ? 0 : 1)))) &&
+                                          haveLogindUser);
 }
 
 void ContentWidget::enableHibernateBtn(bool enable)
@@ -635,9 +631,7 @@ void ContentWidget::initUI()
     buttonLayout->addWidget(m_suspendButton);
     buttonLayout->addWidget(m_hibernateButton);
     buttonLayout->addWidget(m_lockButton);
-    if (!QFile::exists(ICBC_CONF_FILE)) {
-        buttonLayout->addWidget(m_switchUserBtn);
-    }
+    buttonLayout->addWidget(m_switchUserBtn);
     if(m_switchSystemBtn) buttonLayout->addWidget(m_switchSystemBtn);
     buttonLayout->addWidget(m_logoutButton);
     buttonLayout->addStretch(0);
@@ -680,9 +674,7 @@ void ContentWidget::initUI()
     m_btnsList->append(m_restartButton);
     m_btnsList->append(m_suspendButton);
     m_btnsList->append(m_hibernateButton);
-    if (!QFile::exists(ICBC_CONF_FILE)) {
-        m_btnsList->append(m_lockButton);
-    }
+    m_btnsList->append(m_lockButton);
     m_btnsList->append(m_switchUserBtn);
     if(m_switchSystemBtn) m_btnsList->append(m_switchSystemBtn);
     m_btnsList->append(m_logoutButton);

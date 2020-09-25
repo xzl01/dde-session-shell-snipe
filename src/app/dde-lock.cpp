@@ -95,7 +95,6 @@ int main(int argc, char *argv[])
 
     bool runDaemon = cmdParser.isSet(backend);
     bool showUserList = cmdParser.isSet(switchUser);
-    bool isICBC = QFile::exists(ICBC_CONF_FILE);
 
     SessionBaseModel *model = new SessionBaseModel(SessionBaseModel::AuthType::LockType);
     LockWorker *worker = new LockWorker(model); //
@@ -126,7 +125,7 @@ int main(int argc, char *argv[])
              emit service.ChangKey(key);
         });
 
-        if (!isICBC) {
+        if (isDeepinAuth()) {
             lockFrame->setVisible(model->isShow());
             emit service.Visible(true);
         } else {
@@ -148,7 +147,7 @@ int main(int argc, char *argv[])
             !app.setSingleInstance(QString("dde-lock%1").arg(getuid()), DApplication::UserScope)) {
         qDebug() << "register dbus failed"<< "maybe lockFront is running..." << conn.lastError();
 
-        if (!isICBC && !runDaemon) {
+        if (!runDaemon) {
             const char *interface = "com.deepin.dde.lockFront";
             QDBusInterface ifc(DBUS_NAME, DBUS_PATH, interface, QDBusConnection::sessionBus(), NULL);
             if (showUserList) {
@@ -158,7 +157,7 @@ int main(int argc, char *argv[])
             }
         }
     } else {
-        if (!isICBC && !runDaemon) {
+        if (isDeepinAuth() && !runDaemon) {
             if (showUserList) {
                 emit model->showUserList();
             } else {
