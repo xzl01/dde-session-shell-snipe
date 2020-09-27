@@ -204,6 +204,9 @@ void FullscreenBackground::setContent(QWidget *const w)
     m_content = w;
     m_content->setParent(this);
     m_content->raise();
+    if (1 == m_displayInter->displayMode()) {
+        m_content->show();
+    }
     m_content->move(0, 0);
 }
 
