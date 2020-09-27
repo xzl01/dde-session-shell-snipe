@@ -54,6 +54,7 @@ public slots:
     void setConfirm(const bool confrim);
 
 protected:
+    bool eventFilter(QObject *watched, QEvent *event) Q_DECL_OVERRIDE;
     void showEvent(QShowEvent *event) Q_DECL_OVERRIDE;
     void hideEvent(QHideEvent *event) Q_DECL_OVERRIDE;
 

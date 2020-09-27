@@ -74,6 +74,11 @@ void ShutdownFrame::setConfirm(const bool confrim)
     m_shutdownFrame->setConfirm(confrim);
 }
 
+bool ShutdownFrame::eventFilter(QObject *watched, QEvent *event)
+{
+    return FullscreenBackground::eventFilter(watched, event);
+}
+
 void ShutdownFrame::showEvent(QShowEvent *event)
 {
     Q_EMIT requestEnableHotzone(false);
