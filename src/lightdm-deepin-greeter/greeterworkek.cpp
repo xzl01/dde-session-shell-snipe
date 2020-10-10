@@ -273,9 +273,9 @@ void GreeterWorkek::prompt(QString text, QLightDM::Greeter::PromptType type)
     case QLightDM::Greeter::PromptTypeSecret:
         m_authenticating = false;
 
-        if (msg.isEmpty()) break;
+        if (m_password.isEmpty()) break;
 
-        if (!m_password.isEmpty()) {
+        if (msg.isEmpty()) {
             m_greeter->respond(m_password);
             m_password.clear();
         } else {
@@ -338,6 +338,7 @@ void GreeterWorkek::authenticationComplete()
         return;
     }
 
+    m_password.clear();
     m_model->currentUser()->resetLock();
 
     switch (m_model->powerAction()) {
