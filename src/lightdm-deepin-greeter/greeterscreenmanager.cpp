@@ -29,8 +29,11 @@ void GreeterScreenManager::register_for_mutil_screen(std::function<QWidget *(QSc
     // update all screen
     for (QScreen *screen : qApp->screens()) {
         qDebug() << __FILE__ << __LINE__ << __func__ << ": screen info ---- " <<  screen << screen->geometry();
+        if (qGuiApp->primaryScreen() == screen)
+            continue;
         onScreenAdded(screen);
     }
+    onScreenAdded(qGuiApp->primaryScreen());
 }
 
 void GreeterScreenManager::startRaiseContentFrame()
