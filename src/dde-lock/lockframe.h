@@ -34,6 +34,9 @@
 #include <QDBusConnection>
 #include <QDBusAbstractAdaptor>
 #include <memory>
+#include <com_deepin_daemon_timedate.h>
+
+using TimeDate = com::deepin::daemon::Timedate;
 
 const QString DBUS_PATH = "/com/deepin/dde/lockFront";
 const QString DBUS_NAME = "com.deepin.dde.lockFront";
@@ -75,6 +78,7 @@ private:
     DBusLogin1Manager *m_login1Inter;
     bool m_preparingSleep;
     bool m_prePreparingSleep;
+    TimeDate *m_timeDate;
 };
 
 #endif // LOCKFRAME

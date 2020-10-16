@@ -149,11 +149,15 @@ void LockContent::onCurrentUserChanged(std::shared_ptr<User> user)
         userInter = nativeUser->getUserInter();
     }
 
-    m_currentUserConnects << connect(user.get(), &User::greeterBackgroundPathChanged, this, &LockContent::requestBackground, Qt::UniqueConnection)
-                          << connect(userInter, &UserInter::Use24HourFormatChanged, this, &LockContent::updateTimeFormat, Qt::UniqueConnection)
-                          << connect(userInter, &UserInter::WeekdayFormatChanged, m_timeWidget, &TimeWidget::setWeekdayFormatType)
-                          << connect(userInter, &UserInter::ShortDateFormatChanged, m_timeWidget, &TimeWidget::setShortDateFormat)
-                          << connect(userInter, &UserInter::ShortTimeFormatChanged, m_timeWidget, &TimeWidget::setShortTimeFormat);
+    m_currentUserConnects << connect(user.get(), &User::greeterBackgroundPathChanged, this, &LockContent::requestBackground, Qt::UniqueConnection);
+    if (userInter) {
+        m_currentUserConnects << connect(userInter, &UserInter::Use24HourFormatChanged, this, &LockContent::updateTimeFormat, Qt::UniqueConnection)
+                              << connect(userInter, &UserInter::WeekdayFormatChanged, m_timeWidget, &TimeWidget::setWeekdayFormatType)
+                              << connect(userInter, &UserInter::ShortDateFormatChanged, m_timeWidget, &TimeWidget::setShortDateFormat)
+                              << connect(userInter, &UserInter::ShortTimeFormatChanged, m_timeWidget, &TimeWidget::setShortTimeFormat);
+    } else {
+        emit requestUpdateTime(&m_currentUserConnects);
+    }
 
     //lixin
     m_userLoginInfo->setUser(user);
@@ -164,8 +168,10 @@ void LockContent::onCurrentUserChanged(std::shared_ptr<User> user)
             m_timeWidget->setWeekdayFormatType(userInter->weekdayFormat());
             m_timeWidget->setShortDateFormat(userInter->shortDateFormat());
             m_timeWidget->setShortTimeFormat(userInter->shortTimeFormat());
+            updateTimeFormat(user->is24HourFormat());
+        } else {
+            emit this->requestInitTimeFormat();
         }
-        updateTimeFormat(user->is24HourFormat());
     });
 
     m_logoWidget->updateLocale(m_user->locale());
@@ -208,6 +214,21 @@ void LockContent::setMPRISEnable(const bool state)
 void LockContent::beforeUnlockAction(bool is_finish)
 {
     m_userLoginInfo->beforeUnlockAction(is_finish);
+}
+
+void LockContent::setWeekdayFormatType(int type)
+{
+    m_timeWidget->setWeekdayFormatType(type);
+}
+
+void LockContent::setShortDateFormat(int type)
+{
+    m_timeWidget->setShortDateFormat(type);
+}
+
+void LockContent::setShortTimeFormat(int type)
+{
+    m_timeWidget->setShortTimeFormat(type);
 }
 
 void LockContent::onStatusChanged(SessionBaseModel::ModeStatus status)

@@ -36,6 +36,8 @@ signals:
     void requestSwitchToUser(std::shared_ptr<User> user);
     void requestSetLayout(std::shared_ptr<User> user, const QString &value);
     void unlockActionFinish();
+    void requestUpdateTime(QList<QMetaObject::Connection> *connections);
+    void requestInitTimeFormat();
 
 public slots:
     void pushUserFrame();
@@ -44,6 +46,10 @@ public slots:
     void pushShutdownFrame();
     void setMPRISEnable(const bool state);
     void beforeUnlockAction(bool is_finish);
+    void setWeekdayFormatType(int type);
+    void setShortDateFormat(int type);
+    void setShortTimeFormat(int type);
+    void updateTimeFormat(bool use24);
 
 protected:
     void mouseReleaseEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
@@ -53,7 +59,6 @@ protected:
     void keyPressEvent(QKeyEvent *event) override;
 
 protected:
-    void updateTimeFormat(bool use24);
     void onBlurDone(const QString &source, const QString &blur, bool status);
     void toggleVirtualKB();
     void updateVirtualKBPosition();
