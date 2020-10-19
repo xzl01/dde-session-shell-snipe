@@ -131,6 +131,18 @@ bool LockFrame::eventFilter(QObject *watched, QEvent *event)
     return FullscreenBackground::eventFilter(watched, event);
 }
 
+void LockFrame::enterEvent(QEvent *event)
+{
+    Q_UNUSED(event);
+    m_content->show();
+}
+
+void LockFrame::leaveEvent(QEvent *event)
+{
+    Q_UNUSED(event);
+    m_content->hide();
+}
+
 void LockFrame::showUserList()
 {
     show();

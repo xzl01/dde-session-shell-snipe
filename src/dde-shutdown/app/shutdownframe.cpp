@@ -74,11 +74,6 @@ void ShutdownFrame::setConfirm(const bool confrim)
     m_shutdownFrame->setConfirm(confrim);
 }
 
-bool ShutdownFrame::eventFilter(QObject *watched, QEvent *event)
-{
-    return FullscreenBackground::eventFilter(watched, event);
-}
-
 void ShutdownFrame::showEvent(QShowEvent *event)
 {
     Q_EMIT requestEnableHotzone(false);
@@ -99,6 +94,18 @@ void ShutdownFrame::hideEvent(QHideEvent *event)
     m_shutdownFrame->recoveryLayout();
 
     return FullscreenBackground::hideEvent(event);
+}
+
+void ShutdownFrame::enterEvent(QEvent *event)
+{
+    Q_UNUSED(event);
+    m_shutdownFrame->show();
+}
+
+void ShutdownFrame::leaveEvent(QEvent *event)
+{
+    Q_UNUSED(event);
+    m_shutdownFrame->hide();
 }
 
 ShutdownFrame::~ShutdownFrame()

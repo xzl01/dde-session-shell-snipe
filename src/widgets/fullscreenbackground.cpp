@@ -437,10 +437,5 @@ bool FullscreenBackground::eventFilter(QObject *watched, QEvent *e)
     }
 #endif
 
-    if (e->type() == QEvent::Enter) {
-        m_content->show();
-        emit contentVisibleChanged(true);
-    }
-
     return QWidget::eventFilter(watched, e);
 }
