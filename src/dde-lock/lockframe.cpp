@@ -40,7 +40,6 @@ LockFrame::LockFrame(SessionBaseModel *const model, QWidget *parent)
     , m_login1Inter(new DBusLogin1Manager("org.freedesktop.login1", "/org/freedesktop/login1", QDBusConnection::systemBus(), this))
     , m_preparingSleep(false)
     , m_prePreparingSleep(false)
-    , m_timeDate(new TimeDate("com.deepin.daemon.Timedate", "/com/deepin/daemon/Timedate", QDBusConnection::sessionBus(), this))
 {
     qDebug() << "LockFrame geometry:" << geometry();
 
@@ -59,18 +58,6 @@ LockFrame::LockFrame(SessionBaseModel *const model, QWidget *parent)
     connect(m_content, &LockContent::requestAuthUser, this, &LockFrame::requestAuthUser);
     connect(m_content, &LockContent::requestSetLayout, this, &LockFrame::requestSetLayout);
     connect(m_content, &LockContent::requestBackground, this, static_cast<void (LockFrame::*)(const QString &)>(&LockFrame::updateBackground));
-    connect(m_content, &LockContent::requestUpdateTime, this, [ = ] (QList<QMetaObject::Connection> *connections) {
-        *connections << connect(m_timeDate, &TimeDate::Use24HourFormatChanged, m_content, &LockContent::updateTimeFormat, Qt::UniqueConnection)
-                     << connect(m_timeDate, &TimeDate::WeekdayFormatChanged, m_content, &LockContent::setWeekdayFormatType)
-                     << connect(m_timeDate, &TimeDate::ShortDateFormatChanged, m_content, &LockContent::setShortDateFormat)
-                     << connect(m_timeDate, &TimeDate::ShortTimeFormatChanged, m_content, &LockContent::setShortTimeFormat);
-    });
-    connect(m_content, &LockContent::requestInitTimeFormat, this, [ = ] {
-        m_content->setWeekdayFormatType(m_timeDate->weekdayFormat());
-        m_content->setShortDateFormat(m_timeDate->shortDateFormat());
-        m_content->setShortTimeFormat(m_timeDate->shortTimeFormat());
-        m_content->updateTimeFormat(m_timeDate->use24HourFormat());
-    });
     connect(model, &SessionBaseModel::blackModeChanged, this, &FullscreenBackground::setIsBlackMode);
     connect(model, &SessionBaseModel::HibernateModeChanged, this, [&](bool is_hibernate){
         if(is_hibernate){
