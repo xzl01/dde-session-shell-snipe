@@ -189,6 +189,16 @@ int main(int argc, char* argv[])
     }
     else {
         DApplication::customQtThemeConfigPath("/etc/lightdm/");
+
+        //在xcb中上一段代码通过读取配置文件能够影响greeter的缩放比，但是在wayland下无效，
+        //主线那边通过这种方法会有其它问题，在修改方案，通过配置xsettings去读取缩放比，但是还未完成。
+        //klu临时方案：使用QSettgings直接读取配置文件，通过环境变量设置缩放比，后面跟随主线一起修改。
+        QSettings settings("/etc/lightdm/deepin/qt-theme.ini", QSettings::IniFormat);
+        settings.beginGroup("Theme");
+        const double ratio = settings.value("ScreenScaleFactors", 0.0).toDouble();
+        if (ratio > 0.0) {
+            setenv("QT_SCALE_FACTOR", QByteArray::number(ratio).constData(), 1);
+        }
     }
 
     DApplication a(argc, argv);
