@@ -66,7 +66,6 @@ public:
     ModeStatus currentModeState() const { return m_currentModeState; }
     void setCurrentModeState(const ModeStatus &currentModeState);
 
-    inline bool hasVirtualKB() { return m_hasVirtualKB; }
     void setHasVirtualKB(bool hasVirtualKB);
 
     void setHasSwap(bool hasSwap);
@@ -129,8 +128,6 @@ signals:
 
 private:
     com::deepin::SessionManager *m_sessionManagerInter;
-
-    bool m_hasVirtualKB;
     bool m_hasSwap;
     bool m_isShow;
     bool m_isServerModel;

@@ -115,7 +115,6 @@ LockContent::LockContent(SessionBaseModel *const model, QWidget *parent)
 
     QTimer::singleShot(0, this, [ = ] {
         onCurrentUserChanged(model->currentUser());
-        initVirtualKB(model->hasVirtualKB());
         onUserListChanged(model->isServerModel() ? model->logindUser() : model->userList());
     });
 }
