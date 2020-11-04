@@ -71,6 +71,13 @@ FullscreenBackground::FullscreenBackground(QWidget *parent)
 
     installEventFilter(this);
 
+    QWindow * window = windowHandle();
+    QObject::connect(qApp, &QGuiApplication::screenRemoved, window, [window,this] (QScreen *screen) {
+        if (screen == m_screen) {
+            m_screen = qApp->primaryScreen();
+        }
+    });
+
     connect(m_fadeOutAni, &QVariantAnimation::valueChanged, this, static_cast<void (FullscreenBackground::*)()>(&FullscreenBackground::update));
 }
 
