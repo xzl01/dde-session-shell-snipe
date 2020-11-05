@@ -119,17 +119,19 @@ GreeterWorkek::GreeterWorkek(SessionBaseModel *const model, QObject *parent)
     });
 
     connect(model, &SessionBaseModel::onStatusChanged, this, [ = ](SessionBaseModel::ModeStatus status) {
-       switch (status) {
-       case SessionBaseModel::ModeStatus::PasswordMode:
-           if (!m_greeter->isAuthenticated())
-               resetLightdmAuth(m_model->currentUser(), 100, false);
-           break;
-       case SessionBaseModel::ModeStatus::UserMode:
-           checkUserOneKeyLogin();
-           break;
-       default:
-           break;
-       }
+        QTimer::singleShot(100, [&](){
+            switch (status) {
+            case SessionBaseModel::ModeStatus::PasswordMode:
+                if (!m_greeter->isAuthenticated())
+                    resetLightdmAuth(m_model->currentUser(), 100, false);
+                break;
+            case SessionBaseModel::ModeStatus::UserMode:
+                checkUserOneKeyLogin();
+                break;
+            default:
+                break;
+            }
+        });
     });
 
     connect(this, &GreeterWorkek::oneKeyLoginMatchFalse, this, &GreeterWorkek::checkUserOneKeyLogin);
