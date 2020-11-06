@@ -120,6 +120,9 @@ GreeterWorkek::GreeterWorkek(SessionBaseModel *const model, QObject *parent)
 
     connect(model, &SessionBaseModel::onStatusChanged, this, [ = ](SessionBaseModel::ModeStatus status) {
         QTimer::singleShot(100, [&](){
+            if (status != SessionBaseModel::ModeStatus::UserMode) {
+               disconnect(this, &GreeterWorkek::oneKeyLoginMatchFalse, this, &GreeterWorkek::checkUserOneKeyLogin);
+            }
             switch (status) {
             case SessionBaseModel::ModeStatus::PasswordMode:
                 if (!m_greeter->isAuthenticated())
