@@ -324,35 +324,54 @@ void AuthInterface::checkVirtualKB()
 
 void AuthInterface::checkSwap()
 {
-    QFile file("/proc/swaps");
-    if (file.open(QIODevice::Text | QIODevice::ReadOnly)) {
-        bool           hasSwap{ false };
-        const QString &body = file.readAll();
-        QTextStream    stream(body.toUtf8());
-        while (!stream.atEnd()) {
-            const std::pair<bool, qint64> result =
-                checkIsPartitionType(stream.readLine().simplified().split(
-                    " ", QString::SplitBehavior::SkipEmptyParts));
-            qint64 image_size{ get_power_image_size() };
-
-            if (result.first) {
-                hasSwap = image_size < result.second;
-            }
-
-            qDebug() << "check using swap partition!";
-            qDebug() << QString("image_size: %1, swap partition size: %2")
-                            .arg(QString::number(image_size))
-                            .arg(QString::number(result.second));
-
-            if (hasSwap) {
-                break;
-            }
-        }
-
-        m_model->setHasSwap(hasSwap);
-        file.close();
+    //临时方案，判断swap_file与image_size大小
+    //https://pms.uniontech.com/zentao/task-view-43465.html
+    //-rw------- 1 root root 8589934592 11\xE6\x9C\x88  2 03:49 /swap_file\n
+    bool hasSwap = false;
+    QProcess process;
+    process.start("ls -l /swap_file");
+    process.waitForFinished();
+    QString cmdinfo = QString(process.readAllStandardOutput());
+    qDebug() << "cmd-result :" << cmdinfo;
+    QStringList strList = cmdinfo.split(" ");
+    if (strList.size() < 5) {
+        m_model->setHasSwap(false);
     }
-    else {
-        qWarning() << "open /proc/swaps failed! please check permission!!!";
-    }
+    qint64 swap_size = strList.at(4).toLongLong();
+    qint64 image_size{ get_power_image_size() };
+    hasSwap = image_size < swap_size;
+    qDebug() << "image_size=" << image_size << ":swap_size=" << swap_size;
+
+    m_model->setHasSwap(hasSwap);
+//    QFile file("/proc/swaps");
+//    if (file.open(QIODevice::Text | QIODevice::ReadOnly)) {
+//        bool           hasSwap{ false };
+//        const QString &body = file.readAll();
+//        QTextStream    stream(body.toUtf8());
+//        while (!stream.atEnd()) {
+//            const std::pair<bool, qint64> result =
+//                checkIsPartitionType(stream.readLine().simplified().split(
+//                    " ", QString::SplitBehavior::SkipEmptyParts));
+//            qint64 image_size{ get_power_image_size() };
+
+//            if (result.first) {
+//                hasSwap = image_size < result.second;
+//            }
+
+//            qDebug() << "check using swap partition!";
+//            qDebug() << QString("image_size: %1, swap partition size: %2")
+//                            .arg(QString::number(image_size))
+//                            .arg(QString::number(result.second));
+
+//            if (hasSwap) {
+//                break;
+//            }
+//        }
+
+//        m_model->setHasSwap(hasSwap);
+//        file.close();
+//    }
+//    else {
+//        qWarning() << "open /proc/swaps failed! please check permission!!!";
+//    }
 }
