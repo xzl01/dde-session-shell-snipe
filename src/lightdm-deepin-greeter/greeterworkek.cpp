@@ -89,6 +89,7 @@ GreeterWorkek::GreeterWorkek(SessionBaseModel *const model, QObject *parent)
         m_AuthenticateInter->setTimeout(300);
     }
 
+    m_greeter->cancelAuthentication();
     if (!m_greeter->connectSync()) {
         qWarning() << "greeter connect fail !!!";
     }
@@ -119,25 +120,22 @@ GreeterWorkek::GreeterWorkek(SessionBaseModel *const model, QObject *parent)
     });
 
     connect(model, &SessionBaseModel::onStatusChanged, this, [ = ](SessionBaseModel::ModeStatus status) {
-        QTimer::singleShot(100, [&](){
-            if (status != SessionBaseModel::ModeStatus::UserMode) {
-               disconnect(this, &GreeterWorkek::oneKeyLoginMatchFalse, this, &GreeterWorkek::checkUserOneKeyLogin);
-            }
-            switch (status) {
-            case SessionBaseModel::ModeStatus::PasswordMode:
-                if (!m_greeter->isAuthenticated())
-                    resetLightdmAuth(m_model->currentUser(), 100, false);
-                break;
-            case SessionBaseModel::ModeStatus::UserMode:
-                checkUserOneKeyLogin();
-                break;
-            default:
-                break;
-            }
-        });
+        if (status != SessionBaseModel::ModeStatus::UserMode) {
+           disconnect(this, &GreeterWorkek::oneKeyLoginMatchFalse, this, &GreeterWorkek::checkUserOneKeyLogin);
+        }
+        switch (status) {
+        case SessionBaseModel::ModeStatus::PasswordMode:
+            if (!m_greeter->isAuthenticated())
+                resetLightdmAuth(m_model->currentUser(), 100, false);
+            break;
+        case SessionBaseModel::ModeStatus::UserMode:
+            connect(this, &GreeterWorkek::oneKeyLoginMatchFalse, this, &GreeterWorkek::checkUserOneKeyLogin);
+            checkUserOneKeyLogin();
+            break;
+        default:
+            break;
+        }
     });
-
-    connect(this, &GreeterWorkek::oneKeyLoginMatchFalse, this, &GreeterWorkek::checkUserOneKeyLogin);
 
     connect(model, &SessionBaseModel::lockChanged, this, [ = ](bool lock) {
         if (!lock) {
@@ -153,15 +151,6 @@ GreeterWorkek::GreeterWorkek(SessionBaseModel *const model, QObject *parent)
 
     connect(model, &SessionBaseModel::currentUserChanged, this, &GreeterWorkek::recoveryUserKBState);
     connect(m_lockInter, &DBusLockService::UserChanged, this, &GreeterWorkek::onCurrentUserChanged);
-
-    connect(m_login1Inter, &DBusLogin1Manager::SessionRemoved, this, [ = ] {
-        const QString& user = m_lockInter->CurrentUser();
-        const QJsonObject obj = QJsonDocument::fromJson(user.toUtf8()).object();
-        auto user_ptr = m_model->findUserByUid(static_cast<uint>(obj["Uid"].toInt()));
-
-        m_model->setCurrentUser(user_ptr);
-        userAuthForLightdm(user_ptr);
-    });
 
     const QString &switchUserButtonValue { valueByQSettings<QString>("Lock", "showSwitchUserButton", "ondemand") };
     m_model->setAlwaysShowUserSwitchButton(switchUserButtonValue == "always");
@@ -344,7 +333,9 @@ void GreeterWorkek::onCurrentUserChanged(const QString &user)
         if (!user_ptr->isLogin() && user_ptr->uid() == m_currentUserUid) {
             m_model->setCurrentUser(user_ptr);
             qDebug() << "Request Auth_GreeterWorkek::onCurrentUserChanged -- currentUser changed to" << user_ptr->name();
-            userAuthForLightdm(user_ptr);
+            if (!user_ptr->isNoPasswdGrp()) {
+                resetLightdmAuth(user_ptr, 300, true);
+            }
             break;
         }
     }

@@ -38,14 +38,6 @@ LockWorker::LockWorker(SessionBaseModel *const model, QObject *parent)
     m_currentUserUid = getuid();
     m_authFramework = new DeepinAuthFramework(this, this);
 
-    //该信号用来处理初始化lock、锁屏或者切换用户(锁屏+登陆)三种场景的指纹认证
-    QObject::connect(model, &SessionBaseModel::visibleChanged, this, [ = ](bool visible){
-        qDebug() << "SessionBaseModel::visibleChanged -- visible status :" << visible;
-        auto user = m_model->currentUser();
-        if(visible && user->uid() == m_currentUserUid) {
-            m_authFramework->Authenticate(user);
-        }
-    });
     //该信号用来处理初始化切换用户(锁屏+锁屏)或者切换用户(锁屏+登陆)两种种场景的指纹认证
     connect(m_lockInter, &DBusLockService::UserChanged, this, &LockWorker::onCurrentUserChanged);
 
@@ -86,32 +78,30 @@ LockWorker::LockWorker(SessionBaseModel *const model, QObject *parent)
 
         if (user_ptr->type() == User::ADDomain && user_ptr->uid() == 0) return;
 
-        //userAuthForLock(user_ptr);
+        m_authFramework->Authenticate(user_ptr);
     });
 
     connect(m_lockInter, &DBusLockService::Event, this, &LockWorker::lockServiceEvent);
 
     //切换用户一键登录
-    connect(this, &LockWorker::oneKeyLoginMatchFalse, this, &LockWorker::checkUserOneKeyLogin);
     connect(model, &SessionBaseModel::onStatusChanged, this, [ = ](SessionBaseModel::ModeStatus status) {
-        QTimer::singleShot(100, [&](){
-            if (status != SessionBaseModel::ModeStatus::UserMode) {
-               disconnect(this, &LockWorker::oneKeyLoginMatchFalse, this, &LockWorker::checkUserOneKeyLogin);
-            }
-            switch (status) {
-            case SessionBaseModel::ModeStatus::PasswordMode:
-                resetLightdmAuth(m_model->currentUser(), 100, false);
-                break;
-            case SessionBaseModel::ModeStatus::UserMode:
-                checkUserOneKeyLogin();
-                break;
-            case SessionBaseModel::ModeStatus::PowerMode:
-                checkPowerInfo();
-                break;
-            default:
-                break;
-            }
-        });
+        if (status != SessionBaseModel::ModeStatus::UserMode) {
+           disconnect(this, &LockWorker::oneKeyLoginMatchFalse, this, &LockWorker::checkUserOneKeyLogin);
+        }
+        switch (status) {
+        case SessionBaseModel::ModeStatus::PasswordMode:
+            resetLightdmAuth(m_model->currentUser(), 100);
+            break;
+        case SessionBaseModel::ModeStatus::UserMode:
+            connect(this, &LockWorker::oneKeyLoginMatchFalse, this, &LockWorker::checkUserOneKeyLogin);
+            checkUserOneKeyLogin();
+            break;
+        case SessionBaseModel::ModeStatus::PowerMode:
+            checkPowerInfo();
+            break;
+        default:
+            break;
+        }
     });
 
     connect(m_loginedInter, &LoginedInter::LastLogoutUserChanged, this, &LockWorker::onLastLogoutUserChanged);
@@ -333,7 +323,7 @@ void LockWorker::onCurrentUserChanged(const QString &user)
     if (user_cur == m_currentUserUid) {
         for (std::shared_ptr<User> user_ptr : m_model->userList()) {
             if (user_ptr->uid() == m_currentUserUid) {
-                m_authFramework->Authenticate(user_ptr);
+                resetLightdmAuth(user_ptr, 200);
                 return;
             }
         }
@@ -355,9 +345,9 @@ void LockWorker::checkUserOneKeyLogin()
             if (user_ptr.get() == nullptr)
                 emit oneKeyLoginMatchFalse();
             if (user_ptr.get() != nullptr && !user_firstlogin.isError()) {
-                switchToUserOneKeyLogin(user_ptr);
+                switchToUser(user_ptr);
                 if (m_model->currentUser()->name() == user_firstlogin) {
-                    resetLightdmAuth(user_ptr, 100, true);
+                    resetLightdmAuth(user_ptr, 100);
                 }
             }
         } else{
@@ -367,34 +357,9 @@ void LockWorker::checkUserOneKeyLogin()
     });
 }
 
-void LockWorker::resetLightdmAuth(std::shared_ptr<User> user, int delay_time, bool is_respond)
+void LockWorker::resetLightdmAuth(std::shared_ptr<User> user, int delay_time)
 {
-//    if (user->isLock()) {return;}
-
     QTimer::singleShot(delay_time, this, [ = ] {
         m_authFramework->Authenticate(user);
-        if (is_respond) {
-            authUser(m_password);
-        }
     });
-}
-
-void LockWorker::switchToUserOneKeyLogin(std::shared_ptr<User> user)
-{
-
-    qDebug() << "switch user from" << m_model->currentUser()->name() << " to " << user->name();
-
-    // clear old password
-    m_password.clear();
-    m_authenticating = false;
-
-    // if type is lock, switch to greeter
-    QJsonObject json;
-    json["Uid"] = static_cast<int>(user->uid());
-    json["Type"] = user->type();
-
-    qDebug() << QString(QJsonDocument(json).toJson(QJsonDocument::Compact));
-    m_lockInter->SwitchToUser(QString(QJsonDocument(json).toJson(QJsonDocument::Compact))).waitForFinished();
-
-    QProcess::startDetached("dde-switchtogreeter", QStringList() << user->name());
 }
