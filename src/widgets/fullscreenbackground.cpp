@@ -180,10 +180,21 @@ void FullscreenBackground::setScreen(QScreen *screen)
 
 void FullscreenBackground::setMonitor(Monitor *monitor)
 {
-    if (m_displayInter->primary() == monitor->name()) {
-        emit contentVisibleChanged(true);
-        m_content->show();
+    QDBusMessage getRealDisplayMode = QDBusMessage::createMethodCall("com.deepin.daemon.Display",
+                                                                     "/com/deepin/daemon/Display",
+                                                                     "com.deepin.daemon.Display",
+                                                                     "GetRealDisplayMode");
+    QDBusMessage msg = QDBusConnection::sessionBus().call(getRealDisplayMode);
+    if (DisplayMode::CopyMode == msg.arguments().first().toUInt()) {
+        if (m_displayInter->primary() == monitor->name()) {
+            emit contentVisibleChanged(true);
+            m_content->show();
+        }
+    } else {
+        emit contentVisibleChanged(false);
+        m_content->hide();
     }
+
     updateMonitor(monitor);
 }
 
