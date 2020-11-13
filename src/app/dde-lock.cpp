@@ -139,7 +139,7 @@ int main(int argc, char *argv[])
             model->setIsShow(false);
             lockFrame->setVisible(false);
         }
-
+        lockFrame->setContentHide();
         return lockFrame;
     };
 

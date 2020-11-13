@@ -47,10 +47,8 @@ LockFrame::LockFrame(SessionBaseModel *const model, QWidget *parent)
 
     Hibernate = new HibernateWidget(this);
     Hibernate->hide();
-    m_content = new LockContent(model);
-    m_content->hide();
+    m_content = new LockContent(model, this);
     setContent(m_content);
-
     connect(m_content, &LockContent::requestSwitchToUser, this, &LockFrame::requestSwitchToUser);
     connect(m_content, &LockContent::requestAuthUser, this, &LockFrame::requestAuthUser);
     connect(m_content, &LockContent::requestSetLayout, this, &LockFrame::requestSetLayout);
@@ -143,6 +141,16 @@ void LockFrame::leaveEvent(QEvent *event)
     m_content->hide();
 }
 
+bool LockFrame::isConntentHide()
+{
+    return m_content->isHidden();
+}
+
+void LockFrame::setContentHide()
+{
+   m_content->hide();
+}
+
 void LockFrame::showUserList()
 {
     m_model->setCurrentModeState(SessionBaseModel::ModeStatus::UserMode);
@@ -186,6 +194,7 @@ void LockFrame::keyPressEvent(QKeyEvent *e)
 
 void LockFrame::showEvent(QShowEvent *event)
 {
+    setContentHide();
     emit requestEnableHotzone(false);
 
     m_model->setIsShow(true);

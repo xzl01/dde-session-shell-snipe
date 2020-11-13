@@ -46,6 +46,8 @@ class LockFrame: public FullscreenBackground
     Q_OBJECT
 public:
     LockFrame(SessionBaseModel *const model, QWidget *parent = nullptr);
+    void setContentHide();
+    bool isConntentHide();
     ~LockFrame() override;
 
 signals:
