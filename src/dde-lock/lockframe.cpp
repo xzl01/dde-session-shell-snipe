@@ -145,8 +145,8 @@ void LockFrame::leaveEvent(QEvent *event)
 
 void LockFrame::showUserList()
 {
-    show();
     m_model->setCurrentModeState(SessionBaseModel::ModeStatus::UserMode);
+    show();
 }
 
 void LockFrame::visibleChangedFrame(bool isVisible)

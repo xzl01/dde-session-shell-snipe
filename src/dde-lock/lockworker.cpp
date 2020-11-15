@@ -78,6 +78,8 @@ LockWorker::LockWorker(SessionBaseModel *const model, QObject *parent)
 
         if (user_ptr->type() == User::ADDomain && user_ptr->uid() == 0) return;
 
+        if (m_model->currentModeState() == SessionBaseModel::ModeStatus::UserMode) return;
+
         m_authFramework->Authenticate(user_ptr);
     });
 
@@ -89,10 +91,8 @@ LockWorker::LockWorker(SessionBaseModel *const model, QObject *parent)
            disconnect(this, &LockWorker::oneKeyLoginMatchFalse, this, &LockWorker::checkUserOneKeyLogin);
         }
         switch (status) {
-        case SessionBaseModel::ModeStatus::PasswordMode:
-            resetLightdmAuth(m_model->currentUser(), 100);
-            break;
         case SessionBaseModel::ModeStatus::UserMode:
+            m_authFramework->cancelAuthentication();
             connect(this, &LockWorker::oneKeyLoginMatchFalse, this, &LockWorker::checkUserOneKeyLogin);
             checkUserOneKeyLogin();
             break;
@@ -323,7 +323,7 @@ void LockWorker::onCurrentUserChanged(const QString &user)
     if (user_cur == m_currentUserUid) {
         for (std::shared_ptr<User> user_ptr : m_model->userList()) {
             if (user_ptr->uid() == m_currentUserUid) {
-                resetLightdmAuth(user_ptr, 200);
+                m_authFramework->Authenticate(user_ptr);
                 return;
             }
         }
@@ -347,7 +347,7 @@ void LockWorker::checkUserOneKeyLogin()
             if (user_ptr.get() != nullptr && !user_firstlogin.isError()) {
                 switchToUser(user_ptr);
                 if (m_model->currentUser()->name() == user_firstlogin) {
-                    resetLightdmAuth(user_ptr, 100);
+                    resetLightdmAuth(user_ptr, 100, true);
                 }
             }
         } else{
@@ -357,9 +357,12 @@ void LockWorker::checkUserOneKeyLogin()
     });
 }
 
-void LockWorker::resetLightdmAuth(std::shared_ptr<User> user, int delay_time)
+void LockWorker::resetLightdmAuth(std::shared_ptr<User> user, int delay_time, bool is_respond)
 {
     QTimer::singleShot(delay_time, this, [ = ] {
         m_authFramework->Authenticate(user);
+        if (is_respond) {
+            m_authFramework->Responsed(m_password);
+        }
     });
 }
