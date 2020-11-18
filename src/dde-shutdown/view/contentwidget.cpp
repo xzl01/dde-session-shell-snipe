@@ -556,14 +556,15 @@ void ContentWidget::currentWorkspaceChanged()
 
 void ContentWidget::updateWallpaper(const QString &path)
 {
-    QString wallpaper = path;
-    if(path.isEmpty()) {
-            wallpaper = "/usr/share/backgrounds/deepin/desktop.jpg";
-    }
-
+    QString wallpaper;
     const QUrl url(path);
     if (url.isLocalFile()) {
         wallpaper = url.path();
+    }
+
+    if (wallpaper.isEmpty()) {
+        wallpaper = "/usr/share/backgrounds/default_background.jpg";
+        qWarning() << "can not find path, use default background";
     }
 
     emit requestBackground(wallpaper);
