@@ -448,14 +448,12 @@ void FullscreenBackground::updateMonitorGeometry()
 ********************************************************/
 bool FullscreenBackground::eventFilter(QObject *watched, QEvent *e)
 {
-//在wayland环境，激活窗口会抢占焦点导致osd窗口一闪而过
-#if 0
 #ifndef QT_DEBUG
     if (e->type() == QEvent::WindowDeactivate) {
         if (m_content->isVisible())
             windowHandle()->requestActivate();
     }
 #endif
-#endif
+
     return QWidget::eventFilter(watched, e);
 }
