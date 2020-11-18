@@ -153,8 +153,8 @@ void LockFrame::setContentHide()
 
 void LockFrame::showUserList()
 {
-    m_model->setCurrentModeState(SessionBaseModel::ModeStatus::UserMode);
     show();
+    m_model->setCurrentModeState(SessionBaseModel::ModeStatus::UserMode);
 }
 
 void LockFrame::visibleChangedFrame(bool isVisible)

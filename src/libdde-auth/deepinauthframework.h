@@ -24,7 +24,6 @@ public:
 public slots:
     void Authenticate(std::shared_ptr<User> user);
     void Responsed(const QString &password);
-    void cancelAuthentication();
 
 private:
     static void* pamAuthWorker(void *arg);

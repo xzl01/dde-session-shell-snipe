@@ -89,6 +89,7 @@ GreeterWorkek::GreeterWorkek(SessionBaseModel *const model, QObject *parent)
         m_AuthenticateInter->setTimeout(300);
     }
 
+    m_greeter->cancelAuthentication();
     if (!m_greeter->connectSync()) {
         qWarning() << "greeter connect fail !!!";
     }
@@ -123,8 +124,11 @@ GreeterWorkek::GreeterWorkek(SessionBaseModel *const model, QObject *parent)
            disconnect(this, &GreeterWorkek::oneKeyLoginMatchFalse, this, &GreeterWorkek::checkUserOneKeyLogin);
         }
         switch (status) {
+        case SessionBaseModel::ModeStatus::PasswordMode:
+            if (!m_greeter->isAuthenticated())
+                resetLightdmAuth(m_model->currentUser(), 100, false);
+            break;
         case SessionBaseModel::ModeStatus::UserMode:
-            m_greeter->cancelAuthentication();
             connect(this, &GreeterWorkek::oneKeyLoginMatchFalse, this, &GreeterWorkek::checkUserOneKeyLogin);
             checkUserOneKeyLogin();
             break;
@@ -245,6 +249,11 @@ void GreeterWorkek::onUserAdded(const QString &user)
     if (m_model->currentUser().get() == nullptr) {
         if (m_model->userList().isEmpty() || m_model->userList().first()->type() == User::ADDomain) {
             m_model->setCurrentUser(user_ptr);
+
+            if (m_model->currentType() == SessionBaseModel::AuthType::LightdmType) {
+                qDebug() << "Request Auth_GreeterWorkek::onUserAdded -- User added" << user_ptr->name();
+                userAuthForLightdm(user_ptr);
+            }
         }
     }
 
@@ -308,8 +317,6 @@ void GreeterWorkek::checkUserOneKeyLogin()
         } else {
             emit oneKeyLoginMatchFalse();
         }
-
-        delete process;
     });
 }
 
@@ -326,7 +333,9 @@ void GreeterWorkek::onCurrentUserChanged(const QString &user)
         if (!user_ptr->isLogin() && user_ptr->uid() == m_currentUserUid) {
             m_model->setCurrentUser(user_ptr);
             qDebug() << "Request Auth_GreeterWorkek::onCurrentUserChanged -- currentUser changed to" << user_ptr->name();
-            userAuthForLightdm(user_ptr);
+            if (!user_ptr->isNoPasswdGrp()) {
+                resetLightdmAuth(user_ptr, 300, true);
+            }
             break;
         }
     }

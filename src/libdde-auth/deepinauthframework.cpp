@@ -53,8 +53,10 @@ void* DeepinAuthFramework::pamAuthWorker(void *arg)
     return nullptr;
 }
 
-void DeepinAuthFramework::cancelAuthentication()
+void DeepinAuthFramework::Authenticate(std::shared_ptr<User> user)
 {
+    if (user->isLock()) return;
+
     m_password.clear();
 
     if (m_pamAuth != 0) {
@@ -62,13 +64,6 @@ void DeepinAuthFramework::cancelAuthentication()
         pthread_join(m_pamAuth, nullptr);
         m_pamAuth = 0;
     }
-}
-
-void DeepinAuthFramework::Authenticate(std::shared_ptr<User> user)
-{
-    if (user->isLock()) return;
-
-    cancelAuthentication();
 
     qDebug() << Q_FUNC_INFO << "pam auth start" << m_authagent->thread()->loopLevel();
 

@@ -61,7 +61,7 @@ private:
     void onCurrentUserChanged(const QString &user);
 
     void checkUserOneKeyLogin();
-    void resetLightdmAuth(std::shared_ptr<User> user, int delay_time, bool is_respond);
+    void resetLightdmAuth(std::shared_ptr<User> user,int delay_time);
 
 
 private:
