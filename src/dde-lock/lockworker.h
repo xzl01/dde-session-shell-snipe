@@ -15,12 +15,10 @@
 #include <com_deepin_daemon_logined.h>
 #include <com_deepin_daemon_accounts.h>
 #include <com_deepin_sessionmanager.h>
-#include <com_deepin_daemon_authenticate.h>
 
 using LoginedInter = com::deepin::daemon::Logined;
 using AccountsInter = com::deepin::daemon::Accounts;
 using SessionManager = com::deepin::SessionManager;
-using com::deepin::daemon::Authenticate;
 
 class SessionBaseModel;
 class LockWorker : public Auth::AuthInterface, public DeepinAuthInterface
@@ -45,10 +43,6 @@ public:
     void onDisplayTextInfo(const QString &msg) override;
     void onPasswordResult(const QString &msg) override;
 
-signals:
-    void oneKeyLoginMatchFalse();
-
-
 private:
     void onUserAdded(const QString &user) override;
     void saveNumlockStatus(std::shared_ptr<User> user, const bool &on);
@@ -60,11 +54,6 @@ private:
 
     void onCurrentUserChanged(const QString &user);
 
-    void checkUserOneKeyLogin();
-    void resetLightdmAuth(std::shared_ptr<User> user,int delay_time, bool is_respond);
-    void switchToUserOneKeyLogin(std::shared_ptr<User> user);
-
-
 private:
     bool m_authenticating;
     bool m_isThumbAuth;
@@ -74,7 +63,6 @@ private:
     QString m_password;
     QMap<std::shared_ptr<User>, bool> m_lockUser;
     SessionManager *m_sessionManager;
-    Authenticate      *m_AuthenticateInter;
 };
 
 #endif // LOCKWORKER_H

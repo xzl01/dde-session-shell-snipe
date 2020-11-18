@@ -118,22 +118,6 @@ GreeterWorkek::GreeterWorkek(SessionBaseModel *const model, QObject *parent)
         model->setPowerAction(SessionBaseModel::PowerAction::None);
     });
 
-    connect(model, &SessionBaseModel::onStatusChanged, this, [ = ](SessionBaseModel::ModeStatus status) {
-       switch (status) {
-       case SessionBaseModel::ModeStatus::PasswordMode:
-           if (!m_greeter->isAuthenticated())
-               resetLightdmAuth(m_model->currentUser(), 100, true);
-           break;
-       case SessionBaseModel::ModeStatus::UserMode:
-           checkUserOneKeyLogin();
-           break;
-       default:
-           break;
-       }
-    });
-
-    connect(this, &GreeterWorkek::oneKeyLoginMatchFalse, this, &GreeterWorkek::checkUserOneKeyLogin);
-
     connect(model, &SessionBaseModel::lockChanged, this, [ = ](bool lock) {
         if (!lock) {
             m_password.clear();
@@ -306,26 +290,6 @@ void GreeterWorkek::oneKeyLogin()
     }
 }
 
-void GreeterWorkek::checkUserOneKeyLogin()
-{
-    // 切换用户指纹一键登陆
-    QProcess* process = new QProcess(this);
-    process->start(QString( "qdbus --system com.deepin.daemon.Authenticate /com/deepin/daemon/Authenticate com.deepin.daemon.Authenticate.CheckUserPreOneKeyLogin 2"));
-    connect(process, qOverload<int, QProcess::ExitStatus>(&QProcess::finished), this, [ = ] {
-        QString data = QString(process->readAllStandardOutput());
-        QString username = data.simplified();
-         auto user_ptr = m_model->findUserByName(username.simplified());
-        if (user_ptr.get() != nullptr) {
-            switchToUser(user_ptr);
-            m_model->setCurrentUser(user_ptr);
-            userAuthForLightdm(user_ptr);
-            m_showAuthResult = true;
-        } else {
-            emit oneKeyLoginMatchFalse();
-        }
-    });
-}
-
 void GreeterWorkek::onCurrentUserChanged(const QString &user)
 {
     const QJsonObject obj = QJsonDocument::fromJson(user.toUtf8()).object();
@@ -465,7 +429,7 @@ void GreeterWorkek::authenticationComplete()
     default: break;
     }
 
-    qDebug() << m_model->currentUser()->name() << "start session = " << m_model->sessionKey();
+    qDebug() << "start session = " << m_model->sessionKey();
 
     auto startSessionSync = [ = ]() {
         QJsonObject json;
