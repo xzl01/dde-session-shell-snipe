@@ -96,7 +96,7 @@ LockWorker::LockWorker(SessionBaseModel *const model, QObject *parent)
     connect(model, &SessionBaseModel::onStatusChanged, this, [ = ](SessionBaseModel::ModeStatus status) {
         switch (status) {
         case SessionBaseModel::ModeStatus::PasswordMode:
-            resetLightdmAuth(m_model->currentUser(), 100, false);
+            resetLightdmAuth(m_model->currentUser(), 100, true);
             break;
         case SessionBaseModel::ModeStatus::UserMode:
             checkUserOneKeyLogin();

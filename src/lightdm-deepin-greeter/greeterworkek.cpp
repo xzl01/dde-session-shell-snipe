@@ -122,7 +122,7 @@ GreeterWorkek::GreeterWorkek(SessionBaseModel *const model, QObject *parent)
        switch (status) {
        case SessionBaseModel::ModeStatus::PasswordMode:
            if (!m_greeter->isAuthenticated())
-               resetLightdmAuth(m_model->currentUser(), 100, false);
+               resetLightdmAuth(m_model->currentUser(), 100, true);
            break;
        case SessionBaseModel::ModeStatus::UserMode:
            checkUserOneKeyLogin();
