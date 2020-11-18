@@ -94,24 +94,19 @@ LockWorker::LockWorker(SessionBaseModel *const model, QObject *parent)
     //切换用户一键登录
     connect(this, &LockWorker::oneKeyLoginMatchFalse, this, &LockWorker::checkUserOneKeyLogin);
     connect(model, &SessionBaseModel::onStatusChanged, this, [ = ](SessionBaseModel::ModeStatus status) {
-        QTimer::singleShot(100, [&](){
-            if (status != SessionBaseModel::ModeStatus::UserMode) {
-               disconnect(this, &LockWorker::oneKeyLoginMatchFalse, this, &LockWorker::checkUserOneKeyLogin);
-            }
-            switch (status) {
-            case SessionBaseModel::ModeStatus::PasswordMode:
-                resetLightdmAuth(m_model->currentUser(), 100, false);
-                break;
-            case SessionBaseModel::ModeStatus::UserMode:
-                checkUserOneKeyLogin();
-                break;
-            case SessionBaseModel::ModeStatus::PowerMode:
-                checkPowerInfo();
-                break;
-            default:
-                break;
-            }
-        });
+        switch (status) {
+        case SessionBaseModel::ModeStatus::PasswordMode:
+            resetLightdmAuth(m_model->currentUser(), 100, false);
+            break;
+        case SessionBaseModel::ModeStatus::UserMode:
+            checkUserOneKeyLogin();
+            break;
+        case SessionBaseModel::ModeStatus::PowerMode:
+            checkPowerInfo();
+            break;
+        default:
+            break;
+        }
     });
 
     connect(m_loginedInter, &LoginedInter::LastLogoutUserChanged, this, &LockWorker::onLastLogoutUserChanged);
