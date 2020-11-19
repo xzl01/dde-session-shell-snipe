@@ -273,13 +273,24 @@ void GreeterWorkek::oneKeyLogin()
         onCurrentUserChanged(m_lockInter->CurrentUser());
         return;
     }
+
     // 多用户一键登陆
-    auto user_firstlogin = m_AuthenticateInter->PreOneKeyLogin(AuthFlag::Fingerprint);
-    user_firstlogin.waitForFinished();
-    qDebug() << "GreeterWorkek::onFirstTimeLogin -- FirstTime Login User Name is : " << user_firstlogin;
+//    auto user_firstlogin = m_AuthenticateInter->PreOneKeyLogin(AuthFlag::Fingerprint);
+//    user_firstlogin.waitForFinished();
+//    qDebug() << "zl: GreeterWorkek::onFirstTimeLogin -- FirstTime Login User Name is : " << user_firstlogin;
+
+    // 以上通过Qt库调用dbus服务未能得到正确的返回结果，保留以示区别
+    QString user_firstlogin;
+    QProcess* process = new QProcess(this);
+    process->start(QString("qdbus --system com.deepin.daemon.Authenticate /com/deepin/daemon/Authenticate com.deepin.daemon.Authenticate.PreOneKeyLogin %1").arg(AuthFlag::Fingerprint));
+    connect(process, qOverload<int, QProcess::ExitStatus>(&QProcess::finished), this, [ & ] {
+        QString data = QString(process->readAllStandardOutput());
+        user_firstlogin = data.simplified();
+    });
+    process->waitForFinished();
 
     auto user_ptr = m_model->findUserByName(user_firstlogin);
-    if (user_ptr.get() != nullptr && !user_firstlogin.isError()) {
+    if (user_ptr.get() != nullptr) {
         switchToUser(user_ptr);
         m_model->setCurrentUser(user_ptr);
         userAuthForLightdm(user_ptr);
@@ -292,6 +303,7 @@ void GreeterWorkek::oneKeyLogin()
 
 void GreeterWorkek::onCurrentUserChanged(const QString &user)
 {
+    qDebug() << "zl: current user " << user;
     const QJsonObject obj = QJsonDocument::fromJson(user.toUtf8()).object();
     m_currentUserUid = static_cast<uint>(obj["Uid"].toInt());
 
