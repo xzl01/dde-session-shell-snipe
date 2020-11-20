@@ -23,11 +23,7 @@ DeepinAuthFramework::~DeepinAuthFramework()
         delete m_authagent;
         m_authagent = nullptr;
 
-        if (m_pamAuth != 0) {
-            pthread_cancel(m_pamAuth);
-            pthread_join(m_pamAuth, nullptr);
-            m_pamAuth = 0;
-        }
+        forceCancelLastAuth();
     }
 }
 
@@ -43,6 +39,9 @@ int DeepinAuthFramework::GetAuthType()
 
 void* DeepinAuthFramework::pamAuthWorker(void *arg)
 {
+    pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, nullptr);
+    pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, nullptr);
+
     DeepinAuthFramework* deepin_auth = static_cast<DeepinAuthFramework*>(arg);
     if(deepin_auth != nullptr && deepin_auth->m_currentUser != nullptr) {
         deepin_auth->m_authagent->Authenticate(deepin_auth->m_currentUser->name());
@@ -50,6 +49,7 @@ void* DeepinAuthFramework::pamAuthWorker(void *arg)
         qDebug() << "pam auth worker deepin framework is nullptr";
     }
 
+    deepin_auth->setLastAuthFinished();
     return nullptr;
 }
 
@@ -58,17 +58,16 @@ void DeepinAuthFramework::Authenticate(std::shared_ptr<User> user)
     if (user->isLock()) return;
 
     m_password.clear();
-
-    if (m_pamAuth != 0) {
-        pthread_cancel(m_pamAuth);
-        pthread_join(m_pamAuth, nullptr);
-        m_pamAuth = 0;
+    if (!isLastAuthFinished()) {
+        qDebug() << "Authenticate: failed to create the authentication thread, last not finished";
+        return ;
     }
 
     qDebug() << Q_FUNC_INFO << "pam auth start" << m_authagent->thread()->loopLevel();
 
     m_currentUser = user;
 
+    std::lock_guard<std::mutex> guard(m_pamMutex);
     int rc = pthread_create(&m_pamAuth, nullptr, &pamAuthWorker, this);
     if (rc != 0) {
         qDebug() << "failed to create the authentication thread: %s" << strerror(errno);
@@ -116,4 +115,26 @@ void DeepinAuthFramework::DisplayTextInfo(const QString &msg)
 void DeepinAuthFramework::RespondResult(const QString &msg)
 {
     m_interface->onPasswordResult(msg);
+}
+
+bool DeepinAuthFramework::isLastAuthFinished()
+{
+    std::lock_guard<std::mutex> guard(m_pamMutex);
+    return m_pamAuth == 0;
+}
+
+void DeepinAuthFramework::setLastAuthFinished()
+{
+    std::lock_guard<std::mutex> guard(m_pamMutex);
+    m_pamAuth = 0;
+}
+
+void DeepinAuthFramework::forceCancelLastAuth()
+{
+    std::lock_guard<std::mutex> guard(m_pamMutex);
+    if (m_pamAuth == 0) {
+        return;
+    }
+    pthread_cancel(m_pamAuth);
+    m_pamAuth = 0;
 }
