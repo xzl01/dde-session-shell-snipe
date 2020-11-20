@@ -73,6 +73,9 @@ LockFrame::LockFrame(SessionBaseModel *const model, QWidget *parent)
         qDebug() << "SessionBaseModel::authFinished -- success status : " << success;
         m_content->beforeUnlockAction(success);
     });
+
+    // 用以触发待机唤醒后刷新锁屏窗口以显示输入框提示语
+    m_model->visibleChanged(true);
 }
 
 bool LockFrame::eventFilter(QObject *watched, QEvent *event)
