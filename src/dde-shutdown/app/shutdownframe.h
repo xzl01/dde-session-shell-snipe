@@ -56,8 +56,6 @@ public slots:
 protected:
     void showEvent(QShowEvent *event) Q_DECL_OVERRIDE;
     void hideEvent(QHideEvent *event) Q_DECL_OVERRIDE;
-    void enterEvent(QEvent *event) Q_DECL_OVERRIDE;
-    void leaveEvent(QEvent *event) Q_DECL_OVERRIDE;
 
 private:
     SessionBaseModel *m_model;

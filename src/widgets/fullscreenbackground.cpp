@@ -195,6 +195,7 @@ void FullscreenBackground::setMonitor(Monitor *monitor)
         m_content->hide();
     }
 
+    m_primaryShowFinished = monitor->enable();
     updateMonitor(monitor);
 }
 
@@ -295,6 +296,7 @@ void FullscreenBackground::enterEvent(QEvent *event)
 
 void FullscreenBackground::leaveEvent(QEvent *event)
 {
+    m_content->hide();
     return QWidget::leaveEvent(event);
 }
 
