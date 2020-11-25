@@ -6,7 +6,6 @@
 #include <QObject>
 #include <QPointer>
 #include <memory>
-#include <mutex>
 
 class DeepinAuthInterface;
 class QThread;
@@ -34,17 +33,12 @@ private:
     void DisplayTextInfo(const QString &msg);
     void RespondResult(const QString &msg);
 
-    bool isLastAuthFinished();
-    void setLastAuthFinished();
-    void forceCancelLastAuth();
-
 private:
     DeepinAuthInterface *m_interface;
     QPointer<AuthAgent> m_authagent;
     std::shared_ptr<User> m_currentUser = nullptr;
     QString m_password;
     pthread_t m_pamAuth = 0;
-    std::mutex m_pamMutex;
 };
 
 #endif // DEEPINAUTHFRAMEWORK_H
