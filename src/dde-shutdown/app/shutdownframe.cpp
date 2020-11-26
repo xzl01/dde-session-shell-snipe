@@ -73,6 +73,34 @@ void ShutdownFrame::setConfirm(const bool confrim)
     m_shutdownFrame->setConfirm(confrim);
 }
 
+void ShutdownFrame::visibleChangedFrame(bool isVisible)
+{
+    QDBusInterface *inter = nullptr;
+    QDBusInterface *inter1 = nullptr;
+    if (qEnvironmentVariable("XDG_SESSION_TYPE").toLower().contains("wayland")) {
+        inter = new QDBusInterface("org.kde.KWin", "/kglobalaccel", "org.kde.KGlobalAccel",
+                                                  QDBusConnection::sessionBus(), this);
+        inter1 = new QDBusInterface("org.kde.KWin", "/KWin", "org.kde.KWin",
+                                                  QDBusConnection::sessionBus(), this);
+    }
+    if (inter) {
+        auto req = inter->call("blockGlobalShortcuts", isVisible);
+        auto req1 = inter1->call("disableHotKeysForClient", isVisible);
+    }
+    if (isVisible) {
+        SessionManagerInter sessionInter("com.deepin.SessionManager", "/com/deepin/SessionManager",
+                                    QDBusConnection::sessionBus(), nullptr);
+        if (sessionInter.locked())
+            return;
+        qDebug() << __FILE__ << __LINE__ << ": shutdown showFullScreen, locked :" << sessionInter.locked();
+        show();
+        updateMonitorGeometry();
+    } else {
+        qDebug() << __FILE__ << __LINE__ << ": shutdown setVisible false";
+        setVisible(false);
+    }
+}
+
 void ShutdownFrame::showEvent(QShowEvent *event)
 {
     Q_EMIT requestEnableHotzone(false);

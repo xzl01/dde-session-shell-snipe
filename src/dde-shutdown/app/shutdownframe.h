@@ -52,6 +52,7 @@ Q_SIGNALS:
 public slots:
     bool powerAction(const Actions action);
     void setConfirm(const bool confrim);
+    void visibleChangedFrame(bool isVisible);
 
 protected:
     void showEvent(QShowEvent *event) Q_DECL_OVERRIDE;

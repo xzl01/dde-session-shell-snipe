@@ -127,31 +127,8 @@ int main(int argc, char *argv[])
             //frame->setScreen(screen);
             frame->setMonitor(monitor);
             property_group->addObject(frame);
-            QDBusInterface *inter = nullptr;
-            if (qEnvironmentVariable("XDG_SESSION_TYPE").toLower().contains("wayland")) {
-                inter = new QDBusInterface("org.kde.KWin", "/kglobalaccel", "org.kde.KGlobalAccel",
-                                                          QDBusConnection::sessionBus(), frame);
-            }
-            QObject::connect(model, &SessionBaseModel::visibleChanged, [frame, inter](bool v) {
-                if (inter) {
-                    auto req = inter->call("blockGlobalShortcuts", v);
-                    if (req.type() == QDBusMessage::MessageType::ErrorMessage) {
-                        qDebug() << "call blockGlobalShortcuts error " << req.errorName() << ":" << req.errorMessage();
-                    }
-                }
-                if (v) {
-                    SessionManagerInter sessionInter("com.deepin.SessionManager", "/com/deepin/SessionManager",
-                                                QDBusConnection::sessionBus(), nullptr);
-                    if (sessionInter.locked())
-                        return;
-                    qDebug() << __FILE__ << __LINE__ << ": shutdown showFullScreen, locked :" << sessionInter.locked();
-                    frame->show();
-                    frame->updateMonitorGeometry();
-                } else {
-                    qDebug() << __FILE__ << __LINE__ << ": shutdown setVisible false";
-                    frame->setVisible(false);
-                }
-            });
+            //+ 将之前的lamda表达式替换为信号与槽，解决插拔HDMI崩溃问题
+            QObject::connect(model, &SessionBaseModel::visibleChanged, frame, &ShutdownFrame::visibleChangedFrame);
             QObject::connect(frame, &ShutdownFrame::requestEnableHotzone, worker, &ShutdownWorker::enableZoneDetected);
             QObject::connect(frame, &ShutdownFrame::destroyed, property_group, &PropertyGroup::removeObject);
             QObject::connect(frame, &ShutdownFrame::destroyed, frame, [ = ] {
