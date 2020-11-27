@@ -50,7 +50,7 @@ private:
 
     // lock
     void lockServiceEvent(quint32 eventType, quint32 pid, const QString &username, const QString &message);
-    void onUnlockFinished(bool unlocked);
+    void onUnlockFinished(bool unlocked, bool fromAgent);
 
     void onCurrentUserChanged(const QString &user);
 

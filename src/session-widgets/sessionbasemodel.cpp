@@ -26,8 +26,8 @@ SessionBaseModel::SessionBaseModel(AuthType type, QObject *parent)
 
         if(m_currentType == UnknowAuthType) {
             connect(m_sessionManagerInter, &SessionManager::LockedChanged, this, [ this ] (bool locked) {
+                qDebug() << "SessionLockedChanged1: " << locked;
                 if(!locked) {
-                    qDebug() << __FILE__ << __LINE__ << __FUNCTION__ << "LockedChanged: " << locked  << ", setIsShow " << this;
                     this->setIsShow(false);
                 }
             });
@@ -36,6 +36,7 @@ SessionBaseModel::SessionBaseModel(AuthType type, QObject *parent)
 
     if ( m_currentType == UnknowAuthType ) {
         connect(m_sessionManagerInter,&SessionManager::LockedChanged,this,[this](bool locked) {
+            qDebug() << "SessionLockedChanged2: " << locked;
             if ( !locked )
                 this->setIsShow(false);
         });

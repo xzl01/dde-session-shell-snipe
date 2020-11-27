@@ -96,8 +96,9 @@ LockWorker::LockWorker(SessionBaseModel *const model, QObject *parent)
     connect(m_loginedInter, &LoginedInter::UserListChanged, this, &LockWorker::onLoginUserListChanged);
 
     connect(m_sessionManager, &SessionManager::Unlock, this, [ = ] {
+        qDebug() << "SessionManager::Unlock";
         m_authenticating = false;
-        m_password.clear();
+        m_authFramework->CancelCurrentAuth();
     });
 
     const bool &LockNoPasswordValue { valueByQSettings<bool>("", "lockNoPassword", false) };
@@ -126,10 +127,6 @@ void LockWorker::switchToUser(std::shared_ptr<User> user)
 {
     qDebug() << "switch user from" << m_model->currentUser()->name() << " to " << user->name();
 
-    // clear old password
-    m_password.clear();
-    m_authenticating = false;
-
     // if type is lock, switch to greeter
     QJsonObject json;
     json["Uid"] = static_cast<int>(user->uid());
@@ -152,20 +149,20 @@ void LockWorker::authUser(const QString &password)
 
     // auth interface
     std::shared_ptr<User> user = m_model->currentUser();
-
-    m_password = password;
-
-    qDebug() << "start authentication of user: " << user->name();
+    qDebug() << "LockWorker::authUser: start authentication for" << user->name();
 
     // 服务器登录输入用户与当前用户不同时给予提示
     if (m_currentUserUid != user->uid()) {
         QTimer::singleShot(800, this, [ = ] {
-            onUnlockFinished(false);
+            onUnlockFinished(false, false);
         });
         return;
     }
 
-    m_authFramework->Responsed(password);
+    if (!m_authFramework->Responsed(password)) {
+        m_authenticating = false;
+        emit m_model->authFinished(false);
+    }
 }
 
 void LockWorker::enableZoneDetected(bool disable)
@@ -185,9 +182,10 @@ void LockWorker::onDisplayTextInfo(const QString &msg)
 
 void LockWorker::onPasswordResult(const QString &msg)
 {
-    onUnlockFinished(!msg.isEmpty());
+    bool unlocked = !msg.isEmpty();
+    onUnlockFinished(unlocked, true);
 
-    if(msg.isEmpty()) {
+    if(!unlocked) {
         m_authFramework->Authenticate(m_model->currentUser());
     }
 }
@@ -222,11 +220,10 @@ void LockWorker::lockServiceEvent(quint32 eventType, quint32 pid, const QString 
     // we'll provide our own prompt or just not.
     const QString msg = message.simplified() == "Password:" ? "" : message;
 
-    m_authenticating = false;
-
     if (msg == "Verification timed out") {
         m_isThumbAuth = true;
         emit m_model->authFaildMessage(tr("Fingerprint verification timed out, please enter your password manually"));
+        onUnlockFinished(false, false);
         return;
     }
 
@@ -234,12 +231,14 @@ void LockWorker::lockServiceEvent(quint32 eventType, quint32 pid, const QString 
     case DBusLockService::PromptQuestion:
         qDebug() << "prompt quesiton from pam: " << message;
         emit m_model->authFaildMessage(message);
+        onUnlockFinished(false, false);
         break;
     case DBusLockService::PromptSecret:
         qDebug() << "prompt secret from pam: " << message;
         if (m_isThumbAuth && !msg.isEmpty()) {
             emit m_model->authFaildMessage(msg);
         }
+        onUnlockFinished(false, false);
         break;
     case DBusLockService::ErrorMsg:
         qWarning() << "error message from pam: " << message;
@@ -247,57 +246,68 @@ void LockWorker::lockServiceEvent(quint32 eventType, quint32 pid, const QString 
             emit m_model->authFaildTipsMessage(tr("Failed to match fingerprint"));
             emit m_model->authFaildMessage("");
         }
+        onUnlockFinished(false, false);
         break;
     case DBusLockService::TextInfo:
+        qDebug() << "DBusLockService::TextInfo";
         emit m_model->authFaildMessage(QString(dgettext("fprintd", message.toLatin1())));
+        onUnlockFinished(false, false);
         break;
     case DBusLockService::Failure:
-        onUnlockFinished(false);
+        qDebug() << "DBusLockService::Failure";
+        onUnlockFinished(false, false);
         break;
     case DBusLockService::Success:
-        onUnlockFinished(true);
+        qDebug() << "DBusLockService::Success";
+        onUnlockFinished(true, false);
         break;
     default:
         break;
     }
 }
 
-void LockWorker::onUnlockFinished(bool unlocked)
+void LockWorker::onUnlockFinished(bool unlocked, bool fromAgent)
 {
-    qDebug() << "LockWorker::onUnlockFinished -- unlocked status : " << unlocked;
-    emit m_model->authFinished(unlocked);
-
+    qDebug() << "LockWorker::onUnlockFinished -- unlocked =" << unlocked << ", fromAgent =" << fromAgent;
     if (unlocked) {
         m_model->currentUser()->resetLock();
+        switch (m_model->powerAction()) {
+        case SessionBaseModel::PowerAction::RequireRestart:
+            m_model->setPowerAction(SessionBaseModel::PowerAction::RequireRestart);
+            if (unlocked) {
+                m_sessionManager->RequestReboot();
+            }
+            break;//重启关机，也还是要先把锁屏界面移走，因为有时候会有程序阻止重启关机
+        case SessionBaseModel::PowerAction::RequireShutdown:
+            m_model->setPowerAction(SessionBaseModel::PowerAction::RequireShutdown);
+            if (unlocked) {
+                m_sessionManager->RequestShutdown();
+            }
+            break;//重启关机，也还是要先把锁屏界面移走，因为有时候会有程序阻止重启关机
+        default:
+            break;
+        }
     }
+    qDebug() << "LockWorker::onUnlockFinished -- emit authFinished";
+    emit m_model->authFinished(unlocked);
+    m_authFramework->CancelCurrentAuth();
 
-    m_authenticating = false;
-
-    if (!unlocked && m_authFramework->GetAuthType() == AuthFlag::Password) {
-        qDebug() << "Authorization password failed!";
-        emit m_model->authFaildTipsMessage(tr("Wrong Password"));
-
-        if (m_model->currentUser()->isLockForNum()) {
-            m_model->currentUser()->startLock();
+    //验校密码中
+    if (m_authenticating) {
+        m_authenticating = false;
+        if (!unlocked) {
+            qDebug() << "LockWorker::onUnlockFinished -- start new auth for other failed reason";
+            m_authFramework->Authenticate(m_model->currentUser());
         }
-        return;
-    }
-
-    switch (m_model->powerAction()) {
-    case SessionBaseModel::PowerAction::RequireRestart:
-        m_model->setPowerAction(SessionBaseModel::PowerAction::RequireRestart);
-        if (unlocked) {
-            m_sessionManager->RequestReboot();
+        if (!unlocked) {
+            if (m_authFramework->GetAuthType() == AuthFlag::Password && fromAgent) {
+                qDebug() << "LockWorker::onUnlockFinished: Authorization password failed!";
+                emit m_model->authFaildTipsMessage(tr("Wrong Password"));
+                if (m_model->currentUser()->isLockForNum()) {
+                    m_model->currentUser()->startLock();
+                }
+            }
         }
-        return;
-    case SessionBaseModel::PowerAction::RequireShutdown:
-        m_model->setPowerAction(SessionBaseModel::PowerAction::RequireShutdown);
-        if (unlocked) {
-            m_sessionManager->RequestShutdown();
-        }
-        return;
-    default:
-        break;
     }
 }
 

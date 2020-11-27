@@ -22,18 +22,7 @@ DeepinAuthFramework::~DeepinAuthFramework()
     if (!m_authagent.isNull()) {
         delete m_authagent;
         m_authagent = nullptr;
-
-        if (m_pamAuth != 0) {
-            pthread_cancel(m_pamAuth);
-            pthread_join(m_pamAuth, nullptr);
-            m_pamAuth = 0;
-        }
     }
-}
-
-bool DeepinAuthFramework::isAuthenticate() const
-{
-    return m_pamAuth != 0;
 }
 
 int DeepinAuthFramework::GetAuthType()
@@ -43,13 +32,11 @@ int DeepinAuthFramework::GetAuthType()
 
 void* DeepinAuthFramework::pamAuthWorker(void *arg)
 {
-    DeepinAuthFramework* deepin_auth = static_cast<DeepinAuthFramework*>(arg);
-    if(deepin_auth != nullptr && deepin_auth->m_currentUser != nullptr) {
-        deepin_auth->m_authagent->Authenticate(deepin_auth->m_currentUser->name());
-    } else {
-        qDebug() << "pam auth worker deepin framework is nullptr";
-    }
+    pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL);
 
+    tagAuthArg *pArg = static_cast<tagAuthArg*>(arg);
+    pArg->pFrameWork->m_authagent->Authenticate(pArg->strAuthUserName);
+    delete pArg;
     return nullptr;
 }
 
@@ -57,38 +44,41 @@ void DeepinAuthFramework::Authenticate(std::shared_ptr<User> user)
 {
     if (user->isLock()) return;
 
+    qDebug() << "DeepinAuthFramework::Authenticate: pam auth start, loopLevel =" << m_authagent->thread()->loopLevel();
     m_password.clear();
-
-    if (m_pamAuth != 0) {
-        pthread_cancel(m_pamAuth);
-        pthread_join(m_pamAuth, nullptr);
-        m_pamAuth = 0;
-    }
-
-    qDebug() << Q_FUNC_INFO << "pam auth start" << m_authagent->thread()->loopLevel();
-
     m_currentUser = user;
+    //m_authagent->NotifyCancelAuth();
 
-    int rc = pthread_create(&m_pamAuth, nullptr, &pamAuthWorker, this);
+    tagAuthArg *pArg = new tagAuthArg();
+    pArg->pFrameWork = this;
+    pArg->strAuthUserName = user->name();
+
+    pthread_t m_pamAuth = 0;
+    int rc = pthread_create(&m_pamAuth, nullptr, &pamAuthWorker, pArg);
     if (rc != 0) {
-        qDebug() << "failed to create the authentication thread: %s" << strerror(errno);
+        char buferr[256];
+        qDebug() << "failed to create the authentication thread: %s" << strerror_r(errno, buferr, sizeof(buferr));
+        m_pamAuth = 0;
+        return;
     }
     pthread_detach(m_pamAuth);
 }
 
-void DeepinAuthFramework::Responsed(const QString &password)
+bool DeepinAuthFramework::Responsed(const QString &password)
 {
-    if(m_authagent.isNull() || m_pamAuth == 0) {
-        qDebug() << "pam auth agent is not start";
-        return;
+    if(m_authagent.isNull() || !m_authagent->IsWaitingPassword()) {
+        qDebug() << "Responsed: pam auth agent is not start";
+        return false;
     }
 
     m_password = password;
-    if (m_currentUser->isNoPasswdGrp() || (!m_currentUser->isNoPasswdGrp() && !m_password.isEmpty())) {
-        qDebug() << "pam responsed password";
-
+    if (m_currentUser->isNoPasswdGrp() || (!m_currentUser->isNoPasswdGrp() && !password.isEmpty())) {
+        qDebug() << "Responsed: pam responsed password";
         m_authagent->Responsed(password);
+        return true;
     }
+    qDebug() << "Responsed: password error! not start auth!";
+    return false;
 }
 
 const QString DeepinAuthFramework::RequestEchoOff(const QString &msg)
@@ -116,4 +106,9 @@ void DeepinAuthFramework::DisplayTextInfo(const QString &msg)
 void DeepinAuthFramework::RespondResult(const QString &msg)
 {
     m_interface->onPasswordResult(msg);
+}
+
+void DeepinAuthFramework::CancelCurrentAuth()
+{
+    m_authagent->NotifyCancelAuth();
 }

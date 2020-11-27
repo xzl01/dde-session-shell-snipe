@@ -6,10 +6,12 @@
 #include <QObject>
 #include <QPointer>
 #include <memory>
+#include <mutex>
 
 class DeepinAuthInterface;
 class QThread;
 class User;
+
 class DeepinAuthFramework : public QObject
 {
     Q_OBJECT
@@ -18,14 +20,18 @@ public:
     ~DeepinAuthFramework();
 
     friend class AuthAgent;
-    bool isAuthenticate() const;
     int GetAuthType();
+    void CancelCurrentAuth();
 
 public slots:
     void Authenticate(std::shared_ptr<User> user);
-    void Responsed(const QString &password);
+    bool Responsed(const QString &password);
 
 private:
+    typedef struct tagAuthArg {
+        DeepinAuthFramework *pFrameWork = nullptr;
+        QString strAuthUserName;
+    };
     static void* pamAuthWorker(void *arg);
     const QString RequestEchoOff(const QString &msg);
     const QString RequestEchoOn(const QString &msg);
@@ -38,7 +44,6 @@ private:
     QPointer<AuthAgent> m_authagent;
     std::shared_ptr<User> m_currentUser = nullptr;
     QString m_password;
-    pthread_t m_pamAuth = 0;
 };
 
 #endif // DEEPINAUTHFRAMEWORK_H
