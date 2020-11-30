@@ -283,17 +283,6 @@ NativeUser::NativeUser(const QString &path, QObject *parent)
     m_noPasswdGrp = checkUserIsNoPWGrp(this);
 
     configAccountInfo(DDESESSIONCC::CONFIG_FILE + m_userName);
-
-    QDBusPendingCall pass_expired = m_userInter->IsPasswordExpired();
-    QDBusPendingCallWatcher *watcher = new QDBusPendingCallWatcher(pass_expired, this);
-    connect(watcher, &QDBusPendingCallWatcher::finished, [ = ] {
-         QDBusReply<bool> reply = pass_expired.reply();
-        if (!pass_expired.isError() && reply.isValid()) {
-            m_isPasswdExpired = reply.value();
-        }
-        watcher->deleteLater();
-    });
-
     setPath(path);
 }
 
@@ -356,11 +345,6 @@ QString NativeUser::currentKBLayout()
 bool NativeUser::isNoPasswdGrp() const
 {
     return m_noPasswdGrp;
-}
-
-bool NativeUser::isPasswordExpired() const
-{
-    return m_isPasswdExpired;
 }
 
 bool NativeUser::isUserIsvalid() const
@@ -450,14 +434,4 @@ QString ADDomainUser::desktopBackgroundPath() const
 {
     QFileInfo background_info(DEFAULT_BACKGROUND);
     return background_info.canonicalFilePath();
-}
-
-bool ADDomainUser::isPasswordExpired() const
-{
-    if (m_userInter != nullptr) {
-        QDBusPendingReply<bool> replay = m_userInter->IsPasswordExpired();
-        replay.waitForFinished();
-        return !replay.isError() && m_userInter->IsPasswordExpired();
-    }
-    return false;
 }
