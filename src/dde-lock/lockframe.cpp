@@ -164,14 +164,11 @@ void LockFrame::visibleChangedFrame(bool isVisible)
     QDBusInterface *inter = nullptr;
     QDBusInterface *inter1 = nullptr;
     if (qEnvironmentVariable("XDG_SESSION_TYPE").toLower().contains("wayland")) {
-        inter = new QDBusInterface("org.kde.KWin", "/kglobalaccel", "org.kde.KGlobalAccel",
-                                                  QDBusConnection::sessionBus(), this);
         inter1 = new QDBusInterface("org.kde.KWin", "/KWin", "org.kde.KWin",
                                                   QDBusConnection::sessionBus(), this);
     }
 
-    if (inter) {
-        auto req = inter->call("blockGlobalShortcuts", isVisible);
+    if (inter1) {
         auto req1 = inter1->call("disableHotKeysForClient", isVisible);
     }
     QDBusInterface launcherInter("com.deepin.dde.Launcher", "/com/deepin/dde/Launcher", "com.deepin.dde.Launcher"

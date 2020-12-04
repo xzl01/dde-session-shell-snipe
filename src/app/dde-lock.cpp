@@ -134,7 +134,6 @@ int main(int argc, char *argv[])
 
         if (isDeepinAuth()) {
             lockFrame->setVisible(model->isShow());
-            emit service.Visible(true);
         } else {
             model->setIsShow(false);
             lockFrame->setVisible(false);
