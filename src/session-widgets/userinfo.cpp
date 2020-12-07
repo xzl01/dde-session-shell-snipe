@@ -442,12 +442,14 @@ QString ADDomainUser::avatarPath() const
 
 QString ADDomainUser::greeterBackgroundPath() const
 {
-    return QString("/usr/share/wallpapers/deepin/desktop.jpg");
+    QFileInfo background_info(DEFAULT_BACKGROUND);
+    return background_info.canonicalFilePath();
 }
 
 QString ADDomainUser::desktopBackgroundPath() const
 {
-    return QString("/usr/share/wallpapers/deepin/desktop.jpg");
+    QFileInfo background_info(DEFAULT_BACKGROUND);
+    return background_info.canonicalFilePath();
 }
 
 bool ADDomainUser::isPasswordExpired() const
