@@ -210,7 +210,8 @@ void FullscreenBackground::setContentVisible(bool contentVisible)
     if (!isVisible() && !contentVisible)
         return;
 
-    m_content->setVisible(contentVisible);
+    //这里不需要设置content visible属性
+    //m_content->setVisible(contentVisible);
 
     emit contentVisibleChanged(contentVisible);
 }
@@ -320,7 +321,6 @@ void FullscreenBackground::resizeEvent(QResizeEvent *event)
 
 void FullscreenBackground::mouseMoveEvent(QMouseEvent *event)
 {
-    m_content->show();
     emit contentVisibleChanged(true);
 
     return QWidget::mouseMoveEvent(event);
