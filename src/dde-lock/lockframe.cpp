@@ -38,8 +38,6 @@ LockFrame::LockFrame(SessionBaseModel *const model, QWidget *parent)
     : FullscreenBackground(parent)
     , m_model(model)
 {
-    qDebug() << "LockFrame geometry:" << geometry();
-
     QTimer::singleShot(0, this, [ = ] {
         auto user = model->currentUser();
         if (user != nullptr) updateBackground(user->greeterBackgroundPath());
@@ -67,6 +65,7 @@ LockFrame::LockFrame(SessionBaseModel *const model, QWidget *parent)
     connect(model, &SessionBaseModel::showUserList, this, &LockFrame::showUserList);
     connect(m_content, &LockContent::unlockActionFinish,this, [ = ]() {
         Q_EMIT requestEnableHotzone(true);
+        m_model->setIsShow(false);
         hide();
     });
     connect(model, &SessionBaseModel::authFinished, this, [ = ](bool success){
@@ -161,7 +160,6 @@ void LockFrame::showUserList()
 
 void LockFrame::visibleChangedFrame(bool isVisible)
 {
-    QDBusInterface *inter = nullptr;
     QDBusInterface *inter1 = nullptr;
     if (qEnvironmentVariable("XDG_SESSION_TYPE").toLower().contains("wayland")) {
         inter1 = new QDBusInterface("org.kde.KWin", "/KWin", "org.kde.KWin",
@@ -174,12 +172,20 @@ void LockFrame::visibleChangedFrame(bool isVisible)
     QDBusInterface launcherInter("com.deepin.dde.Launcher", "/com/deepin/dde/Launcher", "com.deepin.dde.Launcher"
                                  , QDBusConnection::sessionBus());
     launcherInter.call("Hide");
-    if (isVisible) {
+
+    qDebug() << "LockFrame::visibleChangedFrame:" << this << (isVisible && m_monitor->enable());
+    if (isVisible && m_monitor->enable()) {
         updateMonitorGeometry();
         show();
     } else {
-        setVisible(isVisible);
+        setVisible(false);
     }
+}
+
+void LockFrame::monitorEnableChanged(bool isEnable)
+{
+    qDebug() << "LockFrame::monitorEnableChanged:" << m_monitor->name() << isEnable;
+    this->setVisible(isEnable && m_model->isShow());
 }
 
 void LockFrame::keyPressEvent(QKeyEvent *e)
@@ -204,8 +210,6 @@ void LockFrame::showEvent(QShowEvent *event)
 void LockFrame::hideEvent(QHideEvent *event)
 {
     emit requestEnableHotzone(true);
-
-    m_model->setIsShow(false);
 
     return FullscreenBackground::hideEvent(event);
 }

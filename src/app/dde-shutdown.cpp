@@ -138,9 +138,10 @@ int main(int argc, char *argv[])
             {
                 dbusAgent->sync(action);
             });
+            QObject::connect(monitor, &Monitor::enableChanged, frame, &ShutdownFrame::monitorEnableChanged);
 
-            qDebug() << "create shutdown window & setVisible " << model->isShow();
-            frame->setVisible(model->isShow());
+            qDebug() << "create shutdown window & setVisible " << frame << (model->isShow() && monitor->enable());
+            frame->setVisible(model->isShow() && monitor->enable());
             return frame;
         };
 

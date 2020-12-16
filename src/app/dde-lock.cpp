@@ -116,7 +116,6 @@ int main(int argc, char *argv[])
         QObject::connect(lockFrame, &LockFrame::requestSwitchToUser, worker, &LockWorker::switchToUser);
         QObject::connect(lockFrame, &LockFrame::requestAuthUser, worker, &LockWorker::authUser);
         QObject::connect(model, &SessionBaseModel::visibleChanged, lockFrame, &LockFrame::visibleChangedFrame);
-        QObject::connect(model, &SessionBaseModel::visibleChanged, lockFrame, &LockFrame::setVisible);
         QObject::connect(model, &SessionBaseModel::visibleChanged, lockFrame,[&](bool visible) {
             emit service.Visible(visible);
         });
@@ -124,16 +123,18 @@ int main(int argc, char *argv[])
         QObject::connect(lockFrame, &LockFrame::requestSetLayout, worker, &LockWorker::setLayout);
         QObject::connect(lockFrame, &LockFrame::requestEnableHotzone, worker, &LockWorker::enableZoneDetected, Qt::UniqueConnection);
         QObject::connect(lockFrame, &LockFrame::destroyed, property_group, &PropertyGroup::removeObject);
+        QObject::connect(monitor, &Monitor::enableChanged, lockFrame, &LockFrame::monitorEnableChanged);
 
-        qDebug() << "create dde-lock window & setVisible " << model->isShow();
-        lockFrame->setVisible(model->isShow());
+
+        qDebug() << "create lockframe and setVisible:" << lockFrame << (model->isShow() && monitor->enable());
+        lockFrame->setVisible(model->isShow() && monitor->enable());
 
         QObject::connect(lockFrame, &LockFrame::sendKeyValue, [&](QString key) {
              emit service.ChangKey(key);
         });
 
         if (isDeepinAuth()) {
-            lockFrame->setVisible(model->isShow());
+            lockFrame->setVisible(model->isShow() && monitor->enable());
         } else {
             model->setIsShow(false);
             lockFrame->setVisible(false);
@@ -159,6 +160,7 @@ int main(int argc, char *argv[])
             if (showUserList) {
                 ifc.asyncCall("ShowUserList");
             } else {
+                qDebug() << "show lockfram with dbus";
                 ifc.asyncCall("Show");
             }
         }
@@ -167,6 +169,7 @@ int main(int argc, char *argv[])
             if (showUserList) {
                 emit model->showUserList();
             } else {
+                qDebug() << "show lockfram first";
                 model->setIsShow(true);
             }
         }

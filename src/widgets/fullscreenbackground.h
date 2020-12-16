@@ -79,8 +79,13 @@ protected:
     void leaveEvent(QEvent *event) Q_DECL_OVERRIDE;
     void resizeEvent(QResizeEvent *event) Q_DECL_OVERRIDE;
     void mouseMoveEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
+    void hideEvent(QHideEvent *event) Q_DECL_OVERRIDE;
 
     const QPixmap pixmapHandle(const QPixmap &pixmap);
+
+
+protected:
+    Monitor *m_monitor = nullptr;
 
 private:
     void updateScreen(QScreen *screen);
@@ -99,7 +104,6 @@ private:
     QPointer<QWidget> m_content;
     QVariantAnimation *m_fadeOutAni;
     QScreen *m_screen = nullptr;
-    Monitor *m_monitor = nullptr;
     ImageEffectInter *m_imageEffectInter = nullptr;
     DisplayInter *m_displayInter = nullptr;
     bool m_primaryShowFinished = false;

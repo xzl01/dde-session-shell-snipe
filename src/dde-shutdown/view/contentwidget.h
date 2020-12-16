@@ -64,6 +64,7 @@ public:
 signals:
     void requestBackground(const QString &path) const;
     void buttonClicked(const Actions action);
+    void hideWindow();
 
 protected:
     void mouseReleaseEvent(QMouseEvent *event) Q_DECL_OVERRIDE;

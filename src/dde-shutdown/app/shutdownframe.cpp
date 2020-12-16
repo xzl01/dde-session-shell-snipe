@@ -39,6 +39,10 @@ ShutdownFrame::ShutdownFrame(SessionBaseModel *const model, QWidget *parent)
     m_shutdownFrame->setModel(model);
     setContent(m_shutdownFrame);
 
+    connect(m_shutdownFrame, &ContentWidget::hideWindow, [&] {
+       m_model->setIsShow(false);
+    });
+
     connect(m_shutdownFrame, &ContentWidget::requestBackground,
             this, static_cast<void (ShutdownFrame::*)(const QString &)>(&ShutdownFrame::updateBackground));
 
@@ -87,7 +91,7 @@ void ShutdownFrame::visibleChangedFrame(bool isVisible)
         auto req = inter->call("blockGlobalShortcuts", isVisible);
         auto req1 = inter1->call("disableHotKeysForClient", isVisible);
     }
-    if (isVisible) {
+    if (isVisible && m_monitor->enable()) {
         SessionManagerInter sessionInter("com.deepin.SessionManager", "/com/deepin/SessionManager",
                                     QDBusConnection::sessionBus(), nullptr);
         if (sessionInter.locked())
@@ -101,11 +105,22 @@ void ShutdownFrame::visibleChangedFrame(bool isVisible)
     }
 }
 
+void ShutdownFrame::monitorEnableChanged(bool isEnable)
+{
+    qDebug() << "ShutdownFrame::monitorEnableChanged:" << m_monitor->name() << isEnable;
+    this->setVisible(isEnable && m_model->isShow());
+}
+
 void ShutdownFrame::showEvent(QShowEvent *event)
 {
     Q_EMIT requestEnableHotzone(false);
 
     m_model->setIsShow(true);
+
+    if (!m_monitor->enable()) {
+        setVisible(false);
+        return;
+    }
 
     return FullscreenBackground::showEvent(event);
 }
@@ -113,10 +128,6 @@ void ShutdownFrame::showEvent(QShowEvent *event)
 void ShutdownFrame::hideEvent(QHideEvent *event)
 {
     Q_EMIT requestEnableHotzone(true);
-
-    m_model->setIsShow(false);
-
-    qApp->exit();
 
     m_shutdownFrame->recoveryLayout();
 

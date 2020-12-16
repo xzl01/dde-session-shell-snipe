@@ -46,11 +46,12 @@ void MultiScreenManager::raiseContentFrame()
 
 void MultiScreenManager::onMonitorsChanged(const QList<QDBusObjectPath> & mons)
 {
+    qDebug() << "MultiScreenManager::onMonitorsChanged size:" << mons.size();
+
     QList<QString> ops;
     for (const auto *mon : m_frameMoniter.keys())
         ops << mon->path();
 
-    qDebug() << mons.size();
     QList<QString> pathList;
     QList<Monitor *> monitors;
     Monitor *primaryMonitor = nullptr;
@@ -78,8 +79,9 @@ void MultiScreenManager::onMonitorsChanged(const QList<QDBusObjectPath> & mons)
     }
 
     for (const auto op : ops)
-        if (!pathList.contains(op))
+        if (!pathList.contains(op)) {
             monitorRemoved(op);
+        }
 }
 
 Monitor *MultiScreenManager::monitorAdded(const QString &path)
@@ -104,6 +106,8 @@ Monitor *MultiScreenManager::monitorAdded(const QString &path)
     mon->setMonitorModes(inter->modes());
     mon->setPrimary(m_displayInter.primary());
 
+    qDebug() << "MultiScreenManager::monitorAdded:" << mon << mon->name() << mon->rect() << mon->enable();
+
     return mon;
 }
 
@@ -118,6 +122,9 @@ void MultiScreenManager::monitorRemoved(const QString &path)
     }
     if (!monitor)
         return;
+
+    qDebug() << "MultiScreenManager::monitorRemoved:" << monitor << monitor->name() << monitor->rect() << monitor->enable();
+
     m_frameMoniter[monitor]->deleteLater();
     m_frameMoniter.remove(monitor);
     monitor->deleteLater();

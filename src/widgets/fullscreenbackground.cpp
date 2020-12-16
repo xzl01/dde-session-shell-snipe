@@ -199,6 +199,7 @@ void FullscreenBackground::setMonitor(Monitor *monitor)
     updateMonitor(monitor);
 }
 
+
 void FullscreenBackground::setContentVisible(bool contentVisible)
 {
     if (this->contentVisible() == contentVisible)
@@ -326,6 +327,12 @@ void FullscreenBackground::mouseMoveEvent(QMouseEvent *event)
     return QWidget::mouseMoveEvent(event);
 }
 
+void FullscreenBackground::hideEvent(QHideEvent *event)
+{
+    m_content->hide();
+    return QWidget::hideEvent(event);
+}
+
 void FullscreenBackground::keyPressEvent(QKeyEvent *e)
 {
     QWidget::keyPressEvent(e);
@@ -395,20 +402,19 @@ void FullscreenBackground::updateScreen(QScreen *screen)
 
 void FullscreenBackground::updateMonitor(Monitor *monitor)
 {
-    qDebug() << __FILE__ << __LINE__ << __FUNCTION__ << "UpdateScree: " << monitor << monitor->rect();
+    qDebug() << "FullscreenBackground::updateMonitor:" << this << monitor;
+
     if (monitor == m_monitor)
         return;
 
     if (m_monitor) {
         disconnect(m_monitor, &Monitor::geometryChanged, this, &FullscreenBackground::updateMonitorGeometry);
-        disconnect(m_monitor, &Monitor::enableChanged, this, &FullscreenBackground::setVisible);
     }
 
     if (monitor) {
         connect(monitor, &Monitor::geometryChanged, this, &FullscreenBackground::updateMonitorGeometry);
-        connect(monitor, &Monitor::enableChanged, this, [&](bool isEnable){
-            if(!isEnable)
-                this->setVisible(isEnable);
+        connect(monitor, &Monitor::enableChanged, this, [this](bool enable) {
+            this->m_primaryShowFinished = enable;
         });
     }
 
@@ -420,7 +426,7 @@ void FullscreenBackground::updateMonitor(Monitor *monitor)
 
 void FullscreenBackground::updateGeometry()
 {
-    qDebug() << __FILE__ << __LINE__ << __FUNCTION__ << "updateGeometry: " << m_screen << m_screen->geometry() << size();
+    qDebug() << "FullscreenBackground::updateGeometry:" << this << m_screen << m_screen->geometry();
     //setGeometry(m_screen->geometry());
     QTimer::singleShot(500, this, [&](){
         setGeometry(m_screen->geometry());
@@ -429,7 +435,7 @@ void FullscreenBackground::updateGeometry()
 
 void FullscreenBackground::updateMonitorGeometry()
 {
-    qDebug() << __FILE__ << __LINE__ << __FUNCTION__ << "updateGeometry: " << m_monitor << m_monitor->rect() << size();
+    qDebug() << "FullscreenBackground::updateMonitorGeometry:" << this << m_monitor << m_monitor->name() << m_monitor->rect() << m_monitor->enable();
     QTimer::singleShot(200, this, [&](){
         for (auto m : m_monitor->modes()) {
             if (m.width() != m_monitor->rect().width() || m.height() != m_monitor->rect().height())
