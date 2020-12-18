@@ -482,7 +482,7 @@ void ContentWidget::hideToplevelWindow()
             widget->hide();
         }
     }
-    Q_EMIT hideWindow();
+    emit quitApplication();
 }
 
 void ContentWidget::shutDownFrameActions(const Actions action)

@@ -55,6 +55,9 @@ public slots:
     void visibleChangedFrame(bool isVisible);
     void monitorEnableChanged(bool isEnable);
 
+    // 启停全局快捷键
+    void globalShortcutsChanged(bool isEnable);
+
 protected:
     void showEvent(QShowEvent *event) Q_DECL_OVERRIDE;
     void hideEvent(QHideEvent *event) Q_DECL_OVERRIDE;

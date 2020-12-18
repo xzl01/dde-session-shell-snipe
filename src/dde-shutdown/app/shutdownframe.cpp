@@ -39,14 +39,15 @@ ShutdownFrame::ShutdownFrame(SessionBaseModel *const model, QWidget *parent)
     m_shutdownFrame->setModel(model);
     setContent(m_shutdownFrame);
 
-    connect(m_shutdownFrame, &ContentWidget::hideWindow, [&] {
-       m_model->setIsShow(false);
-    });
-
     connect(m_shutdownFrame, &ContentWidget::requestBackground,
             this, static_cast<void (ShutdownFrame::*)(const QString &)>(&ShutdownFrame::updateBackground));
 
     connect(m_shutdownFrame, &ContentWidget::buttonClicked, this, &ShutdownFrame::buttonClicked);
+
+    connect(m_shutdownFrame, &ContentWidget::quitApplication, this, [ = ] {
+        this->globalShortcutsChanged(false);
+        qApp->quit();
+    });
 
     connect(model, &SessionBaseModel::visibleChanged, this, [ = ](bool visible) {
         if (visible) {
@@ -79,18 +80,8 @@ void ShutdownFrame::setConfirm(const bool confrim)
 
 void ShutdownFrame::visibleChangedFrame(bool isVisible)
 {
-    QDBusInterface *inter = nullptr;
-    QDBusInterface *inter1 = nullptr;
-    if (qEnvironmentVariable("XDG_SESSION_TYPE").toLower().contains("wayland")) {
-        inter = new QDBusInterface("org.kde.KWin", "/kglobalaccel", "org.kde.KGlobalAccel",
-                                                  QDBusConnection::sessionBus(), this);
-        inter1 = new QDBusInterface("org.kde.KWin", "/KWin", "org.kde.KWin",
-                                                  QDBusConnection::sessionBus(), this);
-    }
-    if (inter) {
-        auto req = inter->call("blockGlobalShortcuts", isVisible);
-        auto req1 = inter1->call("disableHotKeysForClient", isVisible);
-    }
+    globalShortcutsChanged(isVisible);
+
     if (isVisible && m_monitor->enable()) {
         SessionManagerInter sessionInter("com.deepin.SessionManager", "/com/deepin/SessionManager",
                                     QDBusConnection::sessionBus(), nullptr);
@@ -109,6 +100,22 @@ void ShutdownFrame::monitorEnableChanged(bool isEnable)
 {
     qDebug() << "ShutdownFrame::monitorEnableChanged:" << m_monitor->name() << isEnable;
     this->setVisible(isEnable && m_model->isShow());
+}
+
+void ShutdownFrame::globalShortcutsChanged(bool isEnable)
+{
+    QDBusInterface *inter = nullptr;
+    QDBusInterface *inter1 = nullptr;
+    if (qEnvironmentVariable("XDG_SESSION_TYPE").toLower().contains("wayland")) {
+        inter = new QDBusInterface("org.kde.KWin", "/kglobalaccel", "org.kde.KGlobalAccel",
+                                                  QDBusConnection::sessionBus(), this);
+        inter1 = new QDBusInterface("org.kde.KWin", "/KWin", "org.kde.KWin",
+                                                  QDBusConnection::sessionBus(), this);
+    }
+    if (inter) {
+        auto req = inter->call("blockGlobalShortcuts", isEnable);
+        auto req1 = inter1->call("disableHotKeysForClient", isEnable);
+    }
 }
 
 void ShutdownFrame::showEvent(QShowEvent *event)

@@ -327,12 +327,6 @@ void FullscreenBackground::mouseMoveEvent(QMouseEvent *event)
     return QWidget::mouseMoveEvent(event);
 }
 
-void FullscreenBackground::hideEvent(QHideEvent *event)
-{
-    m_content->hide();
-    return QWidget::hideEvent(event);
-}
-
 void FullscreenBackground::keyPressEvent(QKeyEvent *e)
 {
     QWidget::keyPressEvent(e);
