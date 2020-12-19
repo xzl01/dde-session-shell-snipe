@@ -534,6 +534,9 @@ void UserLoginWidget::initConnect()
         FrameDataBind::Instance()->updateValue("UserLoginPassword", value);
     });
     connect(m_passwordEdit, &DPasswordEditEx::returnPressed, this, [ = ] {
+        if (m_bUnlockSucAni) {
+            return;
+        }
         const QString account = m_accountEdit->text();
         const QString passwd = m_passwordEdit->text();
 
@@ -791,6 +794,7 @@ void UserLoginWidget::unlockSuccessAni()
         m_lockButton->setIcon(DStyle::SP_LockElement);
     }
     timer = new QTimer(this);
+    m_bUnlockSucAni = true;
 
     connect(timer, &QTimer::timeout, [&](){
         if((m_indexSuc % 12) <= 11){
@@ -803,6 +807,7 @@ void UserLoginWidget::unlockSuccessAni()
             delete timer;
             timer = nullptr;
             m_indexSuc = 0;
+            m_bUnlockSucAni = false;
             emit unlockActionFinish();
             m_lockButton->setIcon(DStyle::SP_LockElement);
         }
@@ -812,6 +817,9 @@ void UserLoginWidget::unlockSuccessAni()
 
 void UserLoginWidget::unlockFailedAni()
 {
+    if (m_bUnlockSucAni) {
+        return;
+    }
     m_passwordEdit->lineEdit()->clear();
     m_passwordEdit->hideLoadSlider();
     if(timer != nullptr) {

@@ -166,6 +166,7 @@ private:
     bool m_isAlertMessageShow;                      //判断密码错误提示是否显示
     QString m_name;
     QTimer *timer;                                  //切换图标计时器
+    bool m_bUnlockSucAni = false;                   //解锁成功动画中(不可被打断)
     int m_indexSuc = 0;
     int m_indexFail = 0;
     int m_action;                                   //重启或关机行为记录
