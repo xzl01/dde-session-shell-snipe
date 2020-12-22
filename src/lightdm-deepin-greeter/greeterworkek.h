@@ -63,6 +63,9 @@ private:
     void recoveryUserKBState(std::shared_ptr<User> user);
     void resetLightdmAuth(std::shared_ptr<User> user,int delay_time, bool is_respond);
 
+    // 通过dde_wldpms命令控制屏幕开关
+    void screenSwitchByWldpms(bool active);
+
 private:
     QLightDM::Greeter *m_greeter;
     DBusLockService   *m_lockInter;

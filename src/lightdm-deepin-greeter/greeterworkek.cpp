@@ -109,6 +109,8 @@ GreeterWorkek::GreeterWorkek(SessionBaseModel *const model, QObject *parent)
             m_login1Inter->Suspend(true);
             break;
         case SessionBaseModel::PowerAction::RequireHibernate:
+            // 在休眠之前，将屏幕关闭，避免休眠过程屏幕会再点亮一次的问题
+            screenSwitchByWldpms(false);
             m_login1Inter->Hibernate(true);
             break;
         default:
@@ -140,6 +142,13 @@ GreeterWorkek::GreeterWorkek(SessionBaseModel *const model, QObject *parent)
 
         m_model->setCurrentUser(user_ptr);
         userAuthForLightdm(user_ptr);
+    });
+
+    // 休眠唤醒后将屏幕点亮
+    connect(m_login1Inter, &DBusLogin1Manager::PrepareForSleep, this, [ = ](bool active) {
+        if (!active) {
+            screenSwitchByWldpms(true);
+        }
     });
 
     const QString &switchUserButtonValue { valueByQSettings<QString>("Lock", "showSwitchUserButton", "ondemand") };
@@ -498,4 +507,17 @@ void GreeterWorkek::resetLightdmAuth(std::shared_ptr<User> user,int delay_time ,
             m_greeter->respond(m_password);
         }
     });
+}
+
+void GreeterWorkek::screenSwitchByWldpms(bool active)
+{
+    qDebug() << "GreeterWorkek::screenSwitchByWldpms:" << active;
+    QStringList arguments;
+    arguments << "-s";
+    if (active) {
+        arguments << "on";
+    } else {
+        arguments << "off";
+    }
+    QProcess::startDetached("dde_wldpms", arguments);
 }
