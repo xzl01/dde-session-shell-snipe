@@ -871,14 +871,21 @@ void ContentWidget::setPreviousChildFocus()
         m_currentSelectedBtn->updateState(RoundItemButton::Normal);
 
     const int lastPos = m_btnsList->indexOf(m_currentSelectedBtn);
-    const int nextPos = lastPos ? lastPos : m_btnsList->count();
-
-    m_currentSelectedBtn = m_btnsList->at(nextPos - 1);
-
-    if (m_currentSelectedBtn->isDisabled() || !m_currentSelectedBtn->isVisible())
-        setPreviousChildFocus();
-    else
+    RoundItemButton *nextSelect = nullptr;
+    for (int n = 0; n < m_btnsList->count(); n++) {
+        int index = lastPos - 1 - n;
+        index = (index + m_btnsList->count()) % m_btnsList->count();
+        RoundItemButton *pTmpBtn = m_btnsList->at(index);
+        if (pTmpBtn->isDisabled() || !pTmpBtn->isVisible()) {
+            continue;
+        }
+        nextSelect = pTmpBtn;
+        break;
+    }
+    if (nextSelect != nullptr && nextSelect != m_currentSelectedBtn) {
+        m_currentSelectedBtn = nextSelect;
         m_currentSelectedBtn->setChecked(true);
+    }
 }
 
 void ContentWidget::setNextChildFocus()
@@ -890,12 +897,21 @@ void ContentWidget::setNextChildFocus()
         m_currentSelectedBtn->updateState(RoundItemButton::Normal);
 
     const int lastPos = m_btnsList->indexOf(m_currentSelectedBtn);
-    m_currentSelectedBtn = m_btnsList->at((lastPos + 1) % m_btnsList->count());
-
-    if (m_currentSelectedBtn->isDisabled() || !m_currentSelectedBtn->isVisible())
-        setNextChildFocus();
-    else
+    RoundItemButton *nextSelect = nullptr;
+    for (int n = 0; n < m_btnsList->count(); n++) {
+        int index = lastPos + 1 + n;
+        index = (index) % m_btnsList->count();
+        RoundItemButton *pTmpBtn = m_btnsList->at(index);
+        if (pTmpBtn->isDisabled() || !pTmpBtn->isVisible()) {
+            continue;
+        }
+        nextSelect = pTmpBtn;
+        break;
+    }
+    if (nextSelect != nullptr && nextSelect != m_currentSelectedBtn) {
+        m_currentSelectedBtn = nextSelect;
         m_currentSelectedBtn->setChecked(true);
+    }
 }
 
 void ContentWidget::showTips(const QString &tips)
