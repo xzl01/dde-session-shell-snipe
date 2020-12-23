@@ -168,7 +168,6 @@ void GreeterWorkek::authUser(const QString &password)
     else {
         if (m_greeter->inAuthentication()) {
             m_greeter->respond(password);
-            m_password.clear();
         }
         else {
             m_greeter->authenticate(user->name());
@@ -267,7 +266,7 @@ void GreeterWorkek::prompt(QString text, QLightDM::Greeter::PromptType type)
     // we'll provide our own prompt or just not.
     qDebug() << "pam prompt: " << text << type;
 
-    const QString msg = text.simplified() == "Password:" ? "" : text;
+    const QString msg = text.simplified() == valueByQSettings<QString>("Greeter", "prompt", "Password:") ? "" : text;
 
     switch (type) {
     case QLightDM::Greeter::PromptTypeSecret:
