@@ -106,6 +106,8 @@ GreeterWorkek::GreeterWorkek(SessionBaseModel *const model, QObject *parent)
             m_login1Inter->Reboot(true);
             break;
         case SessionBaseModel::PowerAction::RequireSuspend:
+            //TODO 未找到登入界面谁对屏幕亮暗的操作，暂时在待机时关闭屏幕。
+            screenSwitchByWldpms(false);
             m_login1Inter->Suspend(true);
             break;
         case SessionBaseModel::PowerAction::RequireHibernate:
