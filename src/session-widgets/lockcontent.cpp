@@ -191,7 +191,11 @@ void LockContent::pushUserFrame()
 {
     if(m_model->isServerModel())
         m_controlWidget->setUserSwitchEnable(false);
-    setCenterContent(m_userLoginInfo->getUserFrameList());
+
+    //设置用户列表大小为中间区域的大小
+    UserFrameList * userFrameList = m_userLoginInfo->getUserFrameList();
+    userFrameList->setFixedSize(getCenterContentSize());
+    setCenterContent(userFrameList);
 }
 
 void LockContent::pushConfirmFrame()
@@ -202,6 +206,8 @@ void LockContent::pushConfirmFrame()
 
 void LockContent::pushShutdownFrame()
 {
+    QSize size = getCenterContentSize();
+    m_shutdownFrame->setFixedSize(size);
     setCenterContent(m_shutdownFrame);
 }
 
