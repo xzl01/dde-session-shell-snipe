@@ -38,6 +38,9 @@ LockFrame::LockFrame(SessionBaseModel *const model, QWidget *parent)
     : FullscreenBackground(parent)
     , m_model(model)
 {
+
+    this->setWindowFlag(Qt::WindowMinMaxButtonsHint, false);
+
     QTimer::singleShot(0, this, [ = ] {
         auto user = model->currentUser();
         if (user != nullptr) updateBackground(user->greeterBackgroundPath());

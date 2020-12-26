@@ -39,6 +39,8 @@ ShutdownFrame::ShutdownFrame(SessionBaseModel *const model, QWidget *parent)
     m_shutdownFrame->setModel(model);
     setContent(m_shutdownFrame);
 
+    this->setWindowFlag(Qt::WindowMinMaxButtonsHint, false);
+
     connect(m_shutdownFrame, &ContentWidget::requestBackground,
             this, static_cast<void (ShutdownFrame::*)(const QString &)>(&ShutdownFrame::updateBackground));
 
