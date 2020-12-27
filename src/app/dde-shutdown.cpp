@@ -125,8 +125,8 @@ int main(int argc, char *argv[])
             ShutdownFrame *frame = new ShutdownFrame(model);
             dbusAgent->addFrame(frame);
             //frame->setScreen(screen);
-            frame->setMonitor(monitor);
             property_group->addObject(frame);
+            frame->setMonitor(monitor);
             //+ 将之前的lamda表达式替换为信号与槽，解决插拔HDMI崩溃问题
             QObject::connect(model, &SessionBaseModel::visibleChanged, frame, &ShutdownFrame::visibleChangedFrame);
             QObject::connect(frame, &ShutdownFrame::requestEnableHotzone, worker, &ShutdownWorker::enableZoneDetected);
@@ -141,11 +141,12 @@ int main(int argc, char *argv[])
             QObject::connect(monitor, &Monitor::enableChanged, frame, &ShutdownFrame::monitorEnableChanged);
 
             qDebug() << "create shutdown window & setVisible " << frame << (model->isShow() && monitor->enable());
-            frame->setVisible(model->isShow() && monitor->enable());
+            //frame->setVisible(model->isShow() && monitor->enable());
             return frame;
         };
 
         MultiScreenManager multi_screen_manager;
+        multi_screen_manager.setSessionBaseModel(model);
         multi_screen_manager.register_for_mutil_monitor(createFrame);
 
         QObject::connect(model, &SessionBaseModel::visibleChanged, &multi_screen_manager, &MultiScreenManager::startRaiseContentFrame);

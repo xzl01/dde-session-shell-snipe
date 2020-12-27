@@ -209,6 +209,7 @@ void SessionBaseModel::setForceHibernate(bool fh)
 
 void SessionBaseModel::setIsShow(bool isShow)
 {
+    qDebug() << "SessionBaseModel::setIsShow" << isShow;
     if (m_isShow == isShow) return;
 
     m_isShow = isShow;

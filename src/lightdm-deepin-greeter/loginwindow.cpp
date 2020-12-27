@@ -46,7 +46,7 @@ LoginWindow::LoginWindow(SessionBaseModel *const model, QWidget *parent)
     });
 
     setContent(m_loginContent);
-    m_loginContent->show();
+    //setContentVisible(true);//构造阶段不允许显示
 
     connect(m_loginContent, &LockContent::requestBackground, this, [ = ](const QString & wallpaper) {
         updateBackground(wallpaper);
@@ -59,7 +59,10 @@ LoginWindow::LoginWindow(SessionBaseModel *const model, QWidget *parent)
 
     connect(model, &SessionBaseModel::authFinished, this, [ = ](bool successd) {
         syslog(LOG_INFO, "zl: successd %d", successd);
-        if (successd) m_loginContent->setVisible(!successd);
+        if (successd) {
+            m_isHideAllContent = true;
+            setContentVisible(false);
+        }
 #ifdef DISABLE_LOGIN_ANI
         // 在认证成功以后会通过更改背景来实现登录动画，但是禁用登录动画的情况下，会立即调用startSession，
         // 导致当前进程被lightdm退掉，X上会残留上一帧的画面，可以看到输入框等画面。使用repaint()强制刷新背景来避免这个问题。

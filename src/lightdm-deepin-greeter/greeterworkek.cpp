@@ -83,6 +83,7 @@ GreeterWorkek::GreeterWorkek(SessionBaseModel *const model, QObject *parent)
     , m_authenticating(false)
     , m_showAuthResult(false)
     , m_firstTimeLogin(true)
+    , m_authSuccess(false)
     , m_password(QString())
 {
     if (m_AuthenticateInter->isValid()) {
@@ -216,6 +217,11 @@ void GreeterWorkek::switchToUser(std::shared_ptr<User> user)
 
 void GreeterWorkek::authUser(const QString &password)
 {
+    if (m_authSuccess) {
+        qDebug() << "shouldn't auth user after success auth: " << m_greeter->authenticationUser();
+        return;
+    }
+
     if (m_authenticating) return;
 
     m_authenticating = true;
@@ -396,6 +402,9 @@ void GreeterWorkek::message(QString text, QLightDM::Greeter::MessageType type)
 void GreeterWorkek::authenticationComplete()
 {
     qDebug() << "authentication complete, authenticated " << m_greeter->isAuthenticated();
+    if (!m_authSuccess) {
+        m_authSuccess = m_greeter->isAuthenticated();
+    }
 
     emit m_model->authFinished(m_greeter->isAuthenticated());
 

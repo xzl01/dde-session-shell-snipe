@@ -110,8 +110,8 @@ int main(int argc, char *argv[])
 
     auto createFrame = [&] (Monitor *monitor) -> QWidget* {
         LockFrame *lockFrame = new LockFrame(model);
-        lockFrame->setMonitor(monitor);
         property_group->addObject(lockFrame);
+        lockFrame->setMonitor(monitor);
 
         QObject::connect(lockFrame, &LockFrame::requestSwitchToUser, worker, &LockWorker::switchToUser);
         QObject::connect(lockFrame, &LockFrame::requestAuthUser, worker, &LockWorker::authUser);
@@ -127,7 +127,7 @@ int main(int argc, char *argv[])
 
 
         qDebug() << "create lockframe and setVisible:" << lockFrame << (model->isShow() && monitor->enable());
-        lockFrame->setVisible(model->isShow() && monitor->enable());
+        //lockFrame->setVisible(model->isShow() && monitor->enable()); //随后有同样的代码，而且区分深度与域管
 
         QObject::connect(lockFrame, &LockFrame::sendKeyValue, [&](QString key) {
              emit service.ChangKey(key);
@@ -139,11 +139,11 @@ int main(int argc, char *argv[])
             model->setIsShow(false);
             lockFrame->setVisible(false);
         }
-        lockFrame->setContentHide();
         return lockFrame;
     };
 
     MultiScreenManager multi_screen_manager;
+    multi_screen_manager.setSessionBaseModel(model);
     multi_screen_manager.register_for_mutil_monitor(createFrame);
 
     QObject::connect(model, &SessionBaseModel::visibleChanged, &multi_screen_manager, &MultiScreenManager::startRaiseContentFrame);

@@ -87,7 +87,7 @@ FullscreenBackground::~FullscreenBackground()
 
 bool FullscreenBackground::contentVisible() const
 {
-    return m_content && m_content->isVisible();
+    return m_content && !m_content->isHidden();
 }
 
 void FullscreenBackground::updateBackground(const QPixmap &background)
@@ -166,11 +166,10 @@ void FullscreenBackground::setScreen(QScreen *screen)
 {
     QScreen *primary_screen = QGuiApplication::primaryScreen();
     if(primary_screen == screen) {
-        m_content->show();
+        //setContentVisible(true);
         m_primaryShowFinished = true;
-        emit contentVisibleChanged(true);
     } else {
-        m_content->hide();
+        //setContentVisible(false); //多数情况下不允许主动hide，除非是要求所有都隐藏的情况
         m_primaryShowFinished = true;
         setMouseTracking(true);
     }
@@ -187,12 +186,10 @@ void FullscreenBackground::setMonitor(Monitor *monitor)
     QDBusMessage msg = QDBusConnection::sessionBus().call(getRealDisplayMode);
     if (DisplayMode::CopyMode == msg.arguments().first().toUInt()) {
         if (m_displayInter->primary() == monitor->name()) {
-            emit contentVisibleChanged(true);
-            m_content->show();
+            //setContentVisible(true);
         }
     } else {
-        emit contentVisibleChanged(false);
-        m_content->hide();
+        //setContentVisible(false); //多数情况下不允许主动hide，除非是要求所有都隐藏的情况
     }
 
     m_primaryShowFinished = monitor->enable();
@@ -202,17 +199,14 @@ void FullscreenBackground::setMonitor(Monitor *monitor)
 
 void FullscreenBackground::setContentVisible(bool contentVisible)
 {
+    qDebug() << "FullscreenBackground::setContentVisible" << contentVisible;
     if (this->contentVisible() == contentVisible)
         return;
 
     if (!m_content)
         return;
 
-    if (!isVisible() && !contentVisible)
-        return;
-
-    //这里不需要设置content visible属性
-    //m_content->setVisible(contentVisible);
+    m_content->setVisible(contentVisible);
 
     emit contentVisibleChanged(contentVisible);
 }
@@ -224,10 +218,10 @@ void FullscreenBackground::setContent(QWidget *const w)
     m_content = w;
     m_content->setParent(this);
     m_content->raise();
-    if (1 == m_displayInter->displayMode()) {
-        m_content->show();
-    }
     m_content->move(0, 0);
+    if (1 == m_displayInter->displayMode()) {
+        //setContentVisible(true); //都是在构造阶段设置content，构造阶造不允许show/hide
+    }
 }
 
 void FullscreenBackground::setIsBlackMode(bool is_black)
@@ -236,16 +230,16 @@ void FullscreenBackground::setIsBlackMode(bool is_black)
 
     m_isBlackMode = is_black;
     FrameDataBind::Instance()->updateValue("PrimaryShowFinished", !is_black);
-    m_content->setVisible(!is_black);
-    emit contentVisibleChanged(!is_black);
+    qDebug() << "FullscreenBackground::setIsHibernateMode: set content vis=" << !is_black;
+    setContentVisible(!is_black);
 
     update();
 }
 
 void FullscreenBackground::setIsHibernateMode(){
     updateGeometry();
-    m_content->show();
-    emit contentVisibleChanged(true);
+    qDebug() << "FullscreenBackground::setIsHibernateMode: set content visible true";
+    setContentVisible(true);
 }
 
 void FullscreenBackground::paintEvent(QPaintEvent *e)
@@ -288,9 +282,9 @@ void FullscreenBackground::paintEvent(QPaintEvent *e)
 
 void FullscreenBackground::enterEvent(QEvent *event)
 {
-    if(m_primaryShowFinished) {
-        m_content->show();
-        emit contentVisibleChanged(true);
+    if(m_primaryShowFinished && !m_isHideAllContent) {
+        qDebug() << "FullscreenBackground::enterEvent: set content visible true";
+        setContentVisible(true);
     }
 
     return QWidget::enterEvent(event);
@@ -298,8 +292,7 @@ void FullscreenBackground::enterEvent(QEvent *event)
 
 void FullscreenBackground::leaveEvent(QEvent *event)
 {
-    m_content->hide();
-    return QWidget::leaveEvent(event);
+    //setContentVisible(false); //多数情况下不允许主动hide，除非是要求所有都隐藏的情况
 }
 
 void FullscreenBackground::resizeEvent(QResizeEvent *event)
@@ -322,7 +315,10 @@ void FullscreenBackground::resizeEvent(QResizeEvent *event)
 
 void FullscreenBackground::mouseMoveEvent(QMouseEvent *event)
 {
-    emit contentVisibleChanged(true);
+    if (!m_isHideAllContent) {
+        qDebug() << "FullscreenBackground::mouseMoveEvent: set content visible true";
+        setContentVisible(true);
+    }
 
     return QWidget::mouseMoveEvent(event);
 }

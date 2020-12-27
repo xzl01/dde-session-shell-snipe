@@ -85,6 +85,7 @@ protected:
 
 protected:
     Monitor *m_monitor = nullptr;
+    bool m_isHideAllContent = false;
 
 private:
     void updateScreen(QScreen *screen);

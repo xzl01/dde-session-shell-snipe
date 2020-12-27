@@ -245,8 +245,8 @@ int main(int argc, char* argv[])
 
     auto createFrame = [&] (QScreen *screen) -> QWidget* {
         LoginWindow *loginFrame = new LoginWindow(model);
-        loginFrame->setScreen(screen);
         property_group->addObject(loginFrame);
+        loginFrame->setScreen(screen);
         QObject::connect(loginFrame, &LoginWindow::requestSwitchToUser, worker, &GreeterWorkek::switchToUser);
         QObject::connect(loginFrame, &LoginWindow::requestAuthUser, worker, &GreeterWorkek::authUser);
         QObject::connect(loginFrame, &LoginWindow::requestSetLayout, worker, &GreeterWorkek::setLayout);
@@ -257,6 +257,7 @@ int main(int argc, char* argv[])
     };
 
     GreeterScreenManager multi_screen_manager;
+    multi_screen_manager.setSessionBaseModel(model);
     multi_screen_manager.register_for_mutil_screen(createFrame);
     QObject::connect(model, &SessionBaseModel::visibleChanged, &multi_screen_manager, &GreeterScreenManager::startRaiseContentFrame);
 

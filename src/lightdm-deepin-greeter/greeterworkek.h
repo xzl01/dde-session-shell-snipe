@@ -71,6 +71,7 @@ private:
     DBusLockService   *m_lockInter;
     Authenticate      *m_AuthenticateInter;
     bool               m_isThumbAuth;
+    bool               m_authSuccess;
     bool               m_authenticating;
     bool               m_showAuthResult;
     bool               m_firstTimeLogin;

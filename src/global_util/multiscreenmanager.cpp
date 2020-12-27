@@ -4,8 +4,13 @@
 #include <QDesktopWidget>
 #include <QDebug>
 #include <QDesktopWidget>
+#include <QHash>
+#include <QRect>
 
 #include <com_deepin_daemon_display.h>
+
+#include "src/session-widgets/sessionbasemodel.h"
+
 using DisplayInter=com::deepin::daemon::Display;
 
 MultiScreenManager::MultiScreenManager(QObject *parent)
@@ -34,14 +39,122 @@ void MultiScreenManager::register_for_mutil_monitor(std::function<QWidget* (Moni
     onMonitorsChanged(monitor);
 }
 
+
+inline uint qHash(const QRect& rect)
+{
+    QString s = QString("%1:%2:%3:%4").arg(rect.x()).arg(rect.y()).arg(rect.right()).arg(rect.bottom());
+    return qHash(s);
+}
+
+inline bool screenGeometryValid(const QRect &rect)
+{
+    //防止坐标为4个0,此时QRect.isValid返回true
+    return rect.width() > 1 && rect.height() > 1;
+}
+
 void MultiScreenManager::raiseContentFrame()
 {
+    if (m_model == nullptr || !m_model->isShow()) {
+        return;
+    }
+    qDebug() << "MultiScreenManager::raiseContentFrame, monitor num=" << m_frameMoniter.size();
+
+    //统计screen的信息
+    QHash<QRect, Monitor*> rect2Screen;
+    QHash<QRect, int> rect2Count;
+    Monitor *contentVisibleScreen = nullptr;
     for (auto it = m_frameMoniter.constBegin(); it != m_frameMoniter.constEnd(); ++it) {
+        Monitor *monitor = it.key();
+        const auto& geometry = monitor->rect();
+        rect2Screen.insertMulti(geometry, monitor);
+        rect2Count[geometry]++; //这里key不存在时，会静默插入key且value为0
         if (it.value()->property("contentVisible").toBool()) {
-            it.value()->raise();
-            return;
+            if (screenGeometryValid(geometry) && monitor->enable()) {
+                contentVisibleScreen = monitor;
+            }
         }
     }
+
+    //挑选一个内容可见的screen，优先主屏幕
+    //优先cursor所在的frame的逻辑更好，但是wl中取不到cursor位置
+    while (contentVisibleScreen == nullptr) {
+        for (auto it = m_frameMoniter.constBegin(); it != m_frameMoniter.constEnd(); ++it) {
+            Monitor *itMonitor = it.key();
+            if (!itMonitor->isPrimary()) {
+                continue;
+            }
+            if (screenGeometryValid(itMonitor->rect()) && itMonitor->enable()) {
+                contentVisibleScreen = itMonitor;
+            }
+            break;
+        }
+        if (contentVisibleScreen != nullptr) {
+            qDebug() << "MultiScreenManager::raiseContentFrame, primaryMonitor content visible";
+            break;
+        }
+        for (auto it = m_frameMoniter.constBegin(); it != m_frameMoniter.constEnd(); ++it) {
+            Monitor *monitor = it.key();
+            const auto& geometry = monitor->rect();
+            if (screenGeometryValid(geometry) && monitor->enable()) {
+                contentVisibleScreen = monitor;
+                break;
+            }
+        }
+        break;
+    }
+
+    if (contentVisibleScreen == nullptr) {
+        qWarning() << "MultiScreenManager::raiseContentFrame, contentVisibleScreen is null";
+        return ;
+    }
+
+    //坐标不重复的显示，重复的只留一个显示，在所有显示的screen中必须有一个content可见
+    for (auto it = m_frameMoniter.constBegin(); it != m_frameMoniter.constEnd(); ++it) {
+        Monitor *monitor = it.key();
+        const auto& geometry = monitor->rect();
+        if (!monitor->enable()) {
+            it.value()->hide();
+            continue;
+        }
+        if (!screenGeometryValid(geometry)) {
+            it.value()->hide();
+            continue;
+        }
+
+        if (rect2Count[geometry] == 1) {
+            it.value()->show();
+            continue;
+        }
+
+        //复制模式, 如果conttent visible命中这里，就留visible这个显示，否则就留第一个显示。
+        if (contentVisibleScreen->rect() == geometry) {
+            if (it.key() == contentVisibleScreen) {
+                it.value()->show();
+            } else {
+                it.value()->hide();
+            }
+        } else {
+            //只显示第一个
+            bool bShow = true;
+            QHash<QRect, Monitor*>::iterator itFind = rect2Screen.find(geometry);
+            while (itFind != rect2Screen.end() && itFind.key() == geometry) {
+                Monitor* monSavePos = itFind.value();
+                if (!monSavePos->enable() || !bShow) {
+                    m_frameMoniter[itFind.value()]->hide();
+                    ++itFind;
+                    continue;
+                }
+                if (bShow) {
+                    bShow = false;
+                    m_frameMoniter[itFind.value()]->show();
+                }
+                ++itFind;
+            }
+            rect2Screen.remove(geometry);
+        }
+    }
+
+    m_frameMoniter[contentVisibleScreen]->setProperty("contentVisible", QVariant(true));
 }
 
 void MultiScreenManager::onMonitorsChanged(const QList<QDBusObjectPath> & mons)
@@ -75,8 +188,9 @@ void MultiScreenManager::onMonitorsChanged(const QList<QDBusObjectPath> & mons)
     // 主屏最后new，保证多屏复制模式下显示在最上面，wayland环境下，widget->raise()函数不生效
     for (Monitor *mon : monitors) {
         m_frameMoniter[mon] = m_registerMonitorFun(mon);
-        startRaiseContentFrame();
     }
+
+    startRaiseContentFrame();
 
     for (const auto op : ops)
         if (!pathList.contains(op)) {
@@ -128,5 +242,4 @@ void MultiScreenManager::monitorRemoved(const QString &path)
     m_frameMoniter[monitor]->deleteLater();
     m_frameMoniter.remove(monitor);
     monitor->deleteLater();
-    startRaiseContentFrame();
 }

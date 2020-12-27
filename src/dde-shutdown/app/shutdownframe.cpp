@@ -37,6 +37,7 @@ ShutdownFrame::ShutdownFrame(SessionBaseModel *const model, QWidget *parent)
 {
     m_shutdownFrame = new ContentWidget(this);
     m_shutdownFrame->setModel(model);
+    m_shutdownFrame->setVisible(false);
     setContent(m_shutdownFrame);
 
     this->setWindowFlag(Qt::WindowMinMaxButtonsHint, false);
@@ -90,11 +91,11 @@ void ShutdownFrame::visibleChangedFrame(bool isVisible)
         if (sessionInter.locked())
             return;
         qDebug() << __FILE__ << __LINE__ << ": shutdown showFullScreen, locked :" << sessionInter.locked();
-        show();
+        //show();
         updateMonitorGeometry();
     } else {
         qDebug() << __FILE__ << __LINE__ << ": shutdown setVisible false";
-        setVisible(false);
+        //setVisible(false);
     }
 }
 
@@ -127,7 +128,7 @@ void ShutdownFrame::showEvent(QShowEvent *event)
     m_model->setIsShow(true);
 
     if (!m_monitor->enable()) {
-        setVisible(false);
+        //setVisible(false);
         return;
     }
 
