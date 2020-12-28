@@ -15,6 +15,8 @@
 #include <QMouseEvent>
 #include <DDBusSender>
 
+#include <syslog.h>
+
 LockContent::LockContent(SessionBaseModel *const model, QWidget *parent)
     : SessionBaseWindow(parent)
     , m_model(model)
@@ -200,6 +202,7 @@ void LockContent::beforeUnlockAction(bool is_finish)
 
 void LockContent::onStatusChanged(SessionBaseModel::ModeStatus status)
 {
+    syslog(LOG_INFO, "zl: user num %d status %d ", m_model->logindUser().size(), status);
     qDebug() << "LockContent::onStatusChanged: user_num=" << m_model->logindUser().size() << ", status=" << status;
     if(m_model->isServerModel())
         onUserListChanged(m_model->logindUser());

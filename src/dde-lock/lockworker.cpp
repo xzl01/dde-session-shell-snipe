@@ -13,6 +13,8 @@
 #include <QRegularExpression>
 #include <DSysInfo>
 
+#include <syslog.h>
+
 #include <com_deepin_daemon_power.h>
 
 #define LOCKSERVICE_PATH "/com/deepin/dde/LockService"
@@ -38,12 +40,14 @@ LockWorker::LockWorker(SessionBaseModel *const model, QObject *parent)
         qDebug() << "SessionBaseModel::visibleChanged -- visible status :" << visible;
         auto user = m_model->currentUser();
         if(visible && user->uid() == m_currentUserUid) {
+            syslog(LOG_INFO, "zl: %s %d ", __func__, __LINE__);
             m_authFramework->Authenticate(user);
         }
     });
     //该信号用来处理初始化切换用户(锁屏+锁屏)或者切换用户(锁屏+登陆)两种种场景的指纹认证
     connect(m_lockInter, &DBusLockService::UserChanged, this, &LockWorker::onCurrentUserChanged);
 
+    syslog(LOG_INFO, "zl: is twice %s %d ", __func__, __LINE__);
     connect(model, &SessionBaseModel::authenticateUser, m_authFramework, &DeepinAuthFramework::Authenticate);
     connect(model, &SessionBaseModel::onPowerActionChanged, this, [ = ](SessionBaseModel::PowerAction poweraction) {
         switch (poweraction) {
@@ -54,10 +58,12 @@ LockWorker::LockWorker(SessionBaseModel *const model, QObject *parent)
             m_sessionManager->RequestHibernate();
             break;
         case SessionBaseModel::PowerAction::RequireRestart:
+            syslog(LOG_INFO, "zl: %s %d ", __func__, __LINE__);
             m_authFramework->Authenticate(m_model->currentUser());
             model->setPowerAction(SessionBaseModel::PowerAction::RequireRestart);
             return;
         case SessionBaseModel::PowerAction::RequireShutdown:
+            syslog(LOG_INFO, "zl: %s %d ", __func__, __LINE__);
             m_authFramework->Authenticate(m_model->currentUser());
             model->setPowerAction(SessionBaseModel::PowerAction::RequireShutdown);
             return;
@@ -70,6 +76,7 @@ LockWorker::LockWorker(SessionBaseModel *const model, QObject *parent)
 
     connect(model, &SessionBaseModel::lockChanged, this, [ = ](bool lock) {
         if (!lock) {
+            syslog(LOG_INFO, "zl: %s %d ", __func__, __LINE__);
             m_authFramework->Authenticate(m_model->currentUser());
         }
     });
@@ -182,12 +189,9 @@ void LockWorker::onDisplayTextInfo(const QString &msg)
 
 void LockWorker::onPasswordResult(const QString &msg)
 {
+    syslog(LOG_INFO, "zl: %s %d msg %s", __func__, __LINE__, msg.toStdString().c_str());
     bool unlocked = !msg.isEmpty();
     onUnlockFinished(unlocked, true);
-
-    if(!unlocked) {
-        m_authFramework->Authenticate(m_model->currentUser());
-    }
 }
 
 void LockWorker::onUserAdded(const QString &user)
@@ -203,6 +207,7 @@ void LockWorker::onUserAdded(const QString &user)
     }
 
     if (user_ptr->uid() == m_lastLogoutUid) {
+        syslog(LOG_INFO, "zl: %s %d ", __func__, __LINE__);
         m_model->setLastLogoutUser(user_ptr);
     }
 
@@ -268,6 +273,7 @@ void LockWorker::lockServiceEvent(quint32 eventType, quint32 pid, const QString 
 
 void LockWorker::onUnlockFinished(bool unlocked, bool fromAgent)
 {
+    syslog(LOG_INFO, "zl: %s %d unlocked %d from agent %d", __func__, __LINE__, unlocked, fromAgent);
     qDebug() << "LockWorker::onUnlockFinished -- unlocked =" << unlocked << ", fromAgent =" << fromAgent;
     if (unlocked) {
         m_model->currentUser()->resetLock();
@@ -293,19 +299,24 @@ void LockWorker::onUnlockFinished(bool unlocked, bool fromAgent)
     m_authFramework->CancelCurrentAuth();
 
     //验校密码中
+    bool isLockForNum = false;
     if (m_authenticating) {
         m_authenticating = false;
         if (!unlocked) {
-            qDebug() << "LockWorker::onUnlockFinished -- start new auth for other failed reason";
-            m_authFramework->Authenticate(m_model->currentUser());
-        }
-        if (!unlocked) {
             if (m_authFramework->GetAuthType() == AuthFlag::Password && fromAgent) {
-                qDebug() << "LockWorker::onUnlockFinished: Authorization password failed!";
+//                qDebug() << "LockWorker::onUnlockFinished: Authorization password failed!";
+                syslog(LOG_INFO, "zl: %s %d Authorization password failed!", __func__, __LINE__);
                 emit m_model->authFaildTipsMessage(tr("Wrong Password"));
-                if (m_model->currentUser()->isLockForNum()) {
+                isLockForNum = m_model->currentUser()->isLockForNum();
+                if (isLockForNum) {
                     m_model->currentUser()->startLock();
                 }
+            }
+
+            if (!isLockForNum) {
+                syslog(LOG_INFO, "zl: %s %d start new authentication", __func__, __LINE__);
+//                qDebug() << "LockWorker::onUnlockFinished -- start new auth for other failed reason";
+                m_authFramework->Authenticate(m_model->currentUser());
             }
         }
     }
@@ -319,6 +330,7 @@ void LockWorker::onCurrentUserChanged(const QString &user)
     if (user_cur == m_currentUserUid) {
         for (std::shared_ptr<User> user_ptr : m_model->userList()) {
             if (user_ptr->uid() == m_currentUserUid) {
+                syslog(LOG_INFO, "zl: %s %d ", __func__, __LINE__);
                 m_authFramework->Authenticate(user_ptr);
                 return;
             }

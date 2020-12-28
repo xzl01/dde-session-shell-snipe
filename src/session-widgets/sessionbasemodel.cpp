@@ -3,6 +3,8 @@
 #include <QDebug>
 #include <DSysInfo>
 
+#include <syslog.h>
+
 #define SessionManagerService "com.deepin.SessionManager"
 #define SessionManagerPath "/com/deepin/SessionManager"
 
@@ -161,6 +163,7 @@ void SessionBaseModel::setPowerAction(const PowerAction &powerAction)
 
 void SessionBaseModel::setCurrentModeState(const ModeStatus &currentModeState)
 {
+    syslog(LOG_INFO, "zl: %s %d currentModeState %d m_currentModeState %d ", __func__, __LINE__, currentModeState, m_currentModeState);
     if (m_currentModeState == currentModeState) return;
 
     m_currentModeState = currentModeState;

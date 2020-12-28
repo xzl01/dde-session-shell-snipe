@@ -10,6 +10,8 @@
 #include <grp.h>
 #include <signal.h>
 
+#include <syslog.h>
+
 DeepinAuthFramework::DeepinAuthFramework(DeepinAuthInterface *inter, QObject *parent)
     : QObject(parent)
     , m_interface(inter)
@@ -44,7 +46,8 @@ void DeepinAuthFramework::Authenticate(std::shared_ptr<User> user)
 {
     if (user->isLock()) return;
 
-    qDebug() << "DeepinAuthFramework::Authenticate: pam auth start, loopLevel =" << m_authagent->thread()->loopLevel();
+    syslog(LOG_INFO, "zl: %s %d usr %s start up current thread %d", __func__, __LINE__, user->name().toStdString().c_str(), pthread_self());
+//    qDebug() << "DeepinAuthFramework::Authenticate: pam auth start, loopLevel =" << m_authagent->thread()->loopLevel();
     m_password.clear();
     m_currentUser = user;
     //m_authagent->NotifyCancelAuth();

@@ -29,6 +29,8 @@
 
 #include <QWindow>
 
+#include <syslog.h>
+
 LoginWindow::LoginWindow(SessionBaseModel *const model, QWidget *parent)
     : FullscreenBackground(parent)
     , m_loginContent(new LoginContent(model, this))
@@ -56,6 +58,7 @@ LoginWindow::LoginWindow(SessionBaseModel *const model, QWidget *parent)
     });
 
     connect(model, &SessionBaseModel::authFinished, this, [ = ](bool successd) {
+        syslog(LOG_INFO, "zl: successd %d", successd);
         if (successd) m_loginContent->setVisible(!successd);
 #ifdef DISABLE_LOGIN_ANI
         // 在认证成功以后会通过更改背景来实现登录动画，但是禁用登录动画的情况下，会立即调用startSession，

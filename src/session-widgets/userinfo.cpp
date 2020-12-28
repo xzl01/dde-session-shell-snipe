@@ -5,6 +5,8 @@
 #include <grp.h>
 #include "src/global_util/public_func.h"
 
+#include <syslog.h>
+
 #define LOCK_AUTH_NUM 5
 
 static bool checkUserIsNoPWGrp(User const *user)
@@ -138,6 +140,7 @@ void User::setPath(const QString &path)
 
 bool User::isLockForNum()
 {
+    syslog(LOG_INFO, "zl: %s %d is lock %d try num %d ", __func__, __LINE__, m_isLock, m_tryNum);
     return m_isLock || --m_tryNum == 0;
 }
 
