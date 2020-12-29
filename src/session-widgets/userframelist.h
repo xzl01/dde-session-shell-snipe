@@ -49,7 +49,6 @@ signals:
     void clicked();
 
 protected:
-    void showEvent(QShowEvent *event) override;
     void mouseReleaseEvent(QMouseEvent *event) override;
     void hideEvent(QHideEvent *event) override;
     void keyPressEvent(QKeyEvent *event) override;
@@ -65,6 +64,7 @@ private:
     void switchNextUser();
     void switchPreviousUser();
     void onOtherPageChanged(const QVariant &value);
+    void updateLayout();
 
 private:
     QScrollArea *m_scrollArea;

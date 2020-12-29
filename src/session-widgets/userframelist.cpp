@@ -108,6 +108,8 @@ void UserFrameList::addUser(std::shared_ptr<User> user)
     });
     int index = m_loginWidgets.indexOf(widget);
     m_flowLayout->insertWidget(index, widget);
+
+    updateLayout();
 }
 
 //删除用户
@@ -120,6 +122,8 @@ void UserFrameList::removeUser(const uint uid)
             break;
         }
     }
+
+    updateLayout();
 }
 
 //点击用户
@@ -138,9 +142,8 @@ void UserFrameList::onUserClicked()
 }
 
 
-void UserFrameList::showEvent(QShowEvent *event)
+void UserFrameList::updateLayout()
 {
-    Q_UNUSED(event);
     //处理窗体数量小于5个时的居中显示，取 窗体数量*窗体宽度 和 最大宽度 的较小值，设置为m_centerWidget的宽度
     int maxWidth = this->width();
     int maxHeight = this->height();
