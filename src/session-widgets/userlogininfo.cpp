@@ -30,6 +30,8 @@
 
 #include <QKeyEvent>
 
+#include <syslog.h>
+
 UserLoginInfo::UserLoginInfo(SessionBaseModel *model, QObject *parent)
     : QObject(parent)
     , m_model(model)
@@ -88,6 +90,7 @@ void UserLoginInfo::initConnect()
 {
     //UserLoginWidget
     connect(m_userLoginWidget, &UserLoginWidget::requestAuthUser, this, [ = ](const QString & account, const QString & password) {
+        syslog(LOG_INFO, "zl: %s %d UserLoginInfo::initConnect", __func__, __LINE__);
         if (!m_userLoginWidget->inputInfoCheck(m_model->isServerModel())) return;
 
         //当前锁定不需要密码和当前用户不需要密码登录则直接进入系统

@@ -150,6 +150,7 @@ void LockWorker::switchToUser(std::shared_ptr<User> user)
 
 void LockWorker::authUser(const QString &password)
 {
+    syslog(LOG_INFO, "zl: %s %d m_authenticating %d ", __func__, __LINE__, m_authenticating);
     if (m_authenticating) return;
 
     m_authenticating = true;
@@ -300,6 +301,7 @@ void LockWorker::onUnlockFinished(bool unlocked, bool fromAgent)
 
     //验校密码中
     bool isLockForNum = false;
+    syslog(LOG_INFO, "zl: %s %d is authenticating %d ", __func__, __LINE__, m_authenticating);
     if (m_authenticating) {
         m_authenticating = false;
         if (!unlocked) {
@@ -319,6 +321,8 @@ void LockWorker::onUnlockFinished(bool unlocked, bool fromAgent)
                 m_authFramework->Authenticate(m_model->currentUser());
             }
         }
+    } else if (!m_authenticating && !unlocked && !isLockForNum){
+        m_authFramework->Authenticate(m_model->currentUser());
     }
 }
 

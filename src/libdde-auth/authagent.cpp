@@ -7,6 +7,8 @@
 #include <unistd.h>
 #include <security/pam_appl.h>
 
+#include <syslog.h>
+
 #ifdef PAM_SUN_CODEBASE
 #define PAM_MSG_MEMBER(msg, n, member) ((*(msg))[(n)].member)
 #else
@@ -80,6 +82,7 @@ void AuthAgent::Authenticate(const QString& username)
     }
     //启动失败就直接结束
     if (pAuthData->m_authStatus != Auth_WaitPasswd) {
+        syslog(LOG_INFO, "zl: %s %s %d ", __FILE__, __func__, __LINE__);
         pam_end(pAuthData->m_pamHandle, pAuthData->m_pamFuncRetCode);
         emit respondResult("failed to start authentication");
         pAuthData->m_authStatus = Auth_WaitDelete;
@@ -114,6 +117,7 @@ void AuthAgent::Authenticate(const QString& username)
 
     //这里多线程下还是会有卡点错误emit的问题，但需要改的上层太多，先这样
     if (emitResult) {
+        syslog(LOG_INFO, "zl: %s %d ", __func__, __LINE__);
         qDebug() << "AuthAgent::Authenticate emitResult, authNumber=" << pAuthData->m_nAuthNumber;
         emit respondResult(msg);
     }

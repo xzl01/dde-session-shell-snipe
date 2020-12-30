@@ -243,6 +243,7 @@ if (m_model->currentModeState() == SessionBaseModel::ModeStatus::ConfirmPassword
 
 void LockContent::showEvent(QShowEvent *event)
 {
+    syslog(LOG_INFO, "zl: %s %d ", __func__, __LINE__);
     onStatusChanged(m_model->currentModeState());
 
     tryGrabKeyboard();

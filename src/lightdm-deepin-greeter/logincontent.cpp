@@ -23,6 +23,8 @@
 #include "src/widgets/sessionwidget.h"
 #include "src/widgets/controlwidget.h"
 
+#include <syslog.h>
+
 LoginContent::LoginContent(SessionBaseModel *const model, QWidget *parent)
     : LockContent(model, parent)
 {
@@ -48,6 +50,7 @@ void LoginContent::onCurrentUserChanged(std::shared_ptr<User> user)
 
 void LoginContent::onStatusChanged(SessionBaseModel::ModeStatus status)
 {
+    syslog(LOG_INFO, "zl: %s %d ", __func__, __LINE__);
     switch (status) {
     case SessionBaseModel::ModeStatus::SessionMode:
         pushSessionFrame();
