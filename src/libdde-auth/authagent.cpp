@@ -83,8 +83,9 @@ void AuthAgent::Authenticate(const QString& username)
     //启动失败就直接结束
     if (pAuthData->m_authStatus != Auth_WaitPasswd) {
         syslog(LOG_INFO, "zl: %s %s %d ", __FILE__, __func__, __LINE__);
+        qDebug() << "AuthAgent, failed to start authentication, authNumber=" << pAuthData->m_nAuthNumber << ", thread=" << pthread_self();;
         pam_end(pAuthData->m_pamHandle, pAuthData->m_pamFuncRetCode);
-        emit respondResult("failed to start authentication");
+        emit respondResult("");
         pAuthData->m_authStatus = Auth_WaitDelete;
         pAuthData->subRef();
         return;
@@ -128,6 +129,7 @@ void AuthAgent::Authenticate(const QString& username)
     }
 
     pAuthData->subRef();
+    qDebug() << "AuthAgent pam_authenticate END, authNumber=" << pAuthData->m_nAuthNumber << ", thread=" << pthread_self();;
 }
 
 int AuthAgent::GetAuthType()

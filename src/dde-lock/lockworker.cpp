@@ -191,7 +191,8 @@ void LockWorker::onDisplayTextInfo(const QString &msg)
 void LockWorker::onPasswordResult(const QString &msg)
 {
     syslog(LOG_INFO, "zl: %s %d msg %s", __func__, __LINE__, msg.toStdString().c_str());
-    bool unlocked = !msg.isEmpty();
+    qDebug() << "LockWorker onPasswordResult: " << msg;
+    bool unlocked = (msg == "succes");
     onUnlockFinished(unlocked, true);
 }
 
