@@ -238,6 +238,7 @@ NativeUser::NativeUser(const QString &path, QObject *parent)
     connect(m_userInter, &UserInter::Use24HourFormatChanged, this, &NativeUser::use24HourFormatChanged);
 
     m_userName = m_userInter->userName();
+    m_userInter->fullName();
     m_uid = m_userInter->uid().toInt();
     m_locale = m_userInter->locale();
 
