@@ -93,7 +93,6 @@ void UserLoginWidget::resetAllState()
     updateUI();
 }
 
-//密码连续输入错误5次，设置提示信息
 void UserLoginWidget::setFaildMessage(const QString &message, SessionBaseModel::AuthFaildType type)
 {
     if (m_isLock && !message.isEmpty()) {
@@ -110,8 +109,8 @@ void UserLoginWidget::setFaildMessage(const QString &message, SessionBaseModel::
     }
 
     m_passwordEdit->lineEdit()->clear();
-    m_passwordEdit->lineEdit()->setPlaceholderText(message);
-    qDebug() << "message" << message;
+    FrameDataBind::Instance()->updateValue("UserLoginHint", message);
+    qDebug() << __FILE__ << __func__ << __LINE__ <<  "message" << message;
     m_passwordEdit->lineEdit()->update();
 }
 
@@ -145,6 +144,9 @@ void UserLoginWidget::setWidgetShowType(UserLoginWidget::WidgetShowType showType
         registerFunctionIndexs["UserLoginPassword"] = FrameDataBind::Instance()->registerFunction("UserLoginPassword", passwordChanged);
         std::function<void (QVariant)> kblayoutChanged = std::bind(&UserLoginWidget::onOtherPageKBLayoutChanged, this, std::placeholders::_1);
         registerFunctionIndexs["UserLoginKBLayout"] = FrameDataBind::Instance()->registerFunction("UserLoginKBLayout", kblayoutChanged);
+        std::function<void (QVariant)> hintChanged = std::bind(&UserLoginWidget::onOtherPageHintChanged, this, std::placeholders::_1);
+        registerFunctionIndexs["UserLoginHint"] = FrameDataBind::Instance()->registerFunction("UserLoginHint", hintChanged);
+
         connect(this, &UserLoginWidget::destroyed, this, [ = ] {
             for (auto it = registerFunctionIndexs.constBegin(); it != registerFunctionIndexs.constEnd(); ++it)
             {
@@ -156,6 +158,7 @@ void UserLoginWidget::setWidgetShowType(UserLoginWidget::WidgetShowType showType
             FrameDataBind::Instance()->refreshData("UserLoginAccount");
             FrameDataBind::Instance()->refreshData("UserLoginPassword");
             FrameDataBind::Instance()->refreshData("UserLoginKBLayout");
+            FrameDataBind::Instance()->refreshData("UserLoginHint");
         });
     }
 }
@@ -289,6 +292,11 @@ void UserLoginWidget::onOtherPageKBLayoutChanged(const QVariant &value)
     }
 
     refreshKBLayoutWidgetPosition();
+}
+
+void UserLoginWidget::onOtherPageHintChanged(const QVariant &value)
+{
+    m_passwordEdit->lineEdit()->setPlaceholderText(value.toString());
 }
 
 void UserLoginWidget::toggleKBLayoutWidget()
