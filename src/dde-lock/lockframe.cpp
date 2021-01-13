@@ -78,9 +78,6 @@ LockFrame::LockFrame(SessionBaseModel *const model, QWidget *parent)
         qDebug() << "SessionBaseModel::authFinished -- success status : " << success;
         m_content->beforeUnlockAction(success);
     });
-
-    syslog(LOG_INFO, "zl: %s %d authenticateUser signal send", __func__, __LINE__);
-    m_model->authenticateUser(m_model->currentUser());
 }
 
 bool LockFrame::eventFilter(QObject *watched, QEvent *event)

@@ -47,8 +47,6 @@ LockWorker::LockWorker(SessionBaseModel *const model, QObject *parent)
     //该信号用来处理初始化切换用户(锁屏+锁屏)或者切换用户(锁屏+登陆)两种种场景的指纹认证
     connect(m_lockInter, &DBusLockService::UserChanged, this, &LockWorker::onCurrentUserChanged);
 
-    syslog(LOG_INFO, "zl: is twice %s %d ", __func__, __LINE__);
-    connect(model, &SessionBaseModel::authenticateUser, m_authFramework, &DeepinAuthFramework::Authenticate);
     connect(model, &SessionBaseModel::onPowerActionChanged, this, [ = ](SessionBaseModel::PowerAction poweraction) {
         switch (poweraction) {
         case SessionBaseModel::PowerAction::RequireSuspend:

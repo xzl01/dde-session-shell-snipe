@@ -124,7 +124,6 @@ signals:
     void activeAuthChanged(bool active);
     void blackModeChanged(bool is_black);
     void HibernateModeChanged(bool is_hibernate);//休眠信号改变
-    void authenticateUser(std::shared_ptr<User> user);
 
 private:
     com::deepin::SessionManager *m_sessionManagerInter;
