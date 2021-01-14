@@ -2,7 +2,7 @@
 Comment=Deepin Shutdown
 Encoding=UTF-8
 Exec=/usr/bin/dde-shutdown
-Hidden=true
+NoDisplay=true
 Name=Deepin Shutdown
 OnlyShowIn=Deepin
 Type=Application
