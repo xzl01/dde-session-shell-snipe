@@ -72,6 +72,11 @@ bool FullscreenBackground::contentVisible() const
     return m_content && m_content->isVisible();
 }
 
+void FullscreenBackground::enableEnterEvent(bool enable)
+{
+    m_enableEnterEvent = enable;
+}
+
 void FullscreenBackground::updateBackground(const QPixmap &background)
 {
     // show old background fade out
@@ -234,7 +239,7 @@ void FullscreenBackground::paintEvent(QPaintEvent *e)
 
 void FullscreenBackground::enterEvent(QEvent *event)
 {
-    if(m_primaryShowFinished) {
+    if(m_primaryShowFinished && m_enableEnterEvent) {
         m_content->show();
         emit contentVisibleChanged(true);
     }
