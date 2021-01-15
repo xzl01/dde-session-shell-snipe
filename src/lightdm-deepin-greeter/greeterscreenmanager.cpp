@@ -72,10 +72,6 @@ inline bool screenGeometryValid(const QRect &rect)
 
 void GreeterScreenManager::raiseContentFrame()
 {
-    if (m_model && !m_model->isShow()) {
-        return;
-    }
-
     //统计screen的信息
     QHash<QRect, QScreen*> rect2Screen;
     QHash<QRect, int> rect2Count;
@@ -109,7 +105,7 @@ void GreeterScreenManager::raiseContentFrame()
         break;
     }
 
-    qDebug() << "contentVisibleScreen=" << contentVisibleScreen;
+    qDebug() << "raiseContentFrame: contentVisibleScreen=" << contentVisibleScreen;
     if (contentVisibleScreen == nullptr) {
         qWarning() << "GreeterScreenManager::raiseContentFrame, contentVisibleScreen is null";
         return ;
@@ -120,6 +116,7 @@ void GreeterScreenManager::raiseContentFrame()
         const auto& geometry = it.key()->geometry();
         if (!screenGeometryValid(geometry)) {
             it.value()->hide();
+            qDebug() << "raiseContentFrame, hide1:" << geometry << it.key();
             continue;
         }
 
@@ -134,12 +131,14 @@ void GreeterScreenManager::raiseContentFrame()
                 it.value()->show();
             } else {
                 it.value()->hide();
+                qDebug() << "raiseContentFrame, hide2:" << geometry << it.key();
             }
         } else {
             if (it.key() == rect2Screen[geometry]) {
                 it.value()->show();
             } else {
                 it.value()->hide();
+                qDebug() << "raiseContentFrame, hide2:" << geometry << it.key();
             }
         }
     }
