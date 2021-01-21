@@ -62,3 +62,13 @@ void FrameDataBind::refreshData(const QString &flag)
         (*it)(m_datas[flag]);
     }
 }
+
+bool FrameDataBind::getValue(const QString &flag, QVariant &value)
+{
+    if (m_datas.contains(flag)) {
+        value = m_datas.value(flag);
+        return true;
+    }
+
+    return false;
+}

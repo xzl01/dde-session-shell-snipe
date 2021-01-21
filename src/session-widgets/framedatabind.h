@@ -17,6 +17,7 @@ public:
     void updateValue(const QString &flag, const QVariant &value);
 
     void refreshData(const QString &flag);
+    bool getValue(const QString &flag, QVariant &value);
 
 private:
     FrameDataBind();

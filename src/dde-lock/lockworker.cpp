@@ -2,6 +2,7 @@
 
 #include "src/session-widgets/sessionbasemodel.h"
 #include "src/session-widgets/userinfo.h"
+#include "src/session-widgets/framedatabind.h"
 
 #include <unistd.h>
 #include <pwd.h>
@@ -184,6 +185,7 @@ void LockWorker::onDisplayErrorMsg(const QString &msg)
 void LockWorker::onDisplayTextInfo(const QString &msg)
 {
     emit m_model->authFaildMessage(msg);
+    FrameDataBind::Instance()->updateValue("deepinAuthMsg", msg);
 }
 
 void LockWorker::onPasswordResult(const QString &msg)

@@ -134,6 +134,7 @@ private:
     void updatePowerAction();
     void resetPowerIcon();
     void updateClipPath();
+    void updateAuthMessage();
 
 private:
     DBlurEffectWidget *m_blurEffectWidget;         //阴影窗体

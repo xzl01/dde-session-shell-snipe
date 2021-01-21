@@ -2,6 +2,7 @@
 #include "src/session-widgets/sessionbasemodel.h"
 #include "src/session-widgets/userinfo.h"
 #include "src/global_util/keyboardmonitor.h"
+#include "src/session-widgets/framedatabind.h"
 
 #include <libintl.h>
 #include <DSysInfo>
@@ -389,8 +390,8 @@ void GreeterWorkek::message(QString text, QLightDM::Greeter::MessageType type)
     switch (type) {
     case QLightDM::Greeter::MessageTypeInfo:
         if (m_isThumbAuth) break;
-
         emit m_model->authFaildMessage(QString(dgettext("fprintd", text.toUtf8())));
+        FrameDataBind::Instance()->updateValue("deepinAuthMsg", text);
         break;
 
     case QLightDM::Greeter::MessageTypeError:

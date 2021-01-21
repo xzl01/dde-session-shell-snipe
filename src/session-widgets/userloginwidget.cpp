@@ -525,6 +525,7 @@ void UserLoginWidget::initUI()
     mainLayout->addStretch();
 
     setLayout(mainLayout);
+    updateAuthMessage();
 }
 
 //初始化槽函数连接
@@ -846,4 +847,23 @@ void UserLoginWidget::unlockFailedAni()
         }
     });
     timer->start(20);
+}
+
+/**
+ * @brief updateAuthMessage
+ * @param message
+ * 每次创建lockfranme被调用一次
+ */
+void UserLoginWidget::updateAuthMessage()
+{
+    QTimer::singleShot(200, this, [=] {
+        QVariant str;
+        if (!FrameDataBind::Instance()->getValue("deepinAuthMsg", str)) {
+            return;
+        }
+
+       if (m_passwordEdit->lineEdit()->text().isEmpty()) {
+           m_passwordEdit->lineEdit()->setPlaceholderText(str.toString());
+       }
+    });
 }
