@@ -127,7 +127,6 @@ private:
     void onOtherPageAccountChanged(const QVariant &value);
     void onOtherPagePasswordChanged(const QVariant &value);
     void onOtherPageKBLayoutChanged(const QVariant &value);
-    void onOtherPageHintChanged(const QVariant &value);
     void toggleKBLayoutWidget();
     void refreshKBLayoutWidgetPosition();
     void receiveUserKBLayoutChanged(const QString &layout);
