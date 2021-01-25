@@ -193,7 +193,7 @@ void GreeterWorkek::onUserAdded(const QString &user)
         }
     }
 
-    if (!user_ptr->isLogin() && user_ptr->uid() == m_currentUserUid && !m_model->isServerModel()) {
+    if (!user_ptr->isLogin() && user_ptr->uid() == m_currentUserUid && !m_model->isServerModel() || (user_ptr->name() == m_pamUserName && !m_greeter->inAuthentication())) {
         m_model->setCurrentUser(user_ptr);
         userAuthForLightdm(user_ptr);
     }
@@ -226,9 +226,9 @@ void GreeterWorkek::oneKeyLogin()
     connect(watcher, &QDBusPendingCallWatcher::finished, [ = ] {
         if (!call.isError()) {
             QDBusReply<QString> reply = call.reply();
-            qWarning() << "one key Login User Name is : " << reply.value();
-
-            auto user_ptr = m_model->findUserByName(reply.value());
+            m_pamUserName = reply.value();
+            qWarning() << "one key Login User Name is : " << m_pamUserName;
+            auto user_ptr = m_model->findUserByName(m_pamUserName);
             if (user_ptr.get() != nullptr && reply.isValid()) {
                 m_model->setCurrentUser(user_ptr);
                 userAuthForLightdm(user_ptr);
