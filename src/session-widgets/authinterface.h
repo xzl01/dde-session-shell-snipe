@@ -7,6 +7,7 @@
 
 #include <com_deepin_daemon_accounts.h>
 #include <com_deepin_daemon_logined.h>
+#include <com_deepin_daemon_authenticate.h>
 #include <org_freedesktop_login1_session_self.h>
 
 #include <QJsonArray>
@@ -17,6 +18,7 @@
 using AccountsInter = com::deepin::daemon::Accounts;
 using LoginedInter = com::deepin::daemon::Logined;
 using Login1SessionSelf = org::freedesktop::login1::Session;
+using com::deepin::daemon::Authenticate;
 
 class User;
 class SessionBaseModel;
@@ -82,6 +84,7 @@ protected:
     uint               m_lastLogoutUid;
     uint               m_currentUserUid;
     std::list<uint>    m_loginUserList;
+    Authenticate*      m_authenticateInter;
 };
 }  // namespace Auth
 

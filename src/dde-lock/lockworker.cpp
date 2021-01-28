@@ -281,19 +281,11 @@ void LockWorker::onUnlockFinished(bool unlocked)
     qWarning() << "LockWorker::onUnlockFinished -- unlocked status : " << unlocked;
     emit m_model->authFinished(unlocked);
 
-    if (unlocked) {
-        m_model->currentUser()->resetLock();
-    }
-
     m_authenticating = false;
 
     if (!unlocked && m_authFramework->GetAuthType() == AuthFlag::Keyboard) {
         qWarning() << "Authorization password failed!";
         emit m_model->authFaildTipsMessage(tr("Wrong Password"));
-
-        if (m_model->currentUser()->isLockForNum()) {
-            m_model->currentUser()->startLock();
-        }
         return;
     }
 

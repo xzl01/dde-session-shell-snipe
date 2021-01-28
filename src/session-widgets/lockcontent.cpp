@@ -284,9 +284,6 @@ void LockContent::resizeEvent(QResizeEvent *event)
 void LockContent::restoreCenterContent()
 {
     auto current_user = m_model->currentUser();
-    if (current_user != nullptr && current_user->isLock()) {
-        current_user->onLockTimeOut();
-    }
     if ((m_model->powerAction() == SessionBaseModel::RequireShutdown)
             || (m_model->powerAction() == SessionBaseModel::RequireRestart)) {
         m_model->setCurrentModeState(SessionBaseModel::ModeStatus::ConfirmPasswordMode);

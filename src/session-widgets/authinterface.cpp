@@ -49,6 +49,10 @@ AuthInterface::AuthInterface(SessionBaseModel *const model, QObject *parent)
     , m_accountsInter(new AccountsInter(ACCOUNT_DBUS_SERVICE, ACCOUNT_DBUS_PATH, QDBusConnection::systemBus(), this))
     , m_loginedInter(new LoginedInter(ACCOUNT_DBUS_SERVICE, "/com/deepin/daemon/Logined", QDBusConnection::systemBus(), this))
     , m_login1Inter(new DBusLogin1Manager("org.freedesktop.login1", "/org/freedesktop/login1", QDBusConnection::systemBus(), this))
+    , m_authenticateInter(new Authenticate("com.deepin.daemon.Authenticate",
+                                           "/com/deepin/daemon/Authenticate",
+                                           QDBusConnection::systemBus(),
+                                           this))
     , m_lastLogoutUid(0)
     , m_loginUserList(0)
 {
@@ -128,6 +132,7 @@ void AuthInterface::initDBus()
 {
     m_accountsInter->setSync(false);
     m_loginedInter->setSync(false);
+    m_authenticateInter->setSync(false);
 
     connect(m_accountsInter, &AccountsInter::UserListChanged, this, &AuthInterface::onUserListChanged, Qt::QueuedConnection);
     connect(m_accountsInter, &AccountsInter::UserAdded, this, &AuthInterface::onUserAdded, Qt::QueuedConnection);
@@ -135,6 +140,15 @@ void AuthInterface::initDBus()
 
     connect(m_loginedInter, &LoginedInter::LastLogoutUserChanged, this, &AuthInterface::onLastLogoutUserChanged);
     connect(m_loginedInter, &LoginedInter::UserListChanged, this, &AuthInterface::onLoginUserListChanged);
+
+    connect(m_authenticateInter, &Authenticate::LimitUpdated, [this](QString name){
+        for (auto user : m_model->userList()) {
+            if (user->name() == name) {
+                user->updateLockTime();
+                break;
+            }
+        }
+    });
 }
 
 void AuthInterface::onLastLogoutUserChanged(uint uid)

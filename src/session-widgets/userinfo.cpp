@@ -5,8 +5,6 @@
 #include <pwd.h>
 #include <grp.h>
 
-static const std::vector<uint> DEFAULT_WAIT_TIME = {3, 5, 15, 60, 1440};
-
 QString userPwdName(__uid_t uid)
 {
     if (uid < 1000) return QString();
@@ -73,61 +71,30 @@ static const QString toLocalFile(const QString &path)
 User::User(QObject *parent)
     : QObject(parent)
     , m_isLogind(false)
-    , m_isLock(false)
+
     , m_locale(getenv("LANG"))
     , m_lockTimer(new QTimer)
+    , m_authenticateInter(new Authenticate("com.deepin.daemon.Authenticate",
+                                           "/com/deepin/daemon/Authenticate",
+                                           QDBusConnection::systemBus(),
+                                           this))
+
 {
-    m_lockData.lockTime = 0;
-    m_lockData.tryNum = 0;
-    auto waitTimeAvail = [ = ](std::vector<uint> *waitTime) {
-        if (waitTime->empty())
-            return false;
-
-        for (uint i = 0;i < waitTime->size();i++) {
-            if (i < waitTime->size() - 1) {
-                // 需求规定，等待的最大时间不得超过2880分钟
-                if (waitTime->at(i) > 2880)
-                    waitTime->at(i) = 2880;
-                // 需求规定，等待时间前一次必须小于等于后一次
-                if (waitTime->at(i) > waitTime->at(i+1))
-                    waitTime->at(i+1) = waitTime->at(i);
-            }
-        }
-        return true;
-    };
-
-    // 可配置认证密码失败,且超过失败次数后的间隔限制时间
-    QString lockWaitTime = findValueByQSettings<QString>(DDESESSIONCC::session_ui_configs, "LockTime", "lockWaitTime", "Default");
-    if(lockWaitTime == "Default")
-        m_lockData.waitTime = DEFAULT_WAIT_TIME;
-    else {
-        std::vector<uint> waitTime;
-        for (QString i : lockWaitTime.split(",")) {
-            waitTime.push_back(i.toUInt());
-        }
-
-        m_lockData.waitTime = waitTimeAvail(&waitTime) ? waitTime : DEFAULT_WAIT_TIME;
-    }
-
-    // 可配置进入等待前的失败次数
-    uint lockLimitTryNum = findValueByQSettings<uint>(DDESESSIONCC::session_ui_configs, "LockTime", "lockLimitTryNum", 0);
-    if(lockLimitTryNum == 0 || lockLimitTryNum > 10) m_lockData.limitTryNum = 5;
-    else m_lockData.limitTryNum = lockLimitTryNum;
-
     m_lockTimer->setInterval(1000 * 60);
     m_lockTimer->setSingleShot(false);
-    connect(m_lockTimer.get(), &QTimer::timeout, this, &User::onLockTimeOut);
+    m_authenticateInter->setSync(false);
+    connect(m_lockTimer.get(), &QTimer::timeout, this, &User::updateLockTime);
 }
 
 User::User(const User &user)
     : QObject(user.parent())
     , m_isLogind(user.m_isLogind)
-    , m_isLock(user.m_isLock)
     , m_uid(user.m_uid)
-    , m_lockData(user.m_lockData)
+    , m_lockLimit(user.m_lockLimit)
     , m_userName(user.m_userName)
     , m_locale(user.m_locale)
     , m_lockTimer(user.m_lockTimer)
+    , m_authenticateInter(user.m_authenticateInter)
 {
 
 }
@@ -175,50 +142,46 @@ void User::setPath(const QString &path)
     m_path = path;
 }
 
-bool User::isLockForNum()
+void User::updateLockTime()
 {
-    m_lockData.tryNum++;
-    return m_isLock || (m_lockData.tryNum >= m_lockData.limitTryNum);
-}
+    //同步密码锁定状态
+    if (!m_userName.isEmpty()) {
+        auto reply = m_authenticateInter->GetLimits(this->name());
+        QJsonArray arr = QJsonDocument::fromJson(reply.value().toUtf8()).array();
+        for (QJsonValue val : arr) {
+           QJsonObject obj = val.toObject();
+           if (obj["type"].toString() == "password") {
+               m_lockLimit.isLock = obj["locked"].toBool();
+               QString lockedTime = obj["unlockTime"].toString();
+               uint lockTime = timeFromString(lockedTime);
+               uint currentTime = QDateTime::currentDateTime().toTime_t();
+               if (m_lockLimit.isLock) {
+                   m_lockLimit.lockTime = (lockTime - currentTime) / 60;
+                   if (lockTime - currentTime < 60 && lockTime - currentTime != 0)
+                       m_lockLimit.lockTime = 1;
+               }
+               break;
+           }
+        }
+        if (m_lockTimer->isActive()) {
 
-void User::startLock()
-{
-    m_startTime = time(nullptr);//切换到其他用户时，由于Qtimer自身机制导致无法进入timeout事件，导致被锁定的账户不能继续执行，解决bug4511
+             m_lockTimer->stop();
+        }
+        if (m_lockLimit.isLock) {
 
-    if (m_lockTimer->isActive()) return;
-
-    m_isLock = true;
-
-    if ((m_lockData.tryNum - m_lockData.limitTryNum + 1) > m_lockData.waitTime.size())
-        m_lockData.lockTime = m_lockData.waitTime.back();
-    else
-        m_lockData.lockTime = m_lockData.waitTime[m_lockData.tryNum - m_lockData.limitTryNum];
-
-    onLockTimeOut();
-}
-
-void User::resetLock()
-{
-    m_lockData.tryNum = 0;
-    m_startTime = 0;
-}
-
-void User::onLockTimeOut()
-{
-    time_t stopTime = time(nullptr);
-    auto min = static_cast<uint>((stopTime - m_startTime) / 60);
-    uint minLimit = ((m_lockData.tryNum - m_lockData.limitTryNum + 1) > m_lockData.waitTime.size()) ? m_lockData.waitTime.back() : m_lockData.waitTime[m_lockData.tryNum - m_lockData.limitTryNum];
-    if (min >= minLimit) {
-        // 等到时间到
-        m_isLock = false;
-        m_lockTimer->stop();
-    } else {
-        // 未到达等待时间
-        m_lockData.lockTime = minLimit - min;
-        m_lockTimer->start();
+            m_lockTimer->start();
+        }
+        emit lockChanged(m_lockLimit.isLock);
     }
+}
 
-    emit lockChanged(m_isLock);
+uint User::timeFromString(QString time)
+{
+    if (!time.isEmpty()) {
+        time.replace('T', ' ');
+        QString timeBuffer = QString::fromStdString(time.toStdString().substr(0, time.indexOf('.')));
+        return QDateTime::fromString(timeBuffer, "yyyy-MM-dd hh:mm:ss").toTime_t();
+    }
 }
 
 NativeUser::NativeUser(const QString &path, QObject *parent)
@@ -230,7 +193,7 @@ NativeUser::NativeUser(const QString &path, QObject *parent)
         m_avatar = avatar;
         emit avatarChanged(avatar);
     });
-    
+
     connect(m_userInter, &UserInter::FullNameChanged, this, [ = ](const QString & fullname) {
         m_fullName = fullname;
         emit displayNameChanged(fullname.isEmpty() ? m_userName : fullname);
@@ -238,6 +201,7 @@ NativeUser::NativeUser(const QString &path, QObject *parent)
 
     connect(m_userInter, &UserInter::UserNameChanged, this, [ = ](const QString & user_name) {
         m_userName = user_name;
+        this->updateLockTime();
         emit displayNameChanged(m_fullName.isEmpty() ? m_userName : m_fullName);
     });
 

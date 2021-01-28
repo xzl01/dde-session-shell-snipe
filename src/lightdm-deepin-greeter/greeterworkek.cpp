@@ -333,18 +333,12 @@ void GreeterWorkek::authenticationComplete()
             emit m_model->authFaildTipsMessage(tr("The account or password is not correct. Please enter again."));
         }
 
-        if (m_model->currentUser()->isLockForNum()) {
-            m_model->currentUser()->startLock();
-            return;
-        }
-
         resetLightdmAuth(m_model->currentUser(), 100, false);
 
         return;
     }
 
     m_password.clear();
-    m_model->currentUser()->resetLock();
 
     switch (m_model->powerAction()) {
     case SessionBaseModel::PowerAction::RequireRestart:
