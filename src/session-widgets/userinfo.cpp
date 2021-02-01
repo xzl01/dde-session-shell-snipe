@@ -71,19 +71,13 @@ static const QString toLocalFile(const QString &path)
 User::User(QObject *parent)
     : QObject(parent)
     , m_isLogind(false)
-
     , m_locale(getenv("LANG"))
     , m_lockTimer(new QTimer)
-    , m_authenticateInter(new Authenticate("com.deepin.daemon.Authenticate",
-                                           "/com/deepin/daemon/Authenticate",
-                                           QDBusConnection::systemBus(),
-                                           this))
 
 {
     m_lockTimer->setInterval(1000 * 60);
     m_lockTimer->setSingleShot(false);
-    m_authenticateInter->setSync(false);
-    connect(m_lockTimer.get(), &QTimer::timeout, this, &User::updateLockTime);
+    connect(m_lockTimer.get(), &QTimer::timeout, this, &User::onLockTimeOut);
 }
 
 User::User(const User &user)
@@ -94,7 +88,6 @@ User::User(const User &user)
     , m_userName(user.m_userName)
     , m_locale(user.m_locale)
     , m_lockTimer(user.m_lockTimer)
-    , m_authenticateInter(user.m_authenticateInter)
 {
 
 }
@@ -142,46 +135,33 @@ void User::setPath(const QString &path)
     m_path = path;
 }
 
-void User::updateLockTime()
+void User::onLockTimeOut()
 {
-    //同步密码锁定状态
-    if (!m_userName.isEmpty()) {
-        auto reply = m_authenticateInter->GetLimits(this->name());
-        QJsonArray arr = QJsonDocument::fromJson(reply.value().toUtf8()).array();
-        for (QJsonValue val : arr) {
-           QJsonObject obj = val.toObject();
-           if (obj["type"].toString() == "password") {
-               m_lockLimit.isLock = obj["locked"].toBool();
-               QString lockedTime = obj["unlockTime"].toString();
-               uint lockTime = timeFromString(lockedTime);
-               uint currentTime = QDateTime::currentDateTime().toTime_t();
-               if (m_lockLimit.isLock) {
-                   m_lockLimit.lockTime = (lockTime - currentTime) / 60;
-                   if (lockTime - currentTime < 60 && lockTime - currentTime != 0)
-                       m_lockLimit.lockTime = 1;
-               }
-               break;
-           }
-        }
-        if (m_lockTimer->isActive()) {
+    m_lockLimit.lockTime--;
 
-             m_lockTimer->stop();
-        }
-        if (m_lockLimit.isLock) {
-
-            m_lockTimer->start();
-        }
-        emit lockChanged(m_lockLimit.isLock);
+    if(m_lockLimit.lockTime == 0) {
+        m_lockLimit.isLock = false;
+        m_lockTimer->stop();
+        emit lockLimitFinished();
     }
+
+    emit lockChanged(m_lockLimit.isLock);
 }
 
-uint User::timeFromString(QString time)
+void User::updateLockLimit(bool is_lock, uint lock_time)
 {
-    if (!time.isEmpty()) {
-        time.replace('T', ' ');
-        QString timeBuffer = QString::fromStdString(time.toStdString().substr(0, time.indexOf('.')));
-        return QDateTime::fromString(timeBuffer, "yyyy-MM-dd hh:mm:ss").toTime_t();
+    m_lockLimit.lockTime = lock_time;
+    m_lockLimit.isLock = is_lock;
+
+    if (m_lockTimer->isActive()) {
+         m_lockTimer->stop();
     }
+
+    if (m_lockLimit.isLock) {
+        m_lockTimer->start();
+    }
+
+    emit lockChanged(m_lockLimit.isLock);
 }
 
 NativeUser::NativeUser(const QString &path, QObject *parent)
@@ -201,7 +181,6 @@ NativeUser::NativeUser(const QString &path, QObject *parent)
 
     connect(m_userInter, &UserInter::UserNameChanged, this, [ = ](const QString & user_name) {
         m_userName = user_name;
-        this->updateLockTime();
         emit displayNameChanged(m_fullName.isEmpty() ? m_userName : m_fullName);
     });
 

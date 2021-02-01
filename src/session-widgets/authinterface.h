@@ -36,6 +36,7 @@ public:
     virtual void onUserListChanged(const QStringList &list);
     virtual void onUserAdded(const QString &user);
     virtual void onUserRemove(const QString &user);
+    void updateLockLimit(std::shared_ptr<User> user);
 
     enum SwitchUser {
         Always = 0,

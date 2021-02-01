@@ -132,7 +132,6 @@ void AuthInterface::initDBus()
 {
     m_accountsInter->setSync(false);
     m_loginedInter->setSync(false);
-    m_authenticateInter->setSync(false);
 
     connect(m_accountsInter, &AccountsInter::UserListChanged, this, &AuthInterface::onUserListChanged, Qt::QueuedConnection);
     connect(m_accountsInter, &AccountsInter::UserAdded, this, &AuthInterface::onUserAdded, Qt::QueuedConnection);
@@ -141,13 +140,9 @@ void AuthInterface::initDBus()
     connect(m_loginedInter, &LoginedInter::LastLogoutUserChanged, this, &AuthInterface::onLastLogoutUserChanged);
     connect(m_loginedInter, &LoginedInter::UserListChanged, this, &AuthInterface::onLoginUserListChanged);
 
-    connect(m_authenticateInter, &Authenticate::LimitUpdated, [this](QString name){
-        for (auto user : m_model->userList()) {
-            if (user->name() == name) {
-                user->updateLockTime();
-                break;
-            }
-        }
+    connect(m_authenticateInter, &Authenticate::LimitUpdated, this, [this] (const QString& name) {
+        auto user = m_model->findUserByName(name);
+        updateLockLimit(user);
     });
 }
 
@@ -253,6 +248,34 @@ QVariant AuthInterface::getGSettings(const QString& node, const QString& key)
         value = m_gsettings->get(key);
     }
     return value;
+}
+
+void AuthInterface::updateLockLimit(std::shared_ptr<User> user)
+{
+    if (user == nullptr && user->name().isEmpty())
+        return;
+
+    QDBusPendingCall call = m_authenticateInter->GetLimits(user->name());
+    QDBusPendingCallWatcher *watcher = new QDBusPendingCallWatcher(call, this);
+    connect(watcher, &QDBusPendingCallWatcher::finished, [ = ] {
+        if (!call.isError()) {
+            QDBusReply<QString> reply = call.reply();
+            QJsonArray arr = QJsonDocument::fromJson(reply.value().toUtf8()).array();
+            for (QJsonValue val : arr) {
+               QJsonObject obj = val.toObject();
+               if (obj["type"].toString() == "password") {
+                   bool is_lock = obj["locked"].toBool();
+                   uint cur_time = QDateTime::currentDateTime().toTime_t();
+                   uint lock_time = qCeil((timeFromString(obj["unlockTime"].toString()) - cur_time) / 60.0);
+                   user->updateLockLimit(is_lock, lock_time);
+               }
+            }
+        } else {
+            qWarning() << "get Limits error: " << call.error().message();
+        }
+
+        watcher->deleteLater();
+    });
 }
 
 bool AuthInterface::isLogined(uint uid)

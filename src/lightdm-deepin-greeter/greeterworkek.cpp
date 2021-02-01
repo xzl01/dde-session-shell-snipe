@@ -35,7 +35,6 @@ GreeterWorkek::GreeterWorkek(SessionBaseModel *const model, QObject *parent)
     : AuthInterface(model, parent)
     , m_greeter(new QLightDM::Greeter(this))
     , m_lockInter(new DBusLockService(LOCKSERVICE_NAME, LOCKSERVICE_PATH, QDBusConnection::systemBus(), this))
-    , m_AuthenticateInter(new Authenticate(AuthenticateService, "/com/deepin/daemon/Authenticate", QDBusConnection::systemBus(), this))
     , m_authenticating(false)
     , m_password(QString())
 {
@@ -68,10 +67,11 @@ GreeterWorkek::GreeterWorkek(SessionBaseModel *const model, QObject *parent)
         model->setPowerAction(SessionBaseModel::PowerAction::None);
     });
 
-    connect(model, &SessionBaseModel::lockChanged, this, [ = ](bool lock) {
-        if (!lock) {
+    connect(model, &SessionBaseModel::lockLimitFinished, this, [ = ] {
+        auto user = m_model->currentUser();
+        if (user != nullptr && user->lockTime() == 0) {
             m_password.clear();
-            resetLightdmAuth(m_model->currentUser(), 100, false);
+            resetLightdmAuth(user, 100, false);
         }
     });
 
@@ -221,8 +221,7 @@ void GreeterWorkek::checkDBusServer(bool isvalid)
 void GreeterWorkek::oneKeyLogin()
 {
     // 多用户一键登陆
-    QDBusPendingCall call = m_AuthenticateInter->PreOneKeyLogin(AuthFlag::Fingerprint);
-    m_AuthenticateInter->setSync(false);
+    QDBusPendingCall call = m_authenticateInter->PreOneKeyLogin(AuthFlag::Fingerprint);
     QDBusPendingCallWatcher *watcher = new QDBusPendingCallWatcher(call, this);
     connect(watcher, &QDBusPendingCallWatcher::finished, [ = ] {
         if (!call.isError()) {
@@ -235,7 +234,7 @@ void GreeterWorkek::oneKeyLogin()
                 userAuthForLightdm(user_ptr);
             }
         } else {
-            qWarning() << "get current workspace background error: " << call.error().message();
+            qWarning() << "pre one key login: " << call.error().message();
         }
 
         watcher->deleteLater();

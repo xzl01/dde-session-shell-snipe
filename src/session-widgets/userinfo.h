@@ -31,6 +31,7 @@ public:
     struct lockLimit {
         uint lockTime; //当前的锁定时间
         bool isLock = false; //当前锁定状态
+        bool isFinished = false;
     } m_lockLimit;
 
     explicit User(QObject *parent);
@@ -46,6 +47,7 @@ signals:
     void kbLayoutListChanged(const QStringList &list);
     void currentKBLayoutChanged(const QString &layout);
     void lockChanged(bool lock);
+    void lockLimitFinished();
     void noPasswdLoginChanged(bool no_passw);
     void use24HourFormatChanged(bool use24);
 
@@ -70,10 +72,9 @@ public:
     void setPath(const QString &path);
     const QString path() const { return m_path; }
 
+    void updateLockLimit(bool is_lock, uint lock_time);
     uint lockTime() const { return m_lockLimit.lockTime; }
     bool isLock() const { return m_lockLimit.isLock; }
-    void updateLockTime();
-    uint timeFromString(QString time);
 
     virtual UserType type() const = 0;
     virtual QString displayName() const { return m_userName; }
@@ -82,6 +83,7 @@ public:
     virtual QString desktopBackgroundPath() const = 0;
     virtual QStringList kbLayoutList() { return QStringList(); }
     virtual QString currentKBLayout() { return QString(); }
+    void onLockTimeOut();
 
 protected:
     bool m_isLogind;
@@ -94,9 +96,7 @@ protected:
     QString m_locale;
     QString m_path;
     std::shared_ptr<QTimer> m_lockTimer;
-    time_t m_startTime;//记录账号锁定的时间搓
-    Authenticate *m_authenticateInter;
-
+    Authenticate* m_authenticateInter;
 };
 
 class NativeUser : public User
