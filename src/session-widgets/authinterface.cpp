@@ -266,7 +266,7 @@ void AuthInterface::updateLockLimit(std::shared_ptr<User> user)
                if (obj["type"].toString() == "password") {
                    bool is_lock = obj["locked"].toBool();
                    uint cur_time = QDateTime::currentDateTime().toTime_t();
-                   uint lock_time = qCeil((timeFromString(obj["unlockTime"].toString()) - cur_time) / 60.0);
+                   uint lock_time = ((timeFromString(obj["unlockTime"].toString()) - cur_time) + 59) / 60;
                    user->updateLockLimit(is_lock, lock_time);
                }
             }
