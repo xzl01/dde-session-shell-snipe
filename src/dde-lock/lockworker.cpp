@@ -212,11 +212,6 @@ void LockWorker::onUserAdded(const QString &user)
         // AD domain account auth will not be activated for the first time
         connect(user_ptr->getUserInter(), &UserInter::UserNameChanged, this, [ = ] {
             updateLockLimit(user_ptr);
-
-//            // 不再使用visible信号来激活用户，使用异步之后的此信号激活用户
-//            QTimer::singleShot(100, user_ptr.get(), [ = ]{
-//                m_authFramework->Authenticate(user_ptr);
-//            });
         });
     }
 

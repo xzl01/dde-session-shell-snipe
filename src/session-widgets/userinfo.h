@@ -96,7 +96,6 @@ protected:
     QString m_locale;
     QString m_path;
     std::shared_ptr<QTimer> m_lockTimer;
-    Authenticate* m_authenticateInter;
 };
 
 class NativeUser : public User

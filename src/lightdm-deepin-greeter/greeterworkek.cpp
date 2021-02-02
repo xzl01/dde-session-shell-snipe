@@ -176,11 +176,10 @@ void GreeterWorkek::authUser(const QString &password)
 
 void GreeterWorkek::onUserAdded(const QString &user)
 {
-    std::shared_ptr<User> user_ptr(new NativeUser(user));
+    std::shared_ptr<NativeUser> user_ptr(new NativeUser(user));
 
     if (!user_ptr->isUserIsvalid())
         return;
-
     user_ptr->setisLogind(isLogined(user_ptr->uid()));
 
     if (m_model->currentUser().get() == nullptr) {
@@ -201,6 +200,10 @@ void GreeterWorkek::onUserAdded(const QString &user)
     if (user_ptr->uid() == m_lastLogoutUid) {
         m_model->setLastLogoutUser(user_ptr);
     }
+
+    connect(user_ptr->getUserInter(), &UserInter::UserNameChanged, this, [ = ] {
+        updateLockLimit(user_ptr);
+    });
 
     m_model->userAdd(user_ptr);
 }
