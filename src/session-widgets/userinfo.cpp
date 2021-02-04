@@ -139,6 +139,10 @@ void User::onLockTimeOut()
 {
     m_lockLimit.lockTime--;
 
+    // 如果之前计时器读完秒，即间隔为所读秒数，则设置间隔为分钟
+    if (m_lockTimer->interval() != 60)
+        m_lockTimer->setInterval(1000 * 60);
+
     if(m_lockLimit.lockTime == 0) {
         m_lockLimit.isLock = false;
         m_lockTimer->stop();
@@ -148,7 +152,7 @@ void User::onLockTimeOut()
     emit lockChanged(m_lockLimit.isLock);
 }
 
-void User::updateLockLimit(bool is_lock, uint lock_time)
+void User::updateLockLimit(bool is_lock, uint lock_time, uint rest_second)
 {
     m_lockLimit.lockTime = lock_time;
     m_lockLimit.isLock = is_lock;
@@ -158,6 +162,10 @@ void User::updateLockLimit(bool is_lock, uint lock_time)
     }
 
     if (m_lockLimit.isLock) {
+        //若锁定时间有整数分钟外的秒数，则计时器先读完秒，再设置间隔为分钟
+        if (rest_second != 0) {
+            m_lockTimer->setInterval(1000* (int(rest_second)));
+        }
         m_lockTimer->start();
     }
 

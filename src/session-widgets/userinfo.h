@@ -72,7 +72,7 @@ public:
     void setPath(const QString &path);
     const QString path() const { return m_path; }
 
-    void updateLockLimit(bool is_lock, uint lock_time);
+    void updateLockLimit(bool is_lock, uint lock_time, uint rest_second = 0);
     uint lockTime() const { return m_lockLimit.lockTime; }
     bool isLock() const { return m_lockLimit.isLock; }
 

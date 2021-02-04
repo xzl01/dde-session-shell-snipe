@@ -265,9 +265,12 @@ void AuthInterface::updateLockLimit(std::shared_ptr<User> user)
                QJsonObject obj = val.toObject();
                if (obj["type"].toString() == "password") {
                    bool is_lock = obj["locked"].toBool();
+                   // cur_time 当前时间，interval_time 间隔时间，rest_time 除分钟外多余的秒数，lock_time 分钟数
                    uint cur_time = QDateTime::currentDateTime().toTime_t();
-                   uint lock_time = ((timeFromString(obj["unlockTime"].toString()) - cur_time) + 59) / 60;
-                   user->updateLockLimit(is_lock, lock_time);
+                   uint interval_time = timeFromString(obj["unlockTime"].toString()) - cur_time;
+                   uint rest_time = interval_time % 60;
+                   uint lock_time = (interval_time + 59) / 60;
+                   user->updateLockLimit(is_lock, lock_time, rest_time);
                }
             }
         } else {
