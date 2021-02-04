@@ -102,10 +102,8 @@ QString LogoWidget::getVersion() {
         version = QString("%1 %2").arg(DSysInfo::majorVersion())
                                   .arg(DSysInfo::uosEditionName(m_locale));
     } else {
-        version = QString("%1 %2").arg(DSysInfo::productVersion())
-                                  .arg(DSysInfo::productTypeString());
+        version = QString("%1").arg(DSysInfo::productVersion());
     }
-
     return version;
 }
 
