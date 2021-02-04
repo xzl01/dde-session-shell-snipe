@@ -201,8 +201,10 @@ void GreeterWorkek::onUserAdded(const QString &user)
         m_model->setLastLogoutUser(user_ptr);
     }
 
-    connect(user_ptr->getUserInter(), &UserInter::UserNameChanged, this, [ = ] {
-        updateLockLimit(user_ptr);
+    connect(user_ptr->getUserInter(), &UserInter::UserNameChanged, this, [ = ](QString value) {
+        if (!user_ptr->isNoPasswdGrp()) {
+            updateLockLimit(user_ptr);
+        }
     });
 
     m_model->userAdd(user_ptr);
