@@ -190,7 +190,9 @@ GreeterWorkek::GreeterWorkek(SessionBaseModel *const model, QObject *parent)
 
     m_monitorHisiThread = new FileIOThread();
     connect(m_monitorHisiThread, &FileIOThread::runShutDownProcess, this, [=] (){
-        model->setCurrentModeState(SessionBaseModel::ModeStatus::PowerMode);
+        if (!m_login1Inter->preparingForSleep()) {
+            model->setCurrentModeState(SessionBaseModel::ModeStatus::PowerMode);
+        }
     });
     m_monitorHisiThread->start();
 }
