@@ -64,7 +64,7 @@ LockWorker::LockWorker(SessionBaseModel *const model, QObject *parent)
 
     connect(model, &SessionBaseModel::lockLimitFinished, this, [ = ] {
         auto user = m_model->currentUser();
-        if (user != nullptr && user->lockTime() == 0) {
+        if (user != nullptr && !user->isLock()) {
             m_password.clear();
             m_authFramework->Authenticate(user);
         }
@@ -77,7 +77,6 @@ LockWorker::LockWorker(SessionBaseModel *const model, QObject *parent)
         if (!user_ptr.get()) return;
 
         if (user_ptr->type() == User::ADDomain && user_ptr->uid() == 0) return;
-
         m_authFramework->Authenticate(user_ptr);
     });
 
@@ -165,7 +164,6 @@ void LockWorker::authUser(const QString &password)
         });
         return;
     }
-
     if(!m_authFramework->isAuthenticate())
         m_authFramework->Authenticate(user);
 
