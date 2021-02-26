@@ -34,7 +34,7 @@ void MultiScreenManager::startRaiseContentFrame()
 
 void MultiScreenManager::register_for_mutil_monitor(std::function<QWidget* (Monitor *)> function)
 {
-    QList<QDBusObjectPath> monitor = m_displayInter.property("Monitors").value<QList<QDBusObjectPath>>();
+    QList<QDBusObjectPath> monitor = m_displayInter.monitors();
     m_registerMonitorFun = function;
     onMonitorsChanged(monitor);
 }
