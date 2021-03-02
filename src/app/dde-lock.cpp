@@ -58,6 +58,7 @@ int main(int argc, char *argv[])
     app.setOrganizationName("deepin");
     app.setApplicationName("dde-lock");
     app.setApplicationVersion("2015.1.0");
+    app.setQuitOnLastWindowClosed(false);
 
     DGuiApplicationHelper::instance()->setPaletteType(DGuiApplicationHelper::LightType);
     DPalette pa = DGuiApplicationHelper::instance()->applicationPalette();
