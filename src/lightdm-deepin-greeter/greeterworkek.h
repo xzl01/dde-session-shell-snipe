@@ -50,7 +50,6 @@ private:
     DBusLockService   *m_lockInter;
     bool               m_authenticating;
     QString            m_password;
-    QString            m_pamUserName;
 };
 
 #endif  // GREETERWORKEK_H
