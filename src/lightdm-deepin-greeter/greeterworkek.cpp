@@ -108,13 +108,9 @@ GreeterWorkek::GreeterWorkek(SessionBaseModel *const model, QObject *parent)
             m_login1Inter->Reboot(true);
             break;
         case SessionBaseModel::PowerAction::RequireSuspend:
-            //TODO 未找到登入界面谁对屏幕亮暗的操作，暂时在待机时关闭屏幕。
-            screenSwitchByWldpms(false);
             m_login1Inter->Suspend(true);
             break;
         case SessionBaseModel::PowerAction::RequireHibernate:
-            // 在休眠之前，将屏幕关闭，避免休眠过程屏幕会再点亮一次的问题
-            screenSwitchByWldpms(false);
             m_login1Inter->Hibernate(true);
             break;
         default:
@@ -148,11 +144,10 @@ GreeterWorkek::GreeterWorkek(SessionBaseModel *const model, QObject *parent)
         userAuthForLightdm(user_ptr);
     });
 
-    // 休眠唤醒后将屏幕点亮
+    // 待机，休眠都会有PrepareForSleep，统一处理
     connect(m_login1Inter, &DBusLogin1Manager::PrepareForSleep, this, [ = ](bool active) {
-        if (!active) {
-            screenSwitchByWldpms(true);
-        }
+        qDebug() << "set dpms: " << (!active ? "on" : "off");
+        screenSwitchByWldpms(!active);
     });
 
     const QString &switchUserButtonValue { valueByQSettings<QString>("Lock", "showSwitchUserButton", "ondemand") };
