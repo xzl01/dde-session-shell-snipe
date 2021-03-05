@@ -143,10 +143,13 @@ void User::onLockTimeOut()
     if (m_lockTimer->interval() != 60)
         m_lockTimer->setInterval(1000 * 60);
 
+    if (m_lockLimit.lockTime == 1)
+        m_lockTimer->setInterval(1000 * 62);
+
     if(m_lockLimit.lockTime == 0) {
         m_lockLimit.isLock = false;
         m_lockTimer->stop();
-        emit lockLimitFinished();
+        emit lockLimitFinished(false);
     }
 
     emit lockChanged(m_lockLimit.isLock);
