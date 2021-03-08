@@ -64,6 +64,7 @@ private:
     QString m_password;
     QMap<std::shared_ptr<User>, bool> m_lockUser;
     SessionManager *m_sessionManager;
+    bool m_canAuthenticate = false;
 };
 
 #endif // LOCKWORKER_H
