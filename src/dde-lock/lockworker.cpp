@@ -64,7 +64,7 @@ LockWorker::LockWorker(SessionBaseModel *const model, QObject *parent)
 
     connect(model, &SessionBaseModel::lockLimitFinished, this, [ = ] {
         auto user = m_model->currentUser();
-        if (user != nullptr && user->isLock()) {
+        if (user != nullptr && !user->isLock()) {
             m_password.clear();
             m_authFramework->Authenticate(user);
         }
