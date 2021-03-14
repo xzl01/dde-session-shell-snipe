@@ -14,8 +14,8 @@ GreeterScreenManager::GreeterScreenManager(QObject *parent)
     , m_registerFunction(nullptr)
     , m_raiseContentFrameTimer(new QTimer(this))
 {
-    connect(qApp, &QGuiApplication::screenAdded, this, &GreeterScreenManager::onScreenAdded, Qt::QueuedConnection);
-    connect(qApp, &QGuiApplication::screenRemoved, this, &GreeterScreenManager::onScreenRemoved, Qt::QueuedConnection);
+    connect(qApp, &QGuiApplication::screenAdded, this, &GreeterScreenManager::onScreenAdded);
+    connect(qApp, &QGuiApplication::screenRemoved, this, &GreeterScreenManager::onScreenRemoved);
 
     // 在sw平台存在复制模式显示问题，使用延迟来置顶一个Frame
     m_raiseContentFrameTimer->setInterval(80);
