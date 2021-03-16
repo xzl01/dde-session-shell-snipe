@@ -167,6 +167,7 @@ void LockContent::onCurrentUserChanged(std::shared_ptr<User> user)
 
         // 异步刷新界面时间格式
         user->is24HourFormat();
+        updateTimeFormat(user->is24HourFormat());
 
         m_user->greeterBackgroundPath();
     });
