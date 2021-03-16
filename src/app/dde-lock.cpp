@@ -44,6 +44,7 @@
 #include <QDesktopWidget>
 #include <DGuiApplicationHelper>
 #include <QMovie>
+#include <QMainWindow>
 #include <unistd.h>
 
 DCORE_USE_NAMESPACE
@@ -109,6 +110,23 @@ int main(int argc, char *argv[])
     agent.setModel(model);
     DBusLockFrontService service(&agent);
 
+    //TODO: 加一个黑色背景，以拔插显示到桌面
+    QMainWindow blackWinow;
+    blackWinow.setWindowFlag(Qt::FramelessWindowHint, true);
+    blackWinow.setStyleSheet("background-color:black;");
+    blackWinow.setAttribute(Qt::WA_NativeWindow);
+    blackWinow.windowHandle()->setProperty("_d_dwayland_window-type", "session-shell");
+    blackWinow.setGeometry(0, 0,7000, 7000);
+
+    bool isBlackWinowFirstShown = false;
+
+    QObject::connect(model, &SessionBaseModel::visibleChanged, &blackWinow, [&] (bool isVisible) {
+        if (isVisible && !isBlackWinowFirstShown) {
+            isBlackWinowFirstShown = true;
+        }
+        blackWinow.setVisible(isVisible);
+    });
+
     auto createFrame = [&] (Monitor *monitor) -> QWidget* {
         LockFrame *lockFrame = new LockFrame(model);
         property_group->addObject(lockFrame);
@@ -135,6 +153,10 @@ int main(int argc, char *argv[])
         });
 
         if (isDeepinAuth()) {
+            if (!isBlackWinowFirstShown) {
+                isBlackWinowFirstShown = true;
+                blackWinow.show();
+            }
             lockFrame->setVisible(model->isShow() && monitor->enable());
         } else {
             model->setIsShow(false);
