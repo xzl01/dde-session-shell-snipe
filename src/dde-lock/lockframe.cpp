@@ -80,11 +80,16 @@ LockFrame::LockFrame(SessionBaseModel *const model, QWidget *parent)
     });
 
     connect(m_login1Inter, &DBusLogin1Manager::PrepareForSleep, this, [this](bool isSleep){
-        if (isSleep) {
-            m_content->pushPasswordFrame();
-        }
+        //初始化时，m_prePreparingSleep = false,m_preparingSleep = false
+        //开始待机时，isSleep为true,那么m_prePreparingSleep = false,m_preparingSleep = true
+        //待机唤醒后，isSleep为false,那么m_prePreparingSleep = true,m_preparingSleep = false
         m_prePreparingSleep = m_preparingSleep;
         m_preparingSleep = isSleep;
+        //记录待机和唤醒时间
+        m_preparingSleepTime = QDateTime::currentDateTime().toMSecsSinceEpoch();
+
+        //待机休眠唤醒后将界面切换到锁屏状态
+        m_model->setCurrentModeState(SessionBaseModel::ModeStatus::PasswordMode);
     });
 }
 
@@ -170,8 +175,18 @@ bool LockFrame::handlePoweroffKey()
         m_content->pushConfirmFrame();
         return true;
     } else if (action == 4) {
-        // 需要同时检测两个值
-        if (!m_prePreparingSleep && !m_preparingSleep) {
+        //初始化时，m_prePreparingSleep = false,m_preparingSleep = false
+        //开始待机时，isSleep为true,那么m_prePreparingSleep = false,m_preparingSleep = true
+        //待机唤醒后，isSleep为false,那么m_prePreparingSleep = true,m_preparingSleep = false
+
+        // 先检查当前是不是准备待机
+        if (!m_preparingSleep) {
+            //有些机器使用电源唤醒时，除了会唤醒机器外还会发送按键消息，会将锁屏界面切换成电源选项界面,增加唤醒时500毫秒时间检测
+            //如果系统刚唤醒 ，则500毫秒内不响应电源按钮事件
+            if (m_prePreparingSleep && QDateTime::currentDateTime().toMSecsSinceEpoch() - m_preparingSleepTime < 500) {
+                return true;
+            }
+            //无任何操作时，如果是锁定时显示小关机界面
             m_model->setCurrentModeState(SessionBaseModel::ModeStatus::PowerMode);
         }
         return true;

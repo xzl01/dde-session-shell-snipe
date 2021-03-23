@@ -75,6 +75,7 @@ private:
     DBusLogin1Manager *m_login1Inter;
     bool m_preparingSleep;
     bool m_prePreparingSleep;
+    long m_preparingSleepTime = 0;
 };
 
 #endif // LOCKFRAME
