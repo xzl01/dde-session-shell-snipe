@@ -634,6 +634,7 @@ void ContentWidget::initUI()
     m_switchUserBtn = new RoundItemButton(tr("Switch user"));
     m_switchUserBtn->setAutoExclusive(true);
     m_switchUserBtn->setObjectName("SwitchUserButton");
+    m_switchUserBtn->setVisible(false);
 
     if (m_switchosInterface->isDualOsSwitchAvail()) {
         m_switchSystemBtn = new RoundItemButton(tr("Switch system"));
