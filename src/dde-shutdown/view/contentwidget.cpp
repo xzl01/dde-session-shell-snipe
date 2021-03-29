@@ -839,8 +839,14 @@ QList<InhibitWarnView::InhibitorData> ContentWidget::listInhibitors(const Action
 
 void ContentWidget::recoveryLayout()
 {
+    //直接设置切换用户按钮是否可见，而不是先设置可见，再根据用户数量设置是否可见，避免闪现切换用户按钮
     for (RoundItemButton *btn : *m_btnsList) {
-        btn->show();
+        if (btn == m_switchUserBtn) {
+            // check user switch button
+            onUserListChanged(m_model->userListSize());
+        } else {
+            btn->show();
+        }
     }
 
     // check hibernate
@@ -848,9 +854,6 @@ void ContentWidget::recoveryLayout()
 
     // check sleep
     enableSleepBtn(m_model->canSleep());
-
-    // check user switch button
-    onUserListChanged(m_model->userListSize());
 
     if (m_warningView != nullptr) {
         m_mainLayout->removeWidget(m_warningView);
