@@ -782,7 +782,7 @@ QList<InhibitWarnView::InhibitorData> ContentWidget::listInhibitors(const Action
                         && !m_inhibitorBlacklists.contains(inhibitor.who)) {
 
                     // 待机时，非block暂不处理，因为目前没有倒计时待机功能
-                    if (inhibitor.mode != "block")
+                    if (type == "sleep" && inhibitor.mode != "block")
                         continue;
 
                     InhibitWarnView::InhibitorData inhibitData;
