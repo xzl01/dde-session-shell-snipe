@@ -315,12 +315,9 @@ void AuthInterface::checkPowerInfo()
     m_model->setCanSleep(can_sleep);
 
     bool can_hibernate = env.contains(POWER_CAN_HIBERNATE) ? QVariant(env.value(POWER_CAN_HIBERNATE)).toBool()
-                                                           : getGSettings("Power","hibernate").toBool() && m_powerManagerInter->CanHibernate();
-    if (can_hibernate) {
-        checkSwap();
-    } else {
-        m_model->setHasSwap(false);
-    }
+                                                           : getGSettings("Power","hibernate").toBool() && m_login1Inter->CanHibernate().value().contains("yes");
+
+    m_model->setHasSwap(can_hibernate);
 }
 
 void AuthInterface::checkSwap()
