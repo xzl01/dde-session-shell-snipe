@@ -87,7 +87,7 @@ void DBusShutdownAgent::sync(Actions action)
     for (ShutdownFrame *frame : m_frames) {
         if(!frame->isVisible())
             frame->show();
-    }
 
-    m_frames.first()->powerAction(action);
+        frame->powerAction(action);
+    }
 }

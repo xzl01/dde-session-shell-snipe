@@ -102,6 +102,9 @@ public:
     inline bool isHibernateMode() const {return m_isHibernateMode; }
     void setIsHibernateModel(bool is_Hibernate);
 
+    inline bool isCheckedPowerAction() const { return m_isCheckedPowerAction;}
+    void setIsCheckedPowerAction(bool isChecked);
+
 signals:
     void onUserAdded(std::shared_ptr<User> user);
     void onUserRemoved(const uint uid);
@@ -143,6 +146,7 @@ private:
     bool m_isBlackMode;
     bool m_isHibernateMode;
     bool m_isLock = false;
+    bool m_isCheckedPowerAction = false;
     int m_userListSize = 0;
     AuthType m_currentType;
     QList<std::shared_ptr<User>> m_userList;

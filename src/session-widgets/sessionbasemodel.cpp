@@ -285,3 +285,9 @@ void SessionBaseModel::setIsHibernateModel(bool is_Hibernate){
     m_isHibernateMode = is_Hibernate;
     emit HibernateModeChanged(is_Hibernate);
 }
+
+void SessionBaseModel::setIsCheckedPowerAction(bool isChecked)
+{
+    if (m_isCheckedPowerAction == isChecked) return;
+    m_isCheckedPowerAction = isChecked;
+}

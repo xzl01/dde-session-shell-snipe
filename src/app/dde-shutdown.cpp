@@ -136,6 +136,7 @@ int main(int argc, char *argv[])
                 dbusAgent->removeFrame(frame);
             });
             QObject::connect(frame, &ShutdownFrame::buttonClicked, frame, [ = ](const Actions action) {
+                model->setIsCheckedPowerAction(false);
                 dbusAgent->sync(action);
             });
             QObject::connect(frame, &ShutdownFrame::sendKeyValue, frame, [&](QString key) {

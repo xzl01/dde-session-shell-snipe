@@ -239,9 +239,9 @@ void ContentWidget::initConnect()
     connect(m_restartButton, &RoundItemButton::clicked, [this] { emit buttonClicked(Restart);});
     connect(m_suspendButton, &RoundItemButton::clicked, [this] { emit buttonClicked(Suspend);});
     connect(m_hibernateButton, &RoundItemButton::clicked, [ = ] {emit buttonClicked(Hibernate);});
-    connect(m_lockButton, &RoundItemButton::clicked, [this] { shutDownFrameActions(Lock);});
+    connect(m_lockButton, &RoundItemButton::clicked, [this] {emit buttonClicked(Lock);});
     connect(m_logoutButton, &RoundItemButton::clicked, [this] {emit buttonClicked(Logout);});
-    connect(m_switchUserBtn, &RoundItemButton::clicked, [this] { shutDownFrameActions(SwitchUser);});
+    connect(m_switchUserBtn, &RoundItemButton::clicked, [this] {emit buttonClicked(SwitchUser);});
     connect(m_wmInter, &__wm::WorkspaceSwitched, this, &ContentWidget::currentWorkspaceChanged);
 
     if (m_systemMonitor) {
@@ -276,22 +276,23 @@ void ContentWidget::enterKeyPushed()
     if (m_currentSelectedBtn->isDisabled())
         return;
 
+    //使用信号，当操作需要确认时，在鼠标切换到其他屏幕使界面也显示提示内容
     if (m_currentSelectedBtn == m_shutdownButton)
-        beforeInvokeAction(Shutdown);
+        emit buttonClicked(Shutdown);
     else if (m_currentSelectedBtn == m_restartButton)
-        beforeInvokeAction(Restart);
+        emit buttonClicked(Restart);
     else if (m_currentSelectedBtn == m_suspendButton)
-        beforeInvokeAction(Suspend);
+        emit buttonClicked(Suspend);
     else if (m_currentSelectedBtn == m_lockButton)
-        shutDownFrameActions(Lock);
+        emit buttonClicked(Lock);
     else if (m_currentSelectedBtn == m_logoutButton)
-        beforeInvokeAction(Logout);
+        emit buttonClicked(Logout);
     else if (m_currentSelectedBtn == m_switchUserBtn)
-        shutDownFrameActions(SwitchUser);
+        emit buttonClicked(SwitchUser);
     else if (m_currentSelectedBtn == m_switchSystemBtn)
-        beforeInvokeAction(SwitchSystem);
+        emit buttonClicked(SwitchSystem);
     else if (m_currentSelectedBtn == m_hibernateButton)
-        beforeInvokeAction(Hibernate);
+        emit buttonClicked(Hibernate);
 }
 
 void ContentWidget::hideBtn(const QString &btnName)
@@ -506,6 +507,11 @@ void ContentWidget::shutDownFrameActions(const Actions action)
     // if we don't force this widget to hide, hideEvent will happen after
     // dde-lock showing, since hideEvent enables hot zone, hot zone will
     // take effect while dde-lock is showing.
+
+    //检查其他界面是否有关机操作，若存在则当前界面不再处理
+    if (m_model->isCheckedPowerAction()) return;
+    //当前界面已经处理关机操作，设置变量不允许其他界面再次处理
+    m_model->setIsCheckedPowerAction(true);
 
     switch (action) {
     case Shutdown:       m_sessionInterface->RequestShutdown();      break;
