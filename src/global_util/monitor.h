@@ -3,6 +3,7 @@
 
 #include <QObject>
 #include <QRect>
+#include <QTimer>
 
 #include <com_deepin_daemon_display_monitor.h>
 
@@ -48,6 +49,8 @@ private Q_SLOTS:
     void setMonitorModes(const ResolutionList& rl);
 
 private:
+    void restartTimer();
+
     int m_x;
     int m_y;
     int m_w;
@@ -57,6 +60,7 @@ private:
     QString m_primary;
     bool m_enable;
     ResolutionList m_modes;
+    QTimer *m_changeTimer;          //控制geometryChanged信号
 };
 
 #endif // MONITOR_H

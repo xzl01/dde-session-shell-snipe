@@ -426,17 +426,9 @@ void FullscreenBackground::updateGeometry()
 void FullscreenBackground::updateMonitorGeometry()
 {
     qDebug() << "FullscreenBackground::updateMonitorGeometry:" << this << m_monitor << m_monitor->name() << m_monitor->rect() << m_monitor->enable();
-    QTimer::singleShot(200, this, [&](){
-        for (auto m : m_monitor->modes()) {
-            if (m.width() != m_monitor->rect().width() || m.height() != m_monitor->rect().height())
-                continue;
-        //setGeometry(m_monitor->rect());
-        setGeometry(m_monitor->rect().x(), m_monitor->rect().y(),
-                        m_monitor->rect().width()/qApp->primaryScreen()->devicePixelRatio(),
-                            m_monitor->rect().height()/qApp->primaryScreen()->devicePixelRatio());
-        break;
-        }
-    });
+    setGeometry(m_monitor->rect().x(), m_monitor->rect().y(),
+                m_monitor->rect().width()/qApp->primaryScreen()->devicePixelRatio(),
+                m_monitor->rect().height()/qApp->primaryScreen()->devicePixelRatio());
 }
 
 /********************************************************

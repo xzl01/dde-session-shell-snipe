@@ -1,8 +1,12 @@
 #include "monitor.h"
 
-Monitor::Monitor(QObject *parent) : QObject(parent)
+Monitor::Monitor(QObject *parent)
+    : QObject(parent)
+    , m_changeTimer(new QTimer (this) )
 {
-
+    m_changeTimer->setInterval(100);
+    m_changeTimer->setSingleShot(true);
+    connect(m_changeTimer, &QTimer::timeout, this, &Monitor::geometryChanged);
 }
 
 void Monitor::setX(const int x)
@@ -13,7 +17,7 @@ void Monitor::setX(const int x)
     m_x = x;
 
     Q_EMIT xChanged(m_x);
-    Q_EMIT geometryChanged();
+    restartTimer();
 }
 
 void Monitor::setY(const int y)
@@ -24,7 +28,7 @@ void Monitor::setY(const int y)
     m_y = y;
 
     Q_EMIT yChanged(m_y);
-    Q_EMIT geometryChanged();
+    restartTimer();
 }
 
 void Monitor::setW(const int w)
@@ -35,7 +39,7 @@ void Monitor::setW(const int w)
     m_w = w;
 
     Q_EMIT wChanged(m_w);
-    Q_EMIT geometryChanged();
+    restartTimer();
 }
 
 void Monitor::setH(const int h)
@@ -46,7 +50,7 @@ void Monitor::setH(const int h)
     m_h = h;
 
     Q_EMIT hChanged(m_h);
-    Q_EMIT geometryChanged();
+    restartTimer();
 }
 
 void Monitor::setPrimary(const QString &primaryName)
@@ -77,4 +81,12 @@ void Monitor::setMonitorModes(const ResolutionList &rl)
 {
     m_modes = rl;
     Q_EMIT modesChanged(rl);
+}
+
+void Monitor::restartTimer()
+{
+    if (m_changeTimer->isActive()) {
+        m_changeTimer->stop();
+    }
+    m_changeTimer->start();
 }
