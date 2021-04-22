@@ -357,7 +357,11 @@ void GreeterWorkek::authenticationComplete()
         json["Type"] = m_model->currentUser()->type();
         m_lockInter->SwitchToUser(QString(QJsonDocument(json).toJson(QJsonDocument::Compact))).waitForFinished();
 
-        m_greeter->startSessionSync(m_model->sessionKey());
+        bool SessionStarted = m_greeter->startSessionSync(m_model->sessionKey());
+        QTimer::singleShot(1000, this, [SessionStarted] {
+            if (SessionStarted)
+                exit(0);
+        });
         m_authenticating = false;
     };
 
