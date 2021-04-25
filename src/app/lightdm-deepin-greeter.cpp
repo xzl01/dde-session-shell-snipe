@@ -228,13 +228,23 @@ int main(int argc, char* argv[])
 
     DLogManager::registerConsoleAppender();
 
-    QTranslator translator;
-    translator.load("/usr/share/dde-session-shell/translations/dde-session-shell_" + QLocale::system().name());
-    a.installTranslator(&translator);
+
+
 
     SessionBaseModel *model = new SessionBaseModel(SessionBaseModel::AuthType::LightdmType);
     GreeterWorkek *worker = new GreeterWorkek(model); //
 
+    QString locale;
+    QTranslator translator;
+    if (model->currentUser()) {
+        locale = "/usr/share/dde-session-shell/translations/dde-session-shell_" + model->currentUser()->locale().split(".").first();
+    }
+    if (!QFileInfo::exists(locale)) {
+        locale = "/usr/share/dde-session-shell/translations/dde-session-shell_" + QLocale::system().name();
+    }
+    qDebug()<<"lightdm-deepin-greeter: Current language path : "<<locale;
+    translator.load(locale);
+    a.installTranslator(&translator);
     QObject::connect(model, &SessionBaseModel::authFinished, model, [=] {
         set_rootwindow_cursor();
     });
