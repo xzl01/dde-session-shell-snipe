@@ -170,10 +170,14 @@ void UserLoginInfo::receiveSwitchUser(std::shared_ptr<User> user)
 
         abortConfirm(false);
     } else {
-        emit switchToCurrentUser();
+        if (user->uid() != 999) 
+            emit switchToCurrentUser();
     }
-
-    emit requestSwitchUser(user);
+    if (user->displayName() == ",,,") {
+        m_userLoginWidget->setWidgetShowType(UserLoginWidget::IDAndPasswordType);
+    } else {
+        emit requestSwitchUser(user);
+    }
 }
 
 void UserLoginInfo::updateLoginContent()
