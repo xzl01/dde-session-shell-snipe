@@ -80,6 +80,7 @@ void FullscreenBackground::updateBackground()
 
 void FullscreenBackground::updateBackground(const QString &file)
 {
+    qDebug()<<"============updateBackground:"<<file <<m_backgroundPath;
     m_fakePath = m_backgroundPath;
     m_backgroundPath = file;
     if (isVisible()) {
@@ -92,11 +93,13 @@ void FullscreenBackground::updateBackground(const QString &file)
 QString FullscreenBackground::getBlurBackground (const QString &file)
 {
     auto isPicture = [] (const QString & filePath) {
-        return QFile::exists (filePath) && QFile (filePath).size() && !QPixmap (filePath).isNull() ;
+           qDebug()<<"============isPicture:"<<filePath;
+        return QFile::exists (filePath) && QFile (filePath).size() ;
     };
 
     QString bg_path = file;
     if (!isPicture(bg_path)) {
+        qDebug()<<"============bg_path:"<<bg_path;
         QDir dir ("/usr/share/wallpapers/deepin");
         if (dir.exists()) {
             dir.setFilter (QDir::Files);
@@ -118,7 +121,7 @@ QString FullscreenBackground::getBlurBackground (const QString &file)
     if (!isPicture (imageEffect)) {
         imageEffect = DEFAULT_BACKGROUND;
     }
-
+    qDebug()<<"============imageEffect:"<<imageEffect;
     return imageEffect;
 }
 
