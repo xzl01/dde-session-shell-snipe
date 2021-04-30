@@ -306,11 +306,13 @@ void GreeterWorkek::oneKeyLogin()
 
     auto user_ptr = m_model->findUserByName(user_firstlogin);
     if (user_ptr.get() != nullptr) {
+        qDebug() << __func__ << __LINE__ << "suo: oneKeyLogin";
         switchToUser(user_ptr);
         m_model->setCurrentUser(user_ptr);
         userAuthForLightdm(user_ptr);
         m_showAuthResult = true;
     } else {
+        qDebug() << __func__ << __LINE__ << "suo: Log out";
         m_firstTimeLogin = false;
         onCurrentUserChanged(m_lockInter->CurrentUser());
     }
@@ -338,6 +340,7 @@ void GreeterWorkek::onCurrentUserChanged(const QString &user)
 
 void GreeterWorkek::userAuthForLightdm(std::shared_ptr<User> user)
 {
+    qDebug() << "suo" << __func__ << __LINE__ << "user" << user->name();
     if (!user->isNoPasswdGrp()) {
         //后端需要大约600ms时间去释放指纹设备
         resetLightdmAuth(user, 100, true);
@@ -508,12 +511,17 @@ void GreeterWorkek::recoveryUserKBState(std::shared_ptr<User> user)
 
 void GreeterWorkek::resetLightdmAuth(std::shared_ptr<User> user,int delay_time , bool is_respond)
 {
+        qDebug() << "suo: " << __func__ << __LINE__;
     if (user->isLock()) {return;}
 
     QTimer::singleShot(delay_time, this, [ = ] {
-        m_greeter->authenticate(user->name());
-        if (is_respond) {
-            m_greeter->respond(m_password);
+        qDebug() << "suo: authen" << m_greeter->authenticationUser() <<  m_greeter->inAuthentication() << user->name();
+        if(!m_greeter->inAuthentication() || m_greeter->authenticationUser() != user->name()) {
+            qDebug() << "suo: authen";
+            m_greeter->authenticate(user->name());
+            if (is_respond) {
+                m_greeter->respond(m_password);
+            }
         }
     });
 }
