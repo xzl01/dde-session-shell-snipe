@@ -288,7 +288,7 @@ void GreeterWorkek::checkDBusServer(bool isvalid)
 void GreeterWorkek::oneKeyLogin()
 {
     if (!m_firstTimeLogin) {
-        onCurrentUserChanged(m_lockInter->CurrentUser());
+        callAuthForLightdm(m_lockInter->CurrentUser());
         return;
     }
 
@@ -317,7 +317,7 @@ void GreeterWorkek::oneKeyLogin()
     } else {
         qDebug() << __func__ << __LINE__ << "suo: Log out";
         m_firstTimeLogin = false;
-        onCurrentUserChanged(m_lockInter->CurrentUser());
+        callAuthForLightdm(m_lockInter->CurrentUser());
     }
 }
 
@@ -327,15 +327,15 @@ void GreeterWorkek::onCurrentUserChanged(const QString &user)
     const QJsonObject obj = QJsonDocument::fromJson(user.toUtf8()).object();
     m_currentUserUid = static_cast<uint>(obj["Uid"].toInt());
 
-    if (m_firstTimeLogin) {
-        return;
-    }
-
     for (std::shared_ptr<User> user_ptr : m_model->userList()) {
         if (!user_ptr->isLogin() && user_ptr->uid() == m_currentUserUid) {
             m_model->setCurrentUser(user_ptr);
             qDebug() << "Request Auth_GreeterWorkek::onCurrentUserChanged -- currentUser changed to" << user_ptr->name();
-            userAuthForLightdm(user_ptr);
+            if (!user_ptr->isNoPasswdGrp()) {
+                QTimer::singleShot(100, this, [ = ] {
+                    m_greeter->authenticate(user_ptr->name());
+                });
+            }
             break;
         }
     }
@@ -540,4 +540,24 @@ void GreeterWorkek::screenSwitchByWldpms(bool active)
         arguments << "off";
     }
     QProcess::startDetached("dde_wldpms", arguments);
+}
+
+void GreeterWorkek::callAuthForLightdm(const QString &user)
+{
+    qDebug() << __func__ << __LINE__ << user;
+    const QJsonObject obj = QJsonDocument::fromJson(user.toUtf8()).object();
+    m_currentUserUid = static_cast<uint>(obj["Uid"].toInt());
+    //一键登录
+    if (m_firstTimeLogin) {
+        return;
+    }
+
+    for (std::shared_ptr<User> user_ptr : m_model->userList()) {
+        if (!user_ptr->isLogin() && user_ptr->uid() == m_currentUserUid) {
+            m_model->setCurrentUser(user_ptr);
+            qDebug() << "suo: callAuth"<< __func__ << __LINE__ << user_ptr->name();
+            userAuthForLightdm(user_ptr);
+            break;
+        }
+    }
 }

@@ -67,6 +67,9 @@ private:
     // 通过dde_wldpms命令控制屏幕开关
     void screenSwitchByWldpms(bool active);
 
+
+    //onekeylogin && logout 调用
+    void callAuthForLightdm(const QString &user) ;
 private:
     QLightDM::Greeter *m_greeter;
     LockService       *m_lockInter;
