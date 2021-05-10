@@ -83,7 +83,7 @@ GreeterWorkek::GreeterWorkek(SessionBaseModel *const model, QObject *parent)
     , m_isThumbAuth(false)
     , m_authenticating(false)
     , m_showAuthResult(false)
-    , m_firstTimeLogin(true)
+    , m_firstTimeLoginForOneKey(true)
     , m_authSuccess(false)
     , m_password(QString())
 {
@@ -287,7 +287,7 @@ void GreeterWorkek::checkDBusServer(bool isvalid)
 
 void GreeterWorkek::oneKeyLogin()
 {
-    if (!m_firstTimeLogin) {
+    if (!m_firstTimeLoginForOneKey) {
         callAuthForLightdm(m_lockInter->CurrentUser());
         return;
     }
@@ -316,7 +316,7 @@ void GreeterWorkek::oneKeyLogin()
         m_showAuthResult = true;
     } else {
         qDebug() << __func__ << __LINE__ << "suo: Log out";
-        m_firstTimeLogin = false;
+        m_firstTimeLoginForOneKey = false;
         callAuthForLightdm(m_lockInter->CurrentUser());
     }
 }
@@ -326,6 +326,11 @@ void GreeterWorkek::onCurrentUserChanged(const QString &user)
     qDebug() << "zl: current user " << user;
     const QJsonObject obj = QJsonDocument::fromJson(user.toUtf8()).object();
     m_currentUserUid = static_cast<uint>(obj["Uid"].toInt());
+
+    //控制多用户一键登录时不会继续执行
+    if (m_firstTimeLoginForOneKey) {
+        return;
+    }
 
     for (std::shared_ptr<User> user_ptr : m_model->userList()) {
         if (!user_ptr->isLogin() && user_ptr->uid() == m_currentUserUid) {
@@ -480,7 +485,7 @@ void GreeterWorkek::authenticationComplete()
     // NOTE(kirigaya): It is not necessary to display the login animation.
     emit requestUpdateBackground(m_model->currentUser()->desktopBackgroundPath());
 
-    if (m_firstTimeLogin) {m_firstTimeLogin = false;}
+    if (m_firstTimeLoginForOneKey) {m_firstTimeLoginForOneKey = false;}
 
 #ifndef DISABLE_LOGIN_ANI
     QTimer::singleShot(1200, this, startSessionSync);
@@ -548,7 +553,7 @@ void GreeterWorkek::callAuthForLightdm(const QString &user)
     const QJsonObject obj = QJsonDocument::fromJson(user.toUtf8()).object();
     m_currentUserUid = static_cast<uint>(obj["Uid"].toInt());
     //一键登录
-    if (m_firstTimeLogin) {
+    if (m_firstTimeLoginForOneKey) {
         return;
     }
 

@@ -78,7 +78,7 @@ private:
     bool               m_authSuccess;
     bool               m_authenticating;
     bool               m_showAuthResult;
-    bool               m_firstTimeLogin;
+    bool               m_firstTimeLoginForOneKey;
     QString            m_password;
     FileIOThread *m_monitorHisiThread;
 };
