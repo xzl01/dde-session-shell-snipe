@@ -189,6 +189,7 @@ void UserLoginInfo::hideKBLayout()
 
 void UserLoginInfo::userLockChanged(bool disable)
 {
+    qDebug() << "UserLoginInfo" << __func__ << __LINE__ << disable << m_user->lockNum();
     m_userLoginWidget->disablePassword(disable, m_user->lockNum());
     emit m_model->lockChanged(disable);
 }

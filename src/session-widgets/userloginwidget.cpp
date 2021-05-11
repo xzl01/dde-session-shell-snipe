@@ -93,16 +93,21 @@ void UserLoginWidget::resetAllState()
     updateUI();
 }
 
-//密码连续输入错误5次，设置提示信息
-void UserLoginWidget::setFaildMessage(const QString &message, SessionBaseModel::AuthFaildType type)
-{
+//密码连续输入错误5次，设置锁定状态提示信息
+void UserLoginWidget::setLockMessage(const QString &message){
+    qDebug() << "suo: UserLoginWidget" << __func__ << __LINE__ << message;
     if (m_isLock && !message.isEmpty()) {
         m_lockPasswordWidget->setMessage(message);
         m_accountEdit->lineEdit()->setEnabled(false);
         m_passwordEdit->hideAlertMessage();
         return;
     }
+}
 
+//密码连续输入错误，设置提示信息
+void UserLoginWidget::setFaildMessage(const QString &message, SessionBaseModel::AuthFaildType type)
+{
+    qDebug() << "suo: UserLoginWidget" << __func__ << __LINE__ << m_isLock;
     if (type == SessionBaseModel::KEYBOARD) {
         m_passwordEdit->hideLoadSlider();
     } else {
@@ -335,7 +340,9 @@ void UserLoginWidget::disablePassword(bool disable, uint lockNum)
     m_passwordEdit->lineEdit()->setFocus();
 
     if (disable) {
-        setFaildMessage(tr("Please try again %n minute(s) later", "", lockNum));
+        qDebug() << "suo: " << tr("Please try again %n minute(s) later", "", lockNum);
+        setLockMessage(tr("Please try again %n minute(s) later", "", lockNum));
+
     }
 
     if ( false == disable && true == m_isServerMode){

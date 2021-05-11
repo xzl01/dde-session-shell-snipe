@@ -98,6 +98,8 @@ public:
     void ShutdownPrompt(SessionBaseModel::PowerAction action);
     bool inputInfoCheck(bool is_server = false);
 
+    void setLockMessage(const QString &message);
+
 signals:
     void requestAuthUser(const QString &account, const QString &password);
     void clicked();
