@@ -60,13 +60,19 @@ LockWorker::LockWorker(SessionBaseModel *const model, QObject *parent)
             break;
         case SessionBaseModel::PowerAction::RequireRestart:
             syslog(LOG_INFO, "zl: %s %d ", __func__, __LINE__);
-            m_authFramework->Authenticate(m_model->currentUser());
-            model->setPowerAction(SessionBaseModel::PowerAction::RequireRestart);
+            qDebug() << "suo: clicked to RequireRestart m_authenticating" <<m_authenticating;
+            if(!m_authenticating){
+                m_authFramework->Authenticate(m_model->currentUser());
+                model->setPowerAction(SessionBaseModel::PowerAction::RequireRestart);
+            }
             return;
         case SessionBaseModel::PowerAction::RequireShutdown:
             syslog(LOG_INFO, "zl: %s %d ", __func__, __LINE__);
-            m_authFramework->Authenticate(m_model->currentUser());
-            model->setPowerAction(SessionBaseModel::PowerAction::RequireShutdown);
+            qDebug() << "suo: clicked to RequireShutdown m_authenticating" <<m_authenticating;
+            if(!m_authenticating){
+                m_authFramework->Authenticate(m_model->currentUser());
+                model->setPowerAction(SessionBaseModel::PowerAction::RequireShutdown);
+            }
             return;
         default:
             break;

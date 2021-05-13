@@ -46,6 +46,7 @@ void DeepinAuthFramework::Authenticate(std::shared_ptr<User> user)
 {
     if (user->isLock()) return;
 
+    qDebug() << "suo: start up current thread user:" << user->name() << "thread:" << pthread_self();
     syslog(LOG_INFO, "zl: %s %d usr %s start up current thread %d", __func__, __LINE__, user->name().toStdString().c_str(), pthread_self());
 //    qDebug() << "DeepinAuthFramework::Authenticate: pam auth start, loopLevel =" << m_authagent->thread()->loopLevel();
     m_password.clear();
