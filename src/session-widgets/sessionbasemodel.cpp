@@ -284,3 +284,8 @@ void SessionBaseModel::setIsHibernateModel(bool is_Hibernate){
     m_isHibernateMode = is_Hibernate;
     emit HibernateModeChanged(is_Hibernate);
 }
+
+void SessionBaseModel::setUid(uid_t uuid)
+{
+    m_currentUser->setUid(uuid);
+}

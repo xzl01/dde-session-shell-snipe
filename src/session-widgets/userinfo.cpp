@@ -221,6 +221,11 @@ void User::onLockTimeOut()
     emit lockChanged(m_isLock);
 }
 
+void User::setUid(uid_t uuid)
+{
+    m_uid = uuid;
+}
+
 NativeUser::NativeUser(const QString &path, QObject *parent)
     : User(parent)
     , m_userInter(new UserInter(ACCOUNT_DBUS_SERVICE, path, QDBusConnection::systemBus(), this))
