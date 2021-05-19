@@ -102,6 +102,9 @@ public:
     inline bool isHibernateMode() const {return m_isHibernateMode; }
     void setIsHibernateModel(bool is_Hibernate);
 
+    // 设置m_currentUser的uid
+    void setUid(uid_t uuid);
+
 signals:
     void onUserAdded(std::shared_ptr<User> user);
     void onUserRemoved(const uint uid);
