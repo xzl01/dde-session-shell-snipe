@@ -560,9 +560,10 @@ void UserLoginWidget::initConnect()
 //设置用户名
 void UserLoginWidget::setName(const QString &name)
 {
-    if (m_showType != IDAndPasswordType) {
-        m_name = name;
-    }
+    if (name == "...") 
+        m_showType = IDAndPasswordType;
+
+    m_name = name;
     updateNameLabel();
 }
 
