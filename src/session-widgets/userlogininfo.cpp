@@ -159,12 +159,6 @@ void UserLoginInfo::beforeUnlockAction(bool is_finish)
 {
     if (is_finish) {
         m_userLoginWidget->unlockSuccessAni();
-        if (!m_userLoginWidget.isNull()) {
-            //由于添加锁跳动会冲掉"验证完成"。这里只能临时关闭清理输入框
-            QTimer::singleShot(900, this, [ = ] {
-                m_userLoginWidget->resetAllState();
-            });
-        }
     } else {
         m_userLoginWidget->unlockFailedAni();
     }
