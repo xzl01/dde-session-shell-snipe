@@ -109,11 +109,17 @@ LockWorker::LockWorker(SessionBaseModel *const model, QObject *parent)
         initData();
     }
 
+    QDBusInterface interface("com.deepin.udcp.iam",
+                             "/com/deepin/udcp/iam",
+                             "com.deepin.udcp.iam",
+                             QDBusConnection::systemBus());
+    if (interface.isValid()) {
         //INT_MAX这个值远程账号可能会使用，参考lightdm改用系统平常用不到的UID 999
         std::shared_ptr<User> user = std::make_shared<ADDomainUser>(999);
         static_cast<ADDomainUser *>(user.get())->setUserDisplayName("...");
         static_cast<ADDomainUser *>(user.get())->setIsServerUser(true);
         m_model->userAdd(user);
+    }
 }
 
 void LockWorker::switchToUser(std::shared_ptr<User> user)
