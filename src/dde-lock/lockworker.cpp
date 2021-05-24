@@ -115,7 +115,7 @@ LockWorker::LockWorker(SessionBaseModel *const model, QObject *parent)
                              QDBusConnection::systemBus());
     if (interface.isValid()) {
         //INT_MAX这个值远程账号可能会使用，参考lightdm改用系统平常用不到的UID 999
-        std::shared_ptr<User> user = std::make_shared<ADDomainUser>(999);
+        std::shared_ptr<User> user = std::make_shared<ADDomainUser>(DEFAULT_ENTRY_UID);
         static_cast<ADDomainUser *>(user.get())->setUserDisplayName("...");
         static_cast<ADDomainUser *>(user.get())->setIsServerUser(true);
         m_model->userAdd(user);
@@ -200,7 +200,7 @@ void LockWorker::onUserAdded(const QString &user)
 {
     std::shared_ptr<User> user_ptr = nullptr;
     uid_t uid = user.mid(QString(ACCOUNTS_DBUS_PREFIX).size()).toUInt();
-    if(uid < DOMAIN_BASE_UID) {
+    if(uid != DEFAULT_ENTRY_UID) {
         user_ptr = std::make_shared<NativeUser>(user);
     } else {
         user_ptr = std::make_shared<ADDomainUser>(uid);
