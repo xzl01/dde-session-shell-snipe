@@ -19,7 +19,7 @@ QString userPwdName(__uid_t uid)
 
 static bool checkUserIsNoPWGrp(User const *user)
 {
-    if (user->type() == User::ADDomain) {
+    if (user->uid() >= DDESESSIONCC::DOMAIN_BASE_UID) {
         return false;
     }
 
@@ -143,6 +143,26 @@ void User::setPath(const QString &path)
     m_path = path;
 }
 
+void User::setIsServerUser(bool is_server)
+{
+    if (m_isServer == is_server) {
+        return;
+    }
+
+    m_isServer = is_server;
+}
+
+void User::setUserDisplayName(const QString &name)
+{
+   if (m_userName == name) {
+            return;
+   }
+
+   m_userName = name;
+
+   emit displayNameChanged(name);
+}
+
 void User::onLockTimeOut()
 {
     m_lockLimit.lockTime--;
@@ -209,6 +229,13 @@ NativeUser::NativeUser(const QString &path, QObject *parent)
     : User(parent)
     , m_userInter(new UserInter(ACCOUNT_DBUS_SERVICE, path, QDBusConnection::systemBus(), this))
 {
+    configAccountInfo(DDESESSIONCC::CONFIG_FILE + m_userName);
+    if(path == "") {
+        m_greeterBackground = toLocalFile(DEFAULT_BACKGROUND);
+        emit greeterBackgroundPathChanged(m_greeterBackground);
+        return;
+    }
+
     m_userInter->setSync(false);
 
     connect(m_userInter, &UserInter::AutomaticLoginChanged, this, &NativeUser::updateAutomaticLogin);
@@ -278,7 +305,6 @@ NativeUser::NativeUser(const QString &path, QObject *parent)
     m_userName = userPwdName(m_uid);
     m_noPasswdGrp = checkUserIsNoPWGrp(this);
 
-    configAccountInfo(DDESESSIONCC::CONFIG_FILE + m_userName);
     setPath(path);
 }
 
@@ -399,84 +425,4 @@ void NativeUser::updateAutomaticLogin(const bool autoLoginState)
     }
     m_automaticLogin = autoLoginState;
     emit autoLoginStateChanged(autoLoginState);
-}
-
-ADDomainUser::ADDomainUser(uid_t uid, QObject *parent)
-    : User(parent)
-{
-    m_uid = uid;
-}
-
-ADDomainUser::~ADDomainUser()
-{
-    delete m_userInter;
-}
-
-void ADDomainUser::setUserDisplayName(const QString &name)
-{
-    if (m_displayName == name) {
-        return;
-    }
-
-    m_displayName = name;
-
-    emit displayNameChanged(name);
-}
-
-void ADDomainUser::setUserName(const QString &name)
-{
-    if (m_userName == name) {
-        return;
-    }
-
-    m_userName = name;
-}
-
-void ADDomainUser::setUserInter(UserInter *user_inter)
-{
-    if (m_userInter == user_inter) {
-        return;
-    }
-
-    m_userInter = user_inter;
-}
-
-void ADDomainUser::setUid(uid_t uid)
-{
-    if (m_uid == uid) {
-        return;
-    }
-
-    m_uid = uid;
-}
-
-void ADDomainUser::setIsServerUser(bool is_server)
-{
-    if (m_isServer == is_server) {
-        return;
-    }
-
-    m_isServer = is_server;
-}
-
-QString ADDomainUser::displayName() const
-{
-    return m_displayName.isEmpty() ? m_userName : m_displayName;
-}
-
-QString ADDomainUser::avatarPath() const
-{
-    return QString(":/img/default_avatar.svg");
-}
-
-QString ADDomainUser::greeterBackgroundPath() const
-{
-    QFileInfo background_info(DEFAULT_BACKGROUND);
-    return background_info.canonicalFilePath();
-}
-
-QString ADDomainUser::desktopBackgroundPath() const
-{
-    QFileInfo background_info(DEFAULT_BACKGROUND);
-    return background_info.canonicalFilePath();
 }

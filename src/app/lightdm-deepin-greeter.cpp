@@ -199,7 +199,7 @@ int main(int argc, char* argv[])
     qApp->setAttribute(Qt::AA_ForceRasterWidgets);
 
     // crash catch
-    init_sig_crash();
+    // init_sig_crash();
 
     DPalette pa = DGuiApplicationHelper::instance()->standardPalette(DGuiApplicationHelper::LightType);
     pa.setColor(QPalette::Normal, DPalette::WindowText, QColor("#FFFFFF"));

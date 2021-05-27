@@ -16,8 +16,6 @@
 #include <pwd.h>
 #include <unistd.h>
 
-#define DOMAIN_BASE_UID 10000
-
 using namespace Auth;
 using namespace AuthCommon;
 DCORE_USE_NAMESPACE
@@ -55,9 +53,10 @@ LockWorker::LockWorker(SessionBaseModel *const model, QObject *parent)
 
     // init ADDomain User
     if (DSysInfo::deepinType() == DSysInfo::DeepinServer || valueByQSettings<bool>("", "loginPromptInput", false)) {
-        std::shared_ptr<User> user = std::make_shared<ADDomainUser>(INT_MAX);
-        static_cast<ADDomainUser *>(user.get())->setUserDisplayName("...");
-        static_cast<ADDomainUser *>(user.get())->setIsServerUser(true);
+        std::shared_ptr<User> user = std::make_shared<NativeUser>("");
+        user->setUid(INT_MAX);
+        user->setUserDisplayName("...");
+        user->setIsServerUser(true);
         m_model->setIsServerModel(true);
         m_model->userAdd(user);
     }
@@ -453,15 +452,15 @@ void LockWorker::endAuthentication(const QString &account, const int authType)
     m_authFramework->EndAuthentication(account, authType);
 }
 
-void LockWorker::onUserAdded(const QString &user)
+void LockWorker::onUserAdded(const QString &path)
 {
     std::shared_ptr<User> user_ptr = nullptr;
-    uid_t uid = user.mid(QString(ACCOUNTS_DBUS_PREFIX).size()).toUInt();
-    if (uid < DOMAIN_BASE_UID) {
-        user_ptr = std::make_shared<NativeUser>(user);
-    } else {
-        user_ptr = std::make_shared<ADDomainUser>(uid);
-        qobject_cast<ADDomainUser *>(user_ptr.get())->setUserName(userPwdName(uid));
+    uid_t uid = path.mid(QString(ACCOUNTS_DBUS_PREFIX).size()).toUInt();
+    user_ptr = std::make_shared<NativeUser>(path);
+    user_ptr->setUid(uid);
+    if (uid >=  DDESESSIONCC::DOMAIN_BASE_UID) {
+        user_ptr->setIsServerUser(true);
+        m_model->setIsServerModel(true);
     }
 
     if (!user_ptr->isUserIsvalid())

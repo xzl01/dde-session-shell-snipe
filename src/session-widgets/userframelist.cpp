@@ -33,6 +33,9 @@
 #include <QScrollBar>
 #include <QScroller>
 
+#include <DSysInfo>
+DCORE_USE_NAMESPACE
+
 const int UserFrameHeight = 174;
 const int UserFrameWidth = 226;
 const int UserFrameSpaceing = 40;
@@ -118,8 +121,8 @@ void UserFrameList::setFixedSize(const QSize &size)
 
 void UserFrameList::handlerBeforeAddUser(std::shared_ptr<User> user)
 {
-    if (m_model->isServerModel()) {
-        if (user->isLogin() || user->isDoMainUser()) addUser(user);
+    //这个只有服务器版本需要，其他版本不需要
+    if (DSysInfo::uosType() == DSysInfo::UosServer) {
         connect(user.get(), &User::logindChanged, this, [ = ](bool is_login) {
             if (is_login) {
                 addUser(user);
@@ -127,7 +130,7 @@ void UserFrameList::handlerBeforeAddUser(std::shared_ptr<User> user)
                 removeUser(user->uid());
             }
         });
-    } else {
+    }else{
         addUser(user);
     }
 }

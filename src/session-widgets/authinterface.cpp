@@ -8,6 +8,9 @@
 #include <unistd.h>
 #include <QProcessEnvironment>
 
+#include <DSysInfo>
+DCORE_USE_NAMESPACE
+
 #define POWER_CAN_SLEEP "POWER_CAN_SLEEP"
 #define POWER_CAN_HIBERNATE "POWER_CAN_HIBERNATE"
 
@@ -174,14 +177,14 @@ void AuthInterface::onLoginUserListChanged(const QString &list)
 
         if (haveDisplay && find_it == availableUidList.end()) {
             // init addoman user
-            std::shared_ptr<User> u(new ADDomainUser(uid));
+            std::shared_ptr<User> u(new NativeUser(""));
             u->setisLogind(true);
 
             struct passwd *pws;
             pws = getpwuid(uid);
 
-            static_cast<ADDomainUser *>(u.get())->setUserDisplayName(pws->pw_name);
-            static_cast<ADDomainUser *>(u.get())->setUserName(pws->pw_name);
+            static_cast<NativeUser *>(u.get())->setUserDisplayName(pws->pw_name);
+            //static_cast<NativeUser *>(u.get())->set          (pws->pw_name);
 
             if (uid == m_currentUserUid && m_model->currentUser().get() == nullptr) {
                 m_model->setCurrentUser(u);
@@ -199,12 +202,11 @@ void AuthInterface::onLoginUserListChanged(const QString &list)
             std::find_if(m_loginUserList.begin(), m_loginUserList.end(),
                          [=] (const uint find_uid) { return find_uid == user->uid(); });
 
-        if (find_it == m_loginUserList.end() &&
-            (user->type() == User::ADDomain && user->uid() != INT_MAX)) {
+        if (DSysInfo::uosType() == DSysInfo::UosServer && find_it == m_loginUserList.end()
+            && user->uid() != INT_MAX) {
             m_model->userRemoved(user);
             it = uList.erase(it);
-        }
-        else {
+        } else {
             user->setisLogind(isLogined(user->uid()));
             ++it;
         }

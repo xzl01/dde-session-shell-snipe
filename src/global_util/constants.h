@@ -32,6 +32,7 @@
 namespace DDESESSIONCC
 {
 
+static const int DOMAIN_BASE_UID = 10000;
 static const QString CONFIG_FILE("/var/lib/AccountsService/deepin/users/");
 static const QString DEFAULT_CURSOR_THEME("/usr/share/icons/default/index.theme");
 static const QString LAST_USER_CONFIG("/var/lib/lightdm/lightdm-deepin-greeter");

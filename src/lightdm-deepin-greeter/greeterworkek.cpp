@@ -68,12 +68,29 @@ GreeterWorkek::GreeterWorkek(SessionBaseModel *const model, QObject *parent)
     }
 
     if (DSysInfo::deepinType() == DSysInfo::DeepinServer || valueByQSettings<bool>("", "loginPromptInput", false)) {
-        std::shared_ptr<User> user = std::make_shared<ADDomainUser>(INT_MAX);
-        static_cast<ADDomainUser *>(user.get())->setUserDisplayName("...");
-        static_cast<ADDomainUser *>(user.get())->setIsServerUser(true);
+        std::shared_ptr<User> user = std::make_shared<NativeUser>("");
+        user->setIsServerUser(true);
+        user->setUid(INT_MAX);
+        user->setUserDisplayName("...");
         m_model->setIsServerModel(true);
         m_model->userAdd(user);
         m_model->setCurrentUser(user);
+
+        // lockservice sometimes fails to call on olar server
+        QDBusPendingReply<QString> replay = m_lockInter->CurrentUser();
+        replay.waitForFinished();
+
+        if (!replay.isError()) {
+            const QJsonObject obj = QJsonDocument::fromJson(replay.value().toUtf8()).object();
+            auto user_ptr = m_model->findUserByUid(static_cast<uint>(obj["Uid"].toInt()));
+            if(user_ptr && user_ptr->uid() != INT_MAX){
+                m_model->setIsServerModel(false);
+                m_model->setCurrentUser(user_ptr);
+            }
+        } else {
+            m_model->setIsServerModel(true);
+        }
+
     } else {
         connect(m_login1Inter, &DBusLogin1Manager::SessionRemoved, this, [=] {
             // lockservice sometimes fails to call on olar server
@@ -224,6 +241,12 @@ void GreeterWorkek::initConnections()
         if (!user_ptr.get()->isLogin()) {
             createAuthentication(account);
         }
+
+        if(user_ptr->name() == "..."){
+            //...特殊用户,只显示用户名输入框，不显示密码输入框
+            emit m_model->authTypeChanged(0);
+        }
+
         emit m_model->switchUserFinished();
     });
     /* model */
@@ -287,10 +310,6 @@ void GreeterWorkek::doPowerAction(const SessionBaseModel::PowerAction action)
 
 void GreeterWorkek::switchToUser(std::shared_ptr<User> user)
 {
-    if (user->name() == m_account) {
-        return;
-    }
-
     qInfo() << "switch user from" << m_account << " to " << user->name() << user->isLogin();
 
     QJsonObject json;
@@ -343,7 +362,15 @@ void GreeterWorkek::authUser(const QString &password)
 
 void GreeterWorkek::onUserAdded(const QString &user)
 {
-    std::shared_ptr<NativeUser> user_ptr(new NativeUser(user));
+    std::shared_ptr<User> user_ptr;
+    uid_t uid = user.mid(QString(ACCOUNTS_DBUS_PREFIX).size()).toUInt();
+
+    user_ptr = std::make_shared<NativeUser>(user);
+    user_ptr->setUid(uid);
+    if (uid >= DDESESSIONCC::DOMAIN_BASE_UID) {
+        user_ptr->setIsServerUser(true);
+        m_model->setIsServerModel(true);
+    }
 
     if (!user_ptr->isUserIsvalid())
         return;
@@ -364,11 +391,13 @@ void GreeterWorkek::onUserAdded(const QString &user)
         m_model->setLastLogoutUser(user_ptr);
     }
 
-    connect(user_ptr->getUserInter(), &UserInter::UserNameChanged, this, [=] {
-        if (!user_ptr->isNoPasswdGrp()) {
-            updateLockLimit(user_ptr);
-        }
-    });
+    if(uid < DDESESSIONCC::DOMAIN_BASE_UID) {
+        connect(std::make_shared<NativeUser>(user)->getUserInter(), &UserInter::UserNameChanged, this, [=] {
+            if (!user_ptr->isNoPasswdGrp()) {
+                updateLockLimit(user_ptr);
+            }
+        });
+    }
 
     m_model->userAdd(user_ptr);
 }
@@ -497,9 +526,15 @@ void GreeterWorkek::checkAccount(const QString &account)
         onDisplayErrorMsg(userPath);
         return;
     }
-    std::shared_ptr<User> user_ptr = std::make_shared<NativeUser>(userPath);
+    std::shared_ptr<NativeUser> user_ptr = std::make_shared<NativeUser>(userPath.startsWith("/") ? userPath : QString());
+
+    if (!userPath.startsWith("/")) {
+        user_ptr->setUserDisplayName(account);
+        userPath = QString();
+    }
+
     m_model->setCurrentUser(user_ptr);
-    if (user_ptr->isNoPasswdGrp()) {
+    if (user_ptr->isNoPasswdGrp() && !userPath.isEmpty()) {
         m_greeter->authenticate(account);
     } else {
         m_resetSessionTimer->stop();

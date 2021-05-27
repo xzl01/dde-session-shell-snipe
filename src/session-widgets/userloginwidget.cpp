@@ -72,9 +72,7 @@ UserLoginWidget::UserLoginWidget(const SessionBaseModel *model, const WidgetType
     , m_fingerVeinAuth(nullptr)
     , m_irisAuth(nullptr)
     , m_PINAuth(nullptr)
-
     , m_kbLayoutBorder(nullptr)
-
     , m_isLock(false)
     , m_loginState(true)
     , m_isSelected(false)
@@ -100,7 +98,7 @@ UserLoginWidget::UserLoginWidget(const SessionBaseModel *model, const WidgetType
         setMaximumWidth(280); // 设置本窗口的最大宽度（参考登录模式下的最大宽度）
         m_userAvatar->setAvatarSize(UserAvatar::AvatarLargeSize);
         m_loginStateLabel->hide();
-        if (m_model->currentType() == SessionBaseModel::LightdmType && m_model->isServerModel()) {
+        if (m_model->currentType() == SessionBaseModel::LightdmType && m_model->currentUser()->uid() == INT_MAX && m_model->isServerModel()) {
             m_accountEdit->show();
             m_nameLabel->hide();
         }
@@ -279,7 +277,13 @@ void UserLoginWidget::updateWidgetShowType(const int type)
         if (m_accountEdit != nullptr && !m_accountEdit->text().isEmpty()) {
             m_accountEdit->clear();
         }
+        m_accountEdit->show();
+        m_nameLabel->setVisible(false);
+    } else {
+		m_nameLabel->setVisible(true);
+        m_accountEdit->hide();
     }
+
 
     /**
      * @brief 设置焦点
@@ -632,7 +636,11 @@ void UserLoginWidget::updateAvatar(const QString &path)
         return;
     }
 
-    m_userAvatar->setIcon(path);
+    if(path == ""){
+        m_userAvatar->setIcon(":/img/default_avatar.svg");
+    }else{
+        m_userAvatar->setIcon(path);
+    }
 }
 
 //密码连续输入错误5次，设置提示信息

@@ -68,13 +68,13 @@ public:
 
     bool isLogin() const { return m_isLogind; }
     uid_t uid() const { return m_uid; }
+    void setUid(uid_t uid) {m_uid = uid;}
 
     const QString locale() const { return m_locale; }
     void setLocale(const QString &locale);
 
     virtual bool isNoPasswdGrp() const;
     virtual bool isUserIsvalid() const;
-    virtual bool isDoMainUser() const { return m_isServer; }
     virtual bool is24HourFormat() const { return true; }
     virtual bool automaticLogin() const { return false; }
 
@@ -99,6 +99,9 @@ public:
 
     inline QMap<int, LimitsInfo> *limitsInfo() const { return m_limitsInfo; }
     void updateLimitsInfo(const QString &info);
+    bool isServerUser() const { return m_isServer; }
+    void setIsServerUser(bool is_server);
+    void setUserDisplayName(const QString &name);
 
 protected:
     bool m_isLogind;
@@ -106,10 +109,10 @@ protected:
     bool m_noPasswdGrp = true;
 
     uid_t m_uid = INT_MAX;
-    QString m_userName;
-    QString m_fullName;
-    QString m_locale;
-    QString m_path;
+    QString m_userName = "";
+    QString m_fullName = "";
+    QString m_locale = "";
+    QString m_path = "";
     std::shared_ptr<QTimer> m_lockTimer;
     QMap<int, LimitsInfo> *m_limitsInfo;
 };
@@ -155,30 +158,4 @@ private:
     bool m_is24HourFormat;
     bool m_automaticLogin;
 };
-
-class ADDomainUser : public User
-{
-    Q_OBJECT
-
-public:
-    ADDomainUser(uid_t uid, QObject *parent = nullptr);
-    ~ADDomainUser();
-
-    void setUserDisplayName(const QString &name);
-    void setUserName(const QString &name);
-    void setUserInter(UserInter *user_inter);
-    void setUid(uid_t uid);
-    void setIsServerUser(bool is_server);
-
-    QString displayName() const override;
-    UserType type() const override { return ADDomain; }
-    QString avatarPath() const override;
-    QString greeterBackgroundPath() const override;
-    QString desktopBackgroundPath() const override;
-
-private:
-    QString m_displayName;
-    UserInter *m_userInter = nullptr;
-};
-
 #endif // USERINFO_H

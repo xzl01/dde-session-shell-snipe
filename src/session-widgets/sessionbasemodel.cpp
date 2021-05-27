@@ -88,10 +88,9 @@ void SessionBaseModel::userAdd(std::shared_ptr<User> user)
 {
     // NOTE(zorowk): If there are duplicate uids, delete ADDomainUser first
     auto user_exist = findUserByUid(user->uid());
-    if (user_exist != nullptr && user_exist->metaObject() == &ADDomainUser::staticMetaObject) {
-        userRemoved(user_exist);
-    };
-
+    if (user_exist != nullptr) {
+        return;
+    }
     m_userList << user;
 
     emit onUserAdded(user);
@@ -134,7 +133,7 @@ void SessionBaseModel::userRemoved(std::shared_ptr<User> user)
 
 void SessionBaseModel::setCurrentUser(std::shared_ptr<User> user)
 {
-    if (m_currentUser != nullptr && m_currentUser->uid() == user->uid()) {
+    if (m_currentUser != nullptr && m_currentUser->uid() == user->uid() && m_currentUser->uid() != INT_MAX ) {
         return;
     }
     m_currentUser = user;
@@ -337,10 +336,10 @@ void SessionBaseModel::addUser(const QString &path)
     }
     std::shared_ptr<User> user;
     uid_t uid = path.mid(QString(ACCOUNTS_DBUS_PREFIX).size()).toUInt();
-    if (uid < 10000) {
-        user = std::make_shared<NativeUser>(path);
-    } else {
-        user = std::make_shared<ADDomainUser>(static_cast<uid_t>(path.toInt()));
+    user = std::make_shared<NativeUser>(path);
+    user->setUid(uid);
+    if (uid >= DDESESSIONCC::DOMAIN_BASE_UID) {
+        user->setIsServerUser(true);
     }
     m_users->insert(path, user);
     emit userAdded(user);
@@ -374,10 +373,10 @@ void SessionBaseModel::updateUserList(const QStringList &list)
             listTmp.removeAll(path);
         } else {
             uid_t uid = path.mid(QString(ACCOUNTS_DBUS_PREFIX).size()).toUInt();
-            if (uid < 10000) {
-                user = std::make_shared<NativeUser>(path);
-            } else {
-                user = std::make_shared<ADDomainUser>(static_cast<uid_t>(path.toInt()));
+            user = std::make_shared<NativeUser>(path);
+            user->setUid(uid);
+            if (uid >= DDESESSIONCC::DOMAIN_BASE_UID) {
+                user->setIsServerUser(true);
             }
             m_users->insert(path, user);
         }
@@ -414,13 +413,12 @@ void SessionBaseModel::updateLoginedUserList(const QString &list)
         const int uid = loginedUserListObj["Uid"].toInt();
         const QString path = QString("/com/deepin/daemon/Accounts/User") + QString::number(uid);
         if (!m_loginedUsers->contains(QString::number(uid)) && !m_loginedUsers->contains(path)) {
-            if (uid > 10000) {
-                user_ptr = std::make_shared<ADDomainUser>(uid);
-                m_loginedUsers->insert(QString::number(uid), user_ptr);
-            } else {
-                user_ptr = std::make_shared<NativeUser>(path);
-                m_loginedUsers->insert(path, user_ptr);
+            user_ptr = std::make_shared<NativeUser>(path);
+            user_ptr->setUid(static_cast<uid_t>(uid));
+            if (uid >= DDESESSIONCC::DOMAIN_BASE_UID) {
+                user_ptr->setIsServerUser(true);
             }
+            m_loginedUsers->insert(path, user_ptr);
             user_ptr->setisLogind(true);
         } else if (m_loginedUsers->contains(QString::number(uid))) {
             loginedUsersTmp.removeAll(QString::number(uid));

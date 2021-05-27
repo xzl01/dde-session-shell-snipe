@@ -51,11 +51,10 @@ TEST_F(UT_Interface, user)
     EXPECT_TRUE(nativeUser->getUserInter()->isValid());
     EXPECT_FALSE(nativeUser->getUserInter()->use24HourFormat());
 
-    std::shared_ptr<ADDomainUser> addomainUser(new ADDomainUser(getuid()));
+    std::shared_ptr<NativeUser> addomainUser(new NativeUser(""));
     QString name = nativeUser->name();
     nativeUser->getUserInter()->UserNameChanged(name.append("marks"));
     EXPECT_EQ(nativeUser->displayName(), name);
-    addomainUser->setUserName(name);
 
     QString displayname = nativeUser->displayName();
     addomainUser->displayNameChanged(displayname.append("aaaaaa"));
@@ -64,4 +63,7 @@ TEST_F(UT_Interface, user)
 
     uid_t id = getuid();
     addomainUser->setUid(++id);
+
+    nativeUser->deleteLater();
+    addomainUser->deleteLater();
 }
