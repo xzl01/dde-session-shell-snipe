@@ -36,6 +36,10 @@ void GreeterScreenManager::register_for_mutil_screen(std::function<QWidget *(QSc
         onScreenAdded(screen);
     }
     onScreenAdded(qGuiApp->primaryScreen());
+
+    // 添加主屏时，属性设置为true，防止在属性组中自动被设置为false
+    if (m_frames[qGuiApp->primaryScreen()])
+        m_frames[qGuiApp->primaryScreen()]->setProperty("contentVisible", QVariant(true));
 }
 
 void GreeterScreenManager::startRaiseContentFrame()

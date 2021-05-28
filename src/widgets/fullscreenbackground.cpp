@@ -199,7 +199,7 @@ void FullscreenBackground::setMonitor(Monitor *monitor)
 
 void FullscreenBackground::setContentVisible(bool contentVisible)
 {
-    qDebug() << "FullscreenBackground::setContentVisible" << contentVisible;
+    qDebug() << "FullscreenBackground::setContentVisible" << contentVisible << this << this->geometry();
     if (this->contentVisible() == contentVisible)
         return;
 
