@@ -79,7 +79,6 @@ GreeterWorkek::GreeterWorkek(SessionBaseModel *const model, QObject *parent)
         // lockservice sometimes fails to call on olar server
         QDBusPendingReply<QString> replay = m_lockInter->CurrentUser();
         replay.waitForFinished();
-
         if (!replay.isError()) {
             const QJsonObject obj = QJsonDocument::fromJson(replay.value().toUtf8()).object();
             auto user_ptr = m_model->findUserByUid(static_cast<uint>(obj["Uid"].toInt()));
@@ -669,8 +668,20 @@ void GreeterWorkek::authenticationComplete()
     qInfo() << "start session = " << m_model->sessionKey();
 
     auto startSessionSync = [=] () {
+        //由于域账户第一次登陆获取不到用户信息，从域账户列表中获取，最大的UID(第一次登陆的域账户也是UID最大的)，作为上次登陆的账户
+        uint maxUid = 0;
+        if(m_model->currentUser()->uid() == INT_MAX){
+            const char *lockFrontInter = "com.deepin.udcp.iam";
+            QDBusInterface ifc("com.deepin.udcp.iam", "/com/deepin/udcp/iam",lockFrontInter, QDBusConnection::systemBus(), nullptr);
+            QDBusPendingReply<QVector<uint>> reply = ifc.call("GetUserIdList");
+            foreach (auto uid,  reply.value()) {
+                if(uid > maxUid)
+                  maxUid = uid;
+            }
+        }
+
         QJsonObject json;
-        json["Uid"] = static_cast<int>(m_model->currentUser()->uid());
+        json["Uid"] = static_cast<int>(m_model->currentUser()->uid() == INT_MAX ? maxUid : m_model->currentUser()->uid());
         json["Type"] = m_model->currentUser()->type();
         m_lockInter->SwitchToUser(QString(QJsonDocument(json).toJson(QJsonDocument::Compact))).waitForFinished();
 
