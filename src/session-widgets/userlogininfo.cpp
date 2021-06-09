@@ -38,6 +38,12 @@ UserLoginInfo::UserLoginInfo(SessionBaseModel *model, QObject *parent)
     initConnect();
 }
 
+UserLoginInfo::~UserLoginInfo()
+{
+    m_userFrameList->deleteLater();
+    m_userLoginWidget->deleteLater();
+}
+
 void UserLoginInfo::setUser(std::shared_ptr<User> user)
 {
     for (auto connect : m_currentUserConnects) {

@@ -19,7 +19,7 @@ LockContent::LockContent(SessionBaseModel *const model, QWidget *parent)
     , m_model(model)
     , m_virtualKB(nullptr)
     , m_translator(new QTranslator)
-    , m_userLoginInfo(new UserLoginInfo(model))
+    , m_userLoginInfo(new UserLoginInfo(model, this))
 {
     m_controlWidget = new ControlWidget;
     m_shutdownFrame = new ShutdownWidget;
