@@ -123,9 +123,10 @@ GreeterWorkek::GreeterWorkek(SessionBaseModel *const model, QObject *parent)
             const QString& user = m_lockInter->CurrentUser();
             const QJsonObject obj = QJsonDocument::fromJson(user.toUtf8()).object();
             auto user_ptr = m_model->findUserByUid(static_cast<uint>(obj["Uid"].toInt()));
-
-            m_model->setCurrentUser(user_ptr);
-            userAuthForLightdm(user_ptr);
+            if (user_ptr) {
+                m_model->setCurrentUser(user_ptr);
+                userAuthForLightdm(user_ptr);
+            }
         });
     }
 }
@@ -254,7 +255,7 @@ void GreeterWorkek::onCurrentUserChanged(const QString &user)
 
 void GreeterWorkek::userAuthForLightdm(std::shared_ptr<User> user)
 {
-    if (!user->isNoPasswdGrp()) {
+    if (user && !user->isNoPasswdGrp()) {
         //后端需要大约600ms时间去释放指纹设备
         resetLightdmAuth(user, 100, true);
     }
@@ -399,7 +400,7 @@ void GreeterWorkek::recoveryUserKBState(std::shared_ptr<User> user)
 
 void GreeterWorkek::resetLightdmAuth(std::shared_ptr<User> user,int delay_time , bool is_respond)
 {
-    if (user->isLock()) {return;}
+    if (!user || user->isLock()) {return;}
 
     QTimer::singleShot(delay_time, this, [ = ] {
         m_greeter->authenticate(user->name());
