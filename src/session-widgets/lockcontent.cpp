@@ -354,7 +354,10 @@ void LockContent::tryGrabKeyboard()
     return;
 #endif
 
-    if (window()->windowHandle() && isVisible() && window()->windowHandle()->setKeyboardGrabEnabled(true)) {
+    //如果界面没有显示或界面不存在则不需要抓取键盘事件
+    if (!window()->windowHandle() || !isVisible()) return;
+
+    if (window()->windowHandle()->setKeyboardGrabEnabled(true)) {
         m_failures = 0;
         return;
     }
