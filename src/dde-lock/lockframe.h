@@ -73,9 +73,7 @@ private:
     SessionBaseModel *m_model;
     HibernateWidget *Hibernate;
     DBusLogin1Manager *m_login1Inter;
-    bool m_preparingSleep;
-    bool m_prePreparingSleep;
-    long m_preparingSleepTime = 0;
+    bool m_enablePowerOffKey;
 };
 
 #endif // LOCKFRAME
