@@ -484,8 +484,9 @@ void UserLoginWidget::initUI()
     m_nameLayout->addWidget(m_loginLabel);
     m_nameLayout->addWidget(m_nameLbl);
     m_nameFrame = new QFrame;
+    m_nameFrame->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     m_nameFrame->setLayout(m_nameLayout);
-    m_userLayout->addWidget(m_nameFrame, 0, Qt::AlignHCenter);
+    m_userLayout->addWidget(m_nameFrame);
 
     m_userLayout->addWidget(m_accountEdit);
     m_userLayout->addWidget(m_passwordEdit);
