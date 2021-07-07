@@ -243,9 +243,9 @@ int main(int argc, char* argv[])
 
     property_group->addProperty("contentVisible");
 
-    auto createFrame = [&] (QScreen *screen) -> QWidget* {
+    auto createFrame = [&] (QScreen *screen, int size) -> QWidget* {
         LoginWindow *loginFrame = new LoginWindow(model);
-        loginFrame->setScreen(screen);
+        loginFrame->setScreen(screen, size == 0);
         property_group->addObject(loginFrame);
         QObject::connect(loginFrame, &LoginWindow::requestSwitchToUser, worker, &GreeterWorkek::switchToUser);
         QObject::connect(loginFrame, &LoginWindow::requestAuthUser, worker, &GreeterWorkek::authUser);

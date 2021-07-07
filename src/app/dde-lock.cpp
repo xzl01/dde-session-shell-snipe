@@ -113,7 +113,8 @@ int main(int argc, char *argv[])
     agent.setModel(model);
     DBusLockFrontService service(&agent);
 
-    auto createFrame = [&] (QScreen *screen) -> QWidget* {
+    auto createFrame = [&] (QScreen *screen, int size) -> QWidget* {
+        Q_UNUSED(size);
         LockFrame *lockFrame = new LockFrame(model);
         lockFrame->setScreen(screen);
         property_group->addObject(lockFrame);

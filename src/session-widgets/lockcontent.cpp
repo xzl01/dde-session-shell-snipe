@@ -261,7 +261,7 @@ void LockContent::showEvent(QShowEvent *event)
     onStatusChanged(m_model->currentModeState());
 
     QFrame::showEvent(event);
-    tryGrabKeyboard(); 
+    tryGrabKeyboard();
 }
 
 void LockContent::hideEvent(QHideEvent *event)

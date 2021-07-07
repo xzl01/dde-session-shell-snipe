@@ -124,7 +124,8 @@ int main(int argc, char *argv[])
 
         ShutdownFrontDBus adaptor(dbusAgent, model);
 
-        auto createFrame = [&](QScreen * screen) -> QWidget* {
+        auto createFrame = [&](QScreen * screen, int size) -> QWidget* {
+            Q_UNUSED(size);
             ShutdownFrame *frame = new ShutdownFrame(model);
             dbusAgent->addFrame(frame);
             frame->setScreen(screen);

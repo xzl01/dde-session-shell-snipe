@@ -145,10 +145,10 @@ void FullscreenBackground::updateBlurBackground(const QString &file)
 }
 
 
-void FullscreenBackground::setScreen(QScreen *screen)
+void FullscreenBackground::setScreen(QScreen *screen, bool isVisible)
 {
     QScreen *primary_screen = QGuiApplication::primaryScreen();
-    if(primary_screen == screen) {
+    if(primary_screen == screen && isVisible) {
         m_content->show();
         m_primaryShowFinished = true;
         emit contentVisibleChanged(true);

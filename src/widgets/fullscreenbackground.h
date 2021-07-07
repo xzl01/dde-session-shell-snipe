@@ -56,7 +56,7 @@ public:
 public slots:
     void updateBackground(const QPixmap &background);
     void updateBackground(const QString &file = QString());
-    void setScreen(QScreen *screen);
+    void setScreen(QScreen *screen, bool isVisible = true);
     void setContentVisible(bool contentVisible);
     void setIsBlackMode(bool is_black);
     void setIsHibernateMode();
