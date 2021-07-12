@@ -237,7 +237,7 @@ int main(int argc, char* argv[])
     QString locale;
     QTranslator translator;
     if (model->currentUser()) {
-        locale = "/usr/share/dde-session-shell/translations/dde-session-shell_" + model->currentUser()->locale().split(".").first();
+        locale = "/usr/share/dde-session-shell/translations/dde-session-shell_" + model->currentUser()->locale().split(".").first() + ".qm";
     }
     if (!QFileInfo::exists(locale)) {
         locale = "/usr/share/dde-session-shell/translations/dde-session-shell_" + QLocale::system().name();
