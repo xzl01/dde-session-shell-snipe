@@ -190,7 +190,13 @@ void UserLoginWidget::updateUI()
     case NormalType: {
         m_passwordEdit->setVisible(!m_isLock);
         if (m_passwordEdit->isVisible()) {
-            m_passwordEdit->lineEdit()->setPlaceholderText(tr("Please enter the password"));
+            QVariant str;
+            if (!FrameDataBind::Instance()->getValue("deepinAuthMsg", str)) {
+                m_passwordEdit->lineEdit()->setPlaceholderText(tr("Please enter the password"));
+            } else {
+                qDebug() << Q_FUNC_INFO << str.toString();
+                m_passwordEdit->lineEdit()->setPlaceholderText(str.toString());
+            }
         }
         m_lockButton->show();
         m_nameLbl->show();
