@@ -430,6 +430,7 @@ void UserLoginWidget::initSingleAuth(const int index)
 
     m_lockButton->setEnabled(true);
     m_singleAuth->setKeyboardButtonVisible(m_keyboardList.size() > 1 ? true : false);
+    m_singleAuth->setKeyboardButtonInfo(m_keyboardInfo);
 }
 
 /**
@@ -489,6 +490,7 @@ void UserLoginWidget::initPasswdAuth(const int index)
     });
     FrameDataBind::Instance()->refreshData("UserLoginPassword");
     m_passwordAuth->setKeyboardButtonVisible(m_keyboardList.size() > 1 ? true : false);
+    m_passwordAuth->setKeyboardButtonInfo(m_keyboardInfo);
     m_passwordAuth->setLineEditInfo(QString(""), AuthenticationModule::InputText);
 }
 
