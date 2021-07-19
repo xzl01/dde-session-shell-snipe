@@ -150,6 +150,7 @@ int main(int argc, char *argv[])
         multi_screen_manager.register_for_mutil_monitor(createFrame);
 
         QObject::connect(model, &SessionBaseModel::visibleChanged, &multi_screen_manager, &MultiScreenManager::startRaiseContentFrame);
+        QObject::connect(dbusAgent, &DBusShutdownAgent::notifyShutdownFrameVisible, &multi_screen_manager, &MultiScreenManager::setFrameVisible);
 
         if (!parser.isSet(daemon)) {
             model->setIsShow(true);

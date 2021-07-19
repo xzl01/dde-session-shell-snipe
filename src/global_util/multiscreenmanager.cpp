@@ -52,6 +52,10 @@ inline bool screenGeometryValid(const QRect &rect)
     return rect.width() > 1 && rect.height() > 1;
 }
 
+void MultiScreenManager::setFrameVisible() {
+    raiseContentFrame();
+}
+
 void MultiScreenManager::raiseContentFrame()
 {
     if (m_model == nullptr || !m_model->isShow()) {

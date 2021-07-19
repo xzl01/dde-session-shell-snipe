@@ -24,6 +24,10 @@ public:
     void Hide();
 
     void sync(Actions action);
+
+Q_SIGNALS:
+    void notifyShutdownFrameVisible();
+
 private:
     QList<ShutdownFrame*> m_frames;
 };

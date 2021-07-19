@@ -77,9 +77,7 @@ void DBusShutdownAgent::SwitchUser()
 
 void DBusShutdownAgent::Show()
 {
-    for (ShutdownFrame *frame : m_frames) {
-        frame->show();
-    }
+    emit notifyShutdownFrameVisible();
 }
 
 void DBusShutdownAgent::Hide()
