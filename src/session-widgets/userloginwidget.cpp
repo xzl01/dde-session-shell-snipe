@@ -289,10 +289,17 @@ void UserLoginWidget::updateWidgetShowType(const int type)
     if (type == AuthTypeNone) {
         if (m_model->currentUser()->isNoPasswordLogin()) {
             m_lockButton->setEnabled(true);
+            m_accountEdit->hide();
+            m_nameLabel->show();
         } else {
+            m_accountEdit->clear();
             m_accountEdit->show();
             m_nameLabel->hide();
         }
+    } else {
+        const bool visible = m_model->isServerModel() && m_model->currentType() == SessionBaseModel::LightdmType;
+        m_accountEdit->setVisible(visible);
+        m_nameLabel->setVisible(!visible);
     }
     /* 密码过期提示 */
     switch (m_model->currentUser()->expiredStatus()) {
