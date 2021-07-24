@@ -17,9 +17,11 @@ MultiScreenManager::MultiScreenManager(QObject *parent)
     : QObject(parent)
     , m_raiseContentFrameTimer(new QTimer(this))
     , m_displayInter("com.deepin.daemon.Display", "/com/deepin/daemon/Display", QDBusConnection::sessionBus(), this)
+    , m_waitQscreenflag(false)
 {
     connect(&m_displayInter, &DisplayInter::MonitorsChanged, this, &MultiScreenManager::onMonitorsChanged);
 
+    connect(qApp, &QApplication::screenAdded, this, &MultiScreenManager::ScreenAdd);
     // 在sw平台存在复制模式显示问题，使用延迟来置顶一个Frame
     m_raiseContentFrameTimer->setInterval(80);
     m_raiseContentFrameTimer->setSingleShot(true);
@@ -36,7 +38,7 @@ void MultiScreenManager::register_for_mutil_monitor(std::function<QWidget* (Moni
 {
     QList<QDBusObjectPath> monitor = m_displayInter.monitors();
     m_registerMonitorFun = function;
-    onMonitorsChanged(monitor);
+    initMonitors(monitor);
 }
 
 
@@ -54,6 +56,23 @@ inline bool screenGeometryValid(const QRect &rect)
 
 void MultiScreenManager::setFrameVisible() {
     raiseContentFrame();
+}
+
+void MultiScreenManager::ScreenAdd()
+{
+    qDebug() << "screen add " << m_waitQscreenflag;
+    if (m_monPathList.isEmpty()) {
+        m_waitQscreenflag = true;
+    } else {
+        for (auto path : m_monPathList) {
+            Monitor *monitor = monitorAdded(path);
+            m_frameMoniter[monitor] = m_registerMonitorFun(monitor);
+        }
+        m_monPathList.clear();
+        m_waitQscreenflag = false;
+        startRaiseContentFrame();
+    }
+
 }
 
 void MultiScreenManager::raiseContentFrame()
@@ -171,35 +190,32 @@ void MultiScreenManager::onMonitorsChanged(const QList<QDBusObjectPath> & mons)
 
     QList<QString> pathList;
     QList<Monitor *> monitors;
-    Monitor *primaryMonitor = nullptr;
     for (const auto op : mons) {
         const QString path = op.path();
         pathList << path;
         qDebug() << path;
         if (!ops.contains(path)) {
-           Monitor *monitor = monitorAdded(path);
-           // 主屏队列后移
-            if (monitor->isPrimary()) {
-                primaryMonitor = monitor;
-                continue;
+            if (m_waitQscreenflag) {
+                Monitor *monitor = monitorAdded(path);
+                monitors << monitor;
+                m_waitQscreenflag = false;
+            } else {
+                m_monPathList.push_back(path);
             }
-            monitors << monitor;
         }
     }
-    if(primaryMonitor != nullptr)
-         monitors << primaryMonitor;
 
     // 主屏最后new，保证多屏复制模式下显示在最上面，wayland环境下，widget->raise()函数不生效
     for (Monitor *mon : monitors) {
         m_frameMoniter[mon] = m_registerMonitorFun(mon);
     }
 
-    startRaiseContentFrame();
-
     for (const auto op : ops)
         if (!pathList.contains(op)) {
             monitorRemoved(op);
         }
+
+    startRaiseContentFrame();
 }
 
 Monitor *MultiScreenManager::monitorAdded(const QString &path)
@@ -246,4 +262,14 @@ void MultiScreenManager::monitorRemoved(const QString &path)
     m_frameMoniter[monitor]->deleteLater();
     m_frameMoniter.remove(monitor);
     monitor->deleteLater();
+}
+
+void MultiScreenManager::initMonitors(const QList<QDBusObjectPath> &mons)
+{
+    for (const auto op : mons) {
+        const QString path = op.path();
+        Monitor *monitor = monitorAdded(path);
+        m_frameMoniter[monitor] = m_registerMonitorFun(monitor);
+    }
+    startRaiseContentFrame();
 }

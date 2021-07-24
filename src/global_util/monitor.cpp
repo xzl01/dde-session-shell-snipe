@@ -4,7 +4,7 @@ Monitor::Monitor(QObject *parent)
     : QObject(parent)
     , m_changeTimer(new QTimer (this) )
 {
-    m_changeTimer->setInterval(100);
+    m_changeTimer->setInterval(500);
     m_changeTimer->setSingleShot(true);
     connect(m_changeTimer, &QTimer::timeout, this, &Monitor::geometryChanged);
 }

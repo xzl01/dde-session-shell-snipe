@@ -7,6 +7,7 @@
 #include <QMap>
 #include <functional>
 #include <QTimer>
+#include <QList>
 #include "monitor.h"
 
 #include <com_deepin_daemon_display.h>
@@ -28,11 +29,13 @@ public:
 
  public slots:
     void setFrameVisible();
+    void ScreenAdd();
 
 private:
     void raiseContentFrame();
     Monitor *monitorAdded(const QString &path);
     void monitorRemoved(const QString &path);
+    void initMonitors(const QList<QDBusObjectPath> & mons);
 
 private:
     QTimer *m_raiseContentFrameTimer;
@@ -40,6 +43,8 @@ private:
     QMap<Monitor*, QWidget*> m_frameMoniter;
     DisplayInter m_displayInter;
     SessionBaseModel *m_model = nullptr;
+    QList<QString> m_monPathList;                   //当QScreen没有同步时 先将monitor信息保存
+    bool m_waitQscreenflag;                             //同步qt screen标志
 };
 
 #endif // MULTISCREENMANAGER_H
