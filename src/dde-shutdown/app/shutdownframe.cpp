@@ -146,26 +146,31 @@ ShutdownFrontDBus::~ShutdownFrontDBus()
 
 void ShutdownFrontDBus::Shutdown()
 {
+    m_model->setIsCheckedPowerAction(false);
     m_parent->Shutdown();
 }
 
 void ShutdownFrontDBus::Restart()
 {
+    m_model->setIsCheckedPowerAction(false);
     m_parent->Restart();
 }
 
 void ShutdownFrontDBus::Logout()
 {
+    m_model->setIsCheckedPowerAction(false);
     m_parent->Logout();
 }
 
 void ShutdownFrontDBus::Suspend()
 {
+    m_model->setIsCheckedPowerAction(false);
     m_parent->Suspend();
 }
 
 void ShutdownFrontDBus::Hibernate()
 {
+    m_model->setIsCheckedPowerAction(false);
     m_parent->Hibernate();
 }
 
