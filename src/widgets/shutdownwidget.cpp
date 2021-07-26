@@ -25,15 +25,7 @@
 
 #include "shutdownwidget.h"
 
-#if 0 // storage i10n
-QT_TRANSLATE_NOOP("ShutdownWidget", "Shut down"),
-                  QT_TRANSLATE_NOOP("ShutdownWidget", "Reboot"),
-                  QT_TRANSLATE_NOOP("ShutdownWidget", "Suspend"),
-                  QT_TRANSLATE_NOOP("ShutdownWidget", "Hibernate")
-#endif
-
-                  ShutdownWidget::ShutdownWidget(QWidget *parent)
-                      : QFrame(parent)
+ShutdownWidget::ShutdownWidget(QWidget *parent): QFrame(parent)
 {
     m_frameDataBind = FrameDataBind::Instance();
     initUI();
@@ -91,7 +83,7 @@ void ShutdownWidget::onOtherPageChanged(const QVariant &value)
 void ShutdownWidget::initUI()
 {
     setFocusPolicy(Qt::StrongFocus);
-    m_requireShutdownButton = new RoundItemButton(this);
+    m_requireShutdownButton = new RoundItemButton(tr("Shut down"), this);
     m_requireShutdownButton->setFocusPolicy(Qt::NoFocus);
     m_requireShutdownButton->setObjectName("RequireShutdownButton");
     m_requireShutdownButton->setAutoExclusive(true);

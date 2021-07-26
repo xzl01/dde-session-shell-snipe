@@ -13,6 +13,7 @@ using SessionManager = com::deepin::SessionManager;
 #include "sessionbasewindow.h"
 #include "sessionbasemodel.h"
 #include "src/widgets/mediawidget.h"
+#include "src/widgets/wirelesswidget.h"
 
 using ImageBlur = com::deepin::daemon::ImageBlur;
 using AccountsInter = com::deepin::daemon::Accounts;
