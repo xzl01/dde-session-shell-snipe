@@ -68,7 +68,7 @@ void UserLoginInfo::setUser(std::shared_ptr<User> user)
     m_userLoginWidget->setUserAvatarSize(UserLoginWidget::AvatarLargeSize);
     m_userLoginWidget->updateAuthType(m_model->currentType());
     m_userLoginWidget->updateIsLockNoPassword(m_model->isLockNoPassword());
-    m_userLoginWidget->disablePassword(user.get()->isLock(), user->lockTime());
+    m_userLoginWidget->disablePassword(user->isLock(), user->lockTime());
     user->kbLayoutList();
     user->currentKBLayout();
 
@@ -78,6 +78,41 @@ void UserLoginInfo::setUser(std::shared_ptr<User> user)
 void UserLoginInfo::initConnect()
 {
     //UserLoginWidget
+    connect(m_userLoginWidget, &UserLoginWidget::requestCheckAccount, this, [ = ](const QString & account) {
+        if (account.isEmpty()) return ;
+        if (m_model->isServerModel() && m_model->currentUser()->isDoMainUser()) {
+            auto user = dynamic_cast<NativeUser *>(m_model->findUserByName(account).get());
+            auto current_user = dynamic_cast<ADDomainUser *>(m_model->currentUser().get());
+
+            if (!current_user->name().isEmpty()) {
+                //查找上一个用户并断开密码锁定相关信号
+                auto tmpUser = m_model->findUserByName(current_user->name());
+                if (tmpUser != nullptr) {
+                    disconnect(tmpUser.get(), &User::lockChanged, current_user, &User::lockChanged);
+                    disconnect(tmpUser.get(), &User::lockLimitFinished, current_user, &ADDomainUser::lockLimitFinished);
+                }
+            }
+
+            current_user->setUserInter(nullptr);
+
+            if (user != nullptr) {
+                current_user->setUserName(account);
+                current_user->setUserInter(user->getUserInter());
+
+                //连接用户密码锁定相关信息到当前用户
+                connect(user, &User::lockChanged, current_user, &ADDomainUser::lockChanged);
+                connect(user, &User::lockLimitFinished, current_user, &ADDomainUser::lockLimitFinished);
+
+                //更新锁定状态到当前登录界面
+                m_userLoginWidget->disablePassword(user->isLock(), user->lockTime());
+            } else {
+                current_user->setUserName("");
+                m_userLoginWidget->disablePassword(false, 0);
+                m_userLoginWidget->setFaildTipMessage(tr("Wrong account"));
+            }
+        }
+    });
+
     connect(m_userLoginWidget, &UserLoginWidget::requestAuthUser, this, [ = ](const QString & account, const QString & password) {
         if (!m_userLoginWidget->inputInfoCheck(m_model->isServerModel())) return;
 
@@ -89,12 +124,38 @@ void UserLoginInfo::initConnect()
 
         if (m_model->isServerModel() && m_model->currentUser()->isDoMainUser()) {
             auto user = dynamic_cast<NativeUser *>(m_model->findUserByName(account).get());
-            auto current_user = m_model->currentUser();
+            auto current_user = dynamic_cast<ADDomainUser *>(m_model->currentUser().get());
 
-            static_cast<ADDomainUser *>(m_model->currentUser().get())->setUserName(account);
-            static_cast<ADDomainUser *>(m_model->currentUser().get())->setUserInter(nullptr);
+            if (!current_user->name().isEmpty()) {
+                //查找上一次准备登录的用户并断开密码锁定相关信号
+                auto tmpUser = m_model->findUserByName(current_user->name());
+                if (tmpUser != nullptr) {
+                    disconnect(tmpUser.get(), &User::lockChanged, current_user, &User::lockChanged);
+                    disconnect(tmpUser.get(), &User::lockLimitFinished, current_user, &ADDomainUser::lockLimitFinished);
+                }
+            }
+
+            current_user->setUserInter(nullptr);
+
             if (user != nullptr) {
-                static_cast<ADDomainUser *>(m_model->currentUser().get())->setUserInter(user->getUserInter());
+                current_user->setUserName(account);
+                current_user->setUserInter(user->getUserInter());
+
+                //连接用户密码锁定相关信息到当前登录界面
+                connect(user, &User::lockChanged, current_user, &ADDomainUser::lockChanged);
+                connect(user, &User::lockLimitFinished, current_user, &ADDomainUser::lockLimitFinished);
+
+                //更新锁定状态到当前登录界面
+                m_userLoginWidget->disablePassword(user->isLock(), user->lockTime());
+
+                //如果用户密码被锁定，则不开启密码验证
+                if (user->isLock()) return;
+            } else {
+                //用户不存在则不开启验证
+                current_user->setUserName("");
+                m_userLoginWidget->disablePassword(false, 0);
+                m_userLoginWidget->setFaildTipMessage(tr("Wrong account"));
+                return;
             }
         }
         emit requestAuthUser(password);
@@ -167,7 +228,14 @@ void UserLoginInfo::hideKBLayout()
 
 void UserLoginInfo::userLockChanged(bool disable)
 {
-    m_userLoginWidget->disablePassword(disable, m_user->lockTime());
+    // //在登录服务器时，当前登录用户永远是...,需要根据用户查找真实用户的锁定时间信息
+    auto tmpUser = m_user;
+    if (tmpUser != nullptr && tmpUser->uid() == INT_MAX) {
+        tmpUser = m_model->findUserByName(tmpUser->name());
+    }
+    if (tmpUser == nullptr) return;
+
+    m_userLoginWidget->disablePassword(disable, tmpUser->lockTime());
 }
 
 void UserLoginInfo::receiveSwitchUser(std::shared_ptr<User> user)

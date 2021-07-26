@@ -405,10 +405,16 @@ void GreeterWorkek::recoveryUserKBState(std::shared_ptr<User> user)
 
 void GreeterWorkek::resetLightdmAuth(std::shared_ptr<User> user,int delay_time , bool is_respond)
 {
-    if (user->isLock()) {return;}
+    //在登录服务器时，当前登录用户永远是...，需要根据用户名查找真实用户来判断密码是否被锁定
+    auto tmpUser = user;
+    if (tmpUser != nullptr && tmpUser->uid() == INT_MAX) {
+        tmpUser = m_model->findUserByName(tmpUser->name());
+    }
+
+    if (tmpUser == nullptr || tmpUser->isLock()) {return;}
 
     QTimer::singleShot(delay_time, this, [ = ] {
-        m_greeter->authenticate(user->name());
+        m_greeter->authenticate(tmpUser->name());
         if (is_respond && !m_password.isEmpty()) {
             m_greeter->respond(m_password);
         }

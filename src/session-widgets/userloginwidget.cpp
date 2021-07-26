@@ -81,7 +81,6 @@ void UserLoginWidget::resetAllState()
     m_passwordEdit->lineEdit()->clear();
     m_passwordEdit->lineEdit()->setPlaceholderText(QString());
     m_accountEdit->lineEdit()->clear();
-    m_accountEdit->lineEdit()->setEnabled(true);
     if (m_authType == SessionBaseModel::LightdmType) {
         m_lockButton->setIcon(DStyle::SP_ArrowNext);
     } else {
@@ -95,7 +94,6 @@ void UserLoginWidget::setFaildMessage(const QString &message, SessionBaseModel::
 {
     if (m_isLock && !message.isEmpty()) {
         m_lockPasswordWidget->setMessage(message);
-        m_accountEdit->lineEdit()->setEnabled(false);
         m_passwordEdit->hideAlertMessage();
         return;
     }
@@ -116,7 +114,6 @@ void UserLoginWidget::setFaildTipMessage(const QString &message, SessionBaseMode
 {
     Q_UNUSED(type);
 
-    m_accountEdit->lineEdit()->setEnabled(true);
     if (m_isLock && !message.isEmpty()) {
         m_passwordEdit->hideAlertMessage();
         return;
@@ -186,9 +183,10 @@ void UserLoginWidget::updateUI()
         break;
     }
     case IDAndPasswordType: {
+        m_lockPasswordWidget->setVisible(m_isLock);
         // 解决右键菜单弹出问题
         m_passwordEdit->setContextMenuPolicy(Qt::NoContextMenu);
-        m_passwordEdit->show();
+        m_passwordEdit->setVisible(!m_isLock);
         m_passwordEdit->setShowKB(false);
         m_passwordEdit->lineEdit()->setPlaceholderText(tr("Password"));
         // 解决右键菜单弹出问题
@@ -312,10 +310,13 @@ void UserLoginWidget::refreshKBLayoutWidgetPosition()
 //设置密码输入框不可用
 void UserLoginWidget::disablePassword(bool disable, uint lockTime)
 {
-    m_isLock = disable;
-    m_passwordEdit->setDisabled(disable);
-    m_passwordEdit->setVisible(!disable);
-    m_lockPasswordWidget->setVisible(disable);
+    if (m_isLock != disable) {
+        m_isLock = disable;
+        m_passwordEdit->setDisabled(disable);
+        m_passwordEdit->setVisible(!disable);
+        m_passwordEdit->hideLoadSlider();
+        m_lockPasswordWidget->setVisible(disable);
+    }
 
     if (!m_passwordEdit->lineEdit()->text().isEmpty()) {
         m_passwordEdit->lineEdit()->clear();
@@ -324,10 +325,6 @@ void UserLoginWidget::disablePassword(bool disable, uint lockTime)
 
     if (disable) {
         setFaildMessage(tr("Please try again %n minute(s) later", "", int(lockTime)));
-    }
-
-    if ( false == disable && true == m_isServerMode){
-        m_accountEdit->lineEdit()->setEnabled(true);
     }
 }
 
@@ -521,6 +518,12 @@ void UserLoginWidget::initUI()
 //初始化槽函数连接
 void UserLoginWidget::initConnect()
 {
+    //当用户密码被锁定后，可以重新输入其他用户名登录
+    connect(m_accountEdit, &DPasswordEditEx::returnPressed, this, [ = ] {
+        const QString account = m_accountEdit->text();
+        emit requestCheckAccount(account);
+    });
+
     connect(m_passwordEdit->lineEdit(), &QLineEdit::textChanged, this, [ = ](const QString & value) {
         FrameDataBind::Instance()->updateValue("UserLoginPassword", value);
     });
@@ -528,7 +531,6 @@ void UserLoginWidget::initConnect()
         const QString account = m_accountEdit->text();
         const QString passwd = m_passwordEdit->text();
 
-        m_accountEdit->lineEdit()->setEnabled(false);
         emit requestAuthUser(account, passwd);
     });
 
@@ -542,7 +544,6 @@ void UserLoginWidget::initConnect()
         }
 
         m_passwordEdit->showLoadSlider();
-        m_accountEdit->lineEdit()->setEnabled(false);
         emit requestAuthUser(m_accountEdit->text(), password);
     });
     connect(m_userAvatar, &UserAvatar::clicked, this, &UserLoginWidget::clicked);
