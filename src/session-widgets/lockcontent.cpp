@@ -362,7 +362,8 @@ void LockContent::tryGrabKeyboard()
         return;
     }
 
-    m_failures++;
+    if (m_failures != 10)
+        m_failures++;
 
     if (m_failures == 15) {
         qDebug() << "Trying grabkeyboard has exceeded the upper limit. dde-lock will quit.";
@@ -398,5 +399,9 @@ void LockContent::keyPressEvent(QKeyEvent *event)
             m_model->setAbortConfirm(false);
         break;
     }
+    }
+
+    if (m_failures == 10) {
+        m_failures++;
     }
 }
