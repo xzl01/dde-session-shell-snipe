@@ -200,6 +200,7 @@ void GreeterWorkek::switchToUser(std::shared_ptr<User> user)
     qDebug() << "switch user from" << m_model->currentUser()->name() << " to "
              << user->name();
 
+    Auth::AuthInterface::switchToUser(user);
     // clear old password
     m_password.clear();
     m_authenticating = false;

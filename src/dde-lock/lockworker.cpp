@@ -142,7 +142,7 @@ LockWorker::LockWorker(SessionBaseModel *const model, QObject *parent)
 void LockWorker::switchToUser(std::shared_ptr<User> user)
 {
     qDebug() << "switch user from" << m_model->currentUser()->name() << " to " << user->name();
-
+    Auth::AuthInterface::switchToUser(user);
     // if type is lock, switch to greeter
     QJsonObject json;
     json["Uid"] = static_cast<int>(user->uid());

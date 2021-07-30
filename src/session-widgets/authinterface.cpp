@@ -65,6 +65,12 @@ AuthInterface::AuthInterface(SessionBaseModel *const model, QObject *parent)
     }
 }
 
+void AuthInterface::switchToUser(std::shared_ptr<User> user)
+{
+    Q_UNUSED(user)
+    onLoginUserListChanged(m_loginedInter->GetLoginedUsers());
+}
+
 void AuthInterface::setLayout(std::shared_ptr<User> user, const QString &layout) {
     user->setCurrentLayout(layout);
 }
