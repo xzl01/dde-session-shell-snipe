@@ -58,7 +58,9 @@ GreeterWorkek::GreeterWorkek(SessionBaseModel *const model, QObject *parent)
     m_model->setAlwaysShowUserSwitchButton(switchUserButtonValue == "always");
     m_model->setAllowShowUserSwitchButton(switchUserButtonValue == "ondemand");
 
-    m_model->setActiveDirectoryEnabled(valueByQSettings<bool>("", "loginPromptInput", false));
+    QDBusInterface ifc("com.deepin.udcp.iam", "/com/deepin/udcp/iam", "com.deepin.udcp.iam", QDBusConnection::systemBus(), this);
+    const bool allowShowCustomUser = valueByQSettings<bool>("", "loginPromptInput", false) || ifc.property("Enable").toBool();
+    m_model->setAllowShowCustomUser(allowShowCustomUser);
 
     {
         initDBus();
@@ -70,11 +72,11 @@ GreeterWorkek::GreeterWorkek(SessionBaseModel *const model, QObject *parent)
         checkDBusServer(m_accountsInter->isValid());
     }
 
-    if (DSysInfo::deepinType() == DSysInfo::DeepinServer || m_model->isActiveDirectoryDomain()) {
+    if (DSysInfo::deepinType() == DSysInfo::DeepinServer || m_model->allowShowCustomUser()) {
         std::shared_ptr<User> user = std::make_shared<ADDomainUser>(INT_MAX);
         static_cast<ADDomainUser *>(user.get())->setUserDisplayName("...");
         static_cast<ADDomainUser *>(user.get())->setIsServerUser(true);
-        m_model->setIsServerModel(DSysInfo::deepinType() == DSysInfo::DeepinServer || !m_model->isActiveDirectoryDomain());
+        m_model->setIsServerModel(DSysInfo::deepinType() == DSysInfo::DeepinServer);
         m_model->userAdd(user);
         m_model->setCurrentUser(user);
     } else {
