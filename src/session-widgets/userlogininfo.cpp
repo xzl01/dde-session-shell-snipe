@@ -106,20 +106,7 @@ void UserLoginInfo::initConnect()
             return;
         }
 
-        if (isADDomainUser){
-            auto user = dynamic_cast<NativeUser *>(m_model->findUserByName(account).get());
-            auto current_user = m_model->currentUser();
-
-            static_cast<ADDomainUser *>(m_model->currentUser().get())->setUserName(account);
-            static_cast<ADDomainUser *>(m_model->currentUser().get())->setUserInter(nullptr);
-            if (user != nullptr) {
-                static_cast<ADDomainUser *>(m_model->currentUser().get())->setUserInter(user->getUserInter());
-                m_userExpiredWidget->setDisplayName(user->displayName());
-                m_userExpiredWidget->setUserName(account);
-            }
-        }
-
-        if (m_model->isServerModel() && m_model->currentType() == SessionBaseModel::LightdmType) {
+        if (isADDomainUser || (m_model->isServerModel() && m_model->currentType() == SessionBaseModel::LightdmType)) {
             auto user = dynamic_cast<NativeUser *>(m_model->findUserByName(account).get());
             auto current_user = m_model->currentUser();
 
@@ -230,9 +217,7 @@ void UserLoginInfo::updateLoginContent()
     bool isADDomainUser = DSysInfo::deepinType() == DSysInfo::DeepinProfessional && \
                           m_model->currentUser()->displayName().contains("...");
 
-    if (m_model->currentUser()->isDoMainUser()) {
-        m_userLoginWidget->setWidgetShowType(UserLoginWidget::IDAndPasswordType);
-    } else if (isADDomainUser){
+    if (m_model->currentUser()->isDoMainUser() || isADDomainUser) {
         m_userLoginWidget->setWidgetShowType(UserLoginWidget::IDAndPasswordType);
     }else {
         if (m_user->isNoPasswdGrp()) {

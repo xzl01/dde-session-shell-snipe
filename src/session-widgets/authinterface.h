@@ -66,6 +66,9 @@ protected:
                                        failback);
     }
 
+    //判断是否加入AD域
+    bool checkIsADDomain();
+
 protected:
     SessionBaseModel*  m_model;
     AccountsInter *    m_accountsInter;

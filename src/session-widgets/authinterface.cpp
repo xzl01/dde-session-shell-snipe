@@ -155,6 +155,7 @@ void AuthInterface::onLastLogoutUserChanged(uint uid)
 
 void AuthInterface::onLoginUserListChanged(const QString &list)
 {
+    qDebug() << Q_FUNC_INFO << list ;
     m_loginUserList.clear();
 
     std::list<uint> availableUidList;
@@ -245,6 +246,20 @@ QVariant AuthInterface::getGSettings(const QString& key)
         value = m_gsettings->get(key);
     }
     return value;
+}
+
+bool AuthInterface::checkIsADDomain()
+{
+    //当没有安装realmd或没有加入AD域时，返回为空
+    QProcess process;
+    process.start("sudo realm list");
+    process.waitForFinished();
+    QString cmdinfo = QString(process.readAllStandardOutput());
+    qDebug() << "cmd-result :" << cmdinfo;
+    if (cmdinfo.isEmpty())
+        return false;
+
+    return true;
 }
 
 bool AuthInterface::isLogined(uint uid)
