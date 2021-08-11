@@ -2,6 +2,7 @@
 #include <QTest>
 #include <pwd.h>
 #include <QDebug>
+#include <greeterworkek.h>
 
 #include "userlogininfo.h"
 #include "sessionbasemodel.h"
@@ -54,4 +55,3 @@ TEST_F(UT_UserLoginInfo, init)
 {
 
 }
-
