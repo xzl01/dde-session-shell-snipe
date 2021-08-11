@@ -217,6 +217,10 @@ void KeyboardPlantformX11::run()
 {
     Display* display = XOpenDisplay(nullptr);
     int event, error;
+    if (display == nullptr) {
+        fprintf(stderr, "KeyboardPlantformX11:display not available.\n");
+        return;
+    }
 
     if (!XQueryExtension(display, "XInputExtension", &xi2_opcode, &event, &error)) {
         fprintf(stderr, "XInput2 not available.\n");

@@ -18,6 +18,9 @@ protected:
 void UT_LoginWindow::SetUp()
 {
     m_sessionBaseModel = new SessionBaseModel(SessionBaseModel::AuthType::LightdmType);
+    if (m_sessionBaseModel == nullptr) {
+        return;
+    }
     m_user = std::make_shared<User>();
     m_sessionBaseModel->updateCurrentUser(m_user);
     m_loginwindow = new LoginWindow(m_sessionBaseModel);
