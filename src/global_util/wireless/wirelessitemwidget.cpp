@@ -115,9 +115,9 @@ void WirelessEditWidget::intiUI(const QString &itemName)
     }
 
     if (EN_US_LOCALE == m_locale) {
-        m_passwdEdit->lineEdit()->setPlaceholderText("Please input Wi-Fi password");
+        m_passwdEdit->lineEdit()->setPlaceholderText("Please input WLAN password");
     } else {
-        m_passwdEdit->lineEdit()->setPlaceholderText(tr("Please input Wi-Fi password"));
+        m_passwdEdit->lineEdit()->setPlaceholderText(tr("Please input WLAN password"));
     }
 
     m_passwdEdit->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
@@ -332,9 +332,9 @@ void WirelessEditWidget::connectWirelessFailedTips(const Device::StateChangeReas
         }
     } else {
         if (EN_US_LOCALE == m_locale) {
-            m_passwdEdit->showAlertMessage(QString("connect failed"));
+            m_passwdEdit->showAlertMessage(QString("Connection failed"));
         } else {
-            m_passwdEdit->showAlertMessage(tr("connect failed"));
+            m_passwdEdit->showAlertMessage(tr("Connection failed"));
         }
     }
 
