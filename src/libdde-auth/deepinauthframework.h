@@ -20,8 +20,6 @@ using FUNC_RSA_PUBLIC_ENCRYPT = void *(*)(int flen, const unsigned char *from, u
 using FUNC_RSA_SIZE = int (*)(void *);
 using FUNC_RSA_FREE = void (*)(void *);
 
-class DeepinAuthInterface;
-class QThread;
 class DeepinAuthFramework : public QObject
 {
     Q_OBJECT
@@ -40,7 +38,7 @@ public:
     };
     Q_ENUM(AuthFlag)
 
-    explicit DeepinAuthFramework(DeepinAuthInterface *interface, QObject *parent = nullptr);
+    explicit DeepinAuthFramework(QObject *parent = nullptr);
     ~DeepinAuthFramework();
 
     /* Compatible with old authentication methods */
@@ -99,7 +97,6 @@ private:
     void initEncryptionService();
 
 private:
-    DeepinAuthInterface *m_interface;
     AuthInter *m_authenticateInter;
     pthread_t m_PAMAuthThread;
     QString m_account;
