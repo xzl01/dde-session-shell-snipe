@@ -199,6 +199,11 @@ void LockWorker::onDisplayErrorMsg(const QString &msg)
     emit m_model->authFaildTipsMessage(msg);
 }
 
+void LockWorker::setEditReadOnly(bool isReadOnly)
+{
+    emit m_model->setEditReadOnly(isReadOnly);
+}
+
 void LockWorker::onDisplayTextInfo(const QString &msg)
 {
     emit m_model->authFaildMessage(msg);

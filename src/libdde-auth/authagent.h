@@ -105,6 +105,7 @@ signals:
     void displayTextInfo(const QString &msg);
     void respondResult(const QString &msg);
 
+    void setEditReadOnly(bool isReadOnly);
 private:
     void CalcelCurAuthNolock();
     void ClearAuthDataNolock();

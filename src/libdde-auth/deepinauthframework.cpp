@@ -116,3 +116,8 @@ void DeepinAuthFramework::CancelCurrentAuth()
 {
     m_authagent->NotifyCancelAuth();
 }
+
+void DeepinAuthFramework::setEditReadOnly(bool isReadOnly)
+{
+    m_interface->setEditReadOnly(isReadOnly);
+}

@@ -9,6 +9,7 @@ public:
     virtual void onDisplayErrorMsg(const QString &msg) = 0;
     virtual void onDisplayTextInfo(const QString &msg) = 0;
     virtual void onPasswordResult(const QString &msg) = 0;
+    virtual void setEditReadOnly(bool isReadOnly) = 0;
 };
 
 #endif // DEEPINAUTHINTERFACE_H

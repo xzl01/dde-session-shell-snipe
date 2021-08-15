@@ -111,6 +111,7 @@ signals:
     void authTipsMessage(const QString &message, AuthFaildType type = KEYBOARD);
     void authFaildMessage(const QString &message, AuthFaildType type = KEYBOARD);
     void authFaildTipsMessage(const QString &message, AuthFaildType type = KEYBOARD);
+    void setEditReadOnly(bool isReadOnly);
     void authFinished(bool success);
     void onPowerActionChanged(PowerAction poweraction);
     void onSessionKeyChanged(const QString &sessionKey);

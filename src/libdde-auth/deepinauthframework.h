@@ -39,6 +39,8 @@ private:
     void DisplayTextInfo(const QString &msg);
     void RespondResult(const QString &msg);
 
+    void setEditReadOnly(bool isReadOnly);
+
 private:
     DeepinAuthInterface *m_interface;
     QPointer<AuthAgent> m_authagent;

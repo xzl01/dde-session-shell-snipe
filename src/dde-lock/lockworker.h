@@ -53,6 +53,8 @@ public:
     void onDisplayTextInfo(const QString &msg) override;
     void onPasswordResult(const QString &msg) override;
 
+    void setEditReadOnly(bool isReadOnly) override;
+
 private:
     void onUserAdded(const QString &user) override;
     void saveNumlockStatus(std::shared_ptr<User> user, const bool &on);

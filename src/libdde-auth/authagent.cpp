@@ -27,6 +27,7 @@ AuthAgent::AuthAgent(DeepinAuthFramework *deepin)
     connect(this, &AuthAgent::displayErrorMsg, deepin, &DeepinAuthFramework::DisplayErrorMsg, Qt::QueuedConnection);
     connect(this, &AuthAgent::displayTextInfo, deepin, &DeepinAuthFramework::DisplayTextInfo, Qt::QueuedConnection);
     connect(this, &AuthAgent::respondResult, deepin, &DeepinAuthFramework::RespondResult, Qt::QueuedConnection);
+    connect(this, &AuthAgent::setEditReadOnly,deepin, &DeepinAuthFramework::setEditReadOnly, Qt::QueuedConnection);
 }
 
 AuthAgent::~AuthAgent()
@@ -94,6 +95,8 @@ void AuthAgent::Authenticate(const QString& username)
     //这里会阻塞到成功或失败
     int rc = pam_authenticate(pAuthData->m_pamHandle, 0);
     qDebug() << "AuthAgent pam_authenticate return=" << rc <<  "authNumber=" << pAuthData->m_nAuthNumber << ", thread=" << pthread_self();;
+
+    emit setEditReadOnly(false);
 
     //息屏状态下亮屏，由于后端没有亮屏信号，只能用此临时办法
     system("xset dpms force on");
@@ -253,6 +256,7 @@ int AuthAgent::pamConversation(int num_msg, const struct pam_message **msg,
         case PAM_ERROR_MSG:
             qDebug() << "pamConversation error: " << PAM_MSG_MEMBER(msg, idx, msg) << ", authNumber=" << pAuthData->m_nAuthNumber;
             app_ptr->displayErrorMsg(QString::fromLocal8Bit(PAM_MSG_MEMBER(msg, idx, msg)));
+            app_ptr->setEditReadOnly(true);
             auth_type = AuthFlag::Fingerprint;
             pResponseBuf[idx].resp_retcode = PAM_SUCCESS;
             break;
