@@ -36,6 +36,7 @@
 #include "lockworker.h"
 #include "sessionbasemodel.h"
 #include "propertygroup.h"
+#include "appeventfilter.h"
 
 #include <DApplication>
 #include <DGuiApplicationHelper>
@@ -65,6 +66,10 @@ int main(int argc, char *argv[])
 
     // crash catch
     init_sig_crash();
+
+    //注册全局事件过滤器
+    AppEventFilter appEventFilter;
+    app->installEventFilter(&appEventFilter);
 
     DGuiApplicationHelper::instance()->setPaletteType(DGuiApplicationHelper::LightType);
     DPalette pa = DGuiApplicationHelper::instance()->applicationPalette();
@@ -127,6 +132,7 @@ int main(int argc, char *argv[])
 
     SessionBaseModel *model = new SessionBaseModel(SessionBaseModel::AuthType::LockType);
     LockWorker *worker = new LockWorker(model);
+    QObject::connect(&appEventFilter, &AppEventFilter::userIsActive, worker, &LockWorker::restartResetSessionTimer);
     PropertyGroup *property_group = new PropertyGroup(worker);
 
     property_group->addProperty("contentVisible");
@@ -165,6 +171,7 @@ int main(int argc, char *argv[])
 
     MultiScreenManager multi_screen_manager;
     multi_screen_manager.register_for_mutil_screen(createFrame);
+    QObject::connect(model, &SessionBaseModel::visibleChanged, &multi_screen_manager, &MultiScreenManager::startRaiseContentFrame);
 
 #if defined(DSS_CHECK_ACCESSIBILITY) && defined(QT_DEBUG)
     AccessibilityCheckerEx checker;
@@ -172,8 +179,6 @@ int main(int argc, char *argv[])
     checker.setOutputFormat(DAccessibilityChecker::FullFormat);
     checker.start();
 #endif
-
-    QObject::connect(model, &SessionBaseModel::visibleChanged, &multi_screen_manager, &MultiScreenManager::startRaiseContentFrame);
 
     QDBusConnection conn = QDBusConnection::sessionBus();
     if (!conn.registerService(DBUS_LOCK_NAME) ||
