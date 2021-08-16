@@ -15,13 +15,14 @@ protected:
 
 void UT_FullscreenBackground::SetUp()
 {
-    m_model = new SessionBaseModel(SessionBaseModel::LightdmType);
+    m_model = new SessionBaseModel(SessionBaseModel::LockType);
     m_background = new FullscreenBackground(m_model);
 }
 
 void UT_FullscreenBackground::TearDown()
 {
     delete m_background;
+    delete m_model;
 }
 
 TEST_F(UT_FullscreenBackground, BasicTest)
