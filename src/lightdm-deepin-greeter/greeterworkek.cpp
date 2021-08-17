@@ -157,37 +157,57 @@ void GreeterWorkek::initConnections()
     /* com.deepin.daemon.Authenticate.Session */
     connect(m_authFramework, &DeepinAuthFramework::AuthStatusChanged, this, [=](const int type, const int status, const QString &message) {
         if (m_model->getAuthProperty().MFAFlag) {
-            if (type == AuthTypeAll && status == StatusCodeSuccess) {
-                m_resetSessionTimer->stop();
-                if (m_greeter->inAuthentication()) {
-                    m_greeter->respond(m_authFramework->AuthSessionPath(m_account) + QString(";") + m_password);
+            if (type == AuthTypeAll) {
+                switch (status) {
+                case StatusCodeSuccess:
                     m_model->updateAuthStatus(type, status, message);
-                } else {
-                    qWarning() << "The lightdm is not in authentication!";
+                    m_resetSessionTimer->stop();
+                    if (m_greeter->inAuthentication()) {
+                        m_greeter->respond(m_authFramework->AuthSessionPath(m_account) + QString(";") + m_password);
+                    } else {
+                        qWarning() << "The lightdm is not in authentication!";
+                    }
+                    break;
+                case StatusCodeCancel:
+                    m_model->updateAuthStatus(type, status, message);
+                    destoryAuthentication(m_account);
+                    break;
+                default:
+                    break;
                 }
-
-            } else if (type != AuthTypeAll) {
+            } else {
                 switch (status) {
                 case StatusCodeSuccess:
                     if (m_model->currentModeState() != SessionBaseModel::ModeStatus::PasswordMode)
                         m_model->setCurrentModeState(SessionBaseModel::ModeStatus::PasswordMode);
                     m_resetSessionTimer->start();
-                    endAuthentication(m_account, type);
                     m_model->updateAuthStatus(type, status, message);
                     break;
                 case StatusCodeFailure:
+                    if (m_model->currentModeState() != SessionBaseModel::ModeStatus::PasswordMode) {
+                        m_model->setCurrentModeState(SessionBaseModel::ModeStatus::PasswordMode);
+                    }
+                    m_model->updateAuthStatus(type, status, message);
+                    endAuthentication(m_account, type);
+                    if (!m_model->currentUser()->limitsInfo(type).locked) {
+                        QTimer::singleShot(50, this, [=] {
+                            startAuthentication(m_account, type);
+                        });
+                    }
+                    break;
                 case StatusCodeLocked:
                     if (m_model->currentModeState() != SessionBaseModel::ModeStatus::PasswordMode)
                         m_model->setCurrentModeState(SessionBaseModel::ModeStatus::PasswordMode);
                     endAuthentication(m_account, type);
-                    QTimer::singleShot(10, this, [=] {
+                    // TODO: 信号时序问题,考虑优化,Bug 89056
+                    QTimer::singleShot(50, this, [=] {
                         m_model->updateAuthStatus(type, status, message);
                     });
                     break;
                 case StatusCodeTimeout:
                 case StatusCodeError:
-                    endAuthentication(m_account, type);
                     m_model->updateAuthStatus(type, status, message);
+                    endAuthentication(m_account, type);
                     break;
                 default:
                     m_model->updateAuthStatus(type, status, message);
@@ -644,17 +664,20 @@ void GreeterWorkek::showMessage(const QString &text, const QLightDM::Greeter::Me
  */
 void GreeterWorkek::authenticationComplete()
 {
-    qInfo() << "authentication complete, authenticated " << m_greeter->isAuthenticated() << m_retryAuth;
+    const bool result = m_greeter->isAuthenticated();
+    qInfo() << "Authentication result:" << result << m_retryAuth;
 
-    if (!m_greeter->isAuthenticated()) {
+    if (!result) {
         if (m_retryAuth && !m_model->getAuthProperty().MFAFlag) {
             showMessage(tr("Wrong Password"), QLightDM::Greeter::MessageTypeError);
-            m_greeter->authenticate(m_account);
+        }
+        if (!m_model->currentUser()->limitsInfo(AuthTypePassword).locked) {
+            m_greeter->authenticate(m_model->currentUser()->name());
         }
         return;
     }
 
-    emit m_model->authFinished(m_greeter->isAuthenticated());
+    emit m_model->authFinished(result);
 
     m_password.clear();
 
