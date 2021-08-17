@@ -961,8 +961,9 @@ void ContentWidget::tryGrabKeyboard()
 #ifdef QT_DEBUG
     return;
 #endif
+    if (!window()->windowHandle() || !isVisible()) return;
 
-    if (window()->windowHandle() && isVisible() && window()->windowHandle()->setKeyboardGrabEnabled(true)) {
+    if (window()->windowHandle()->setKeyboardGrabEnabled(true)) {
         m_failures = 0;
         return;
     }

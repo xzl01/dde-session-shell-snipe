@@ -114,9 +114,8 @@ int main(int argc, char *argv[])
     DBusLockFrontService service(&agent);
 
     auto createFrame = [&] (QScreen *screen, int size) -> QWidget* {
-        Q_UNUSED(size);
         LockFrame *lockFrame = new LockFrame(model);
-        lockFrame->setScreen(screen);
+        lockFrame->setScreen(screen, size <= 0);
         property_group->addObject(lockFrame);
         QObject::connect(lockFrame, &LockFrame::requestSwitchToUser, worker, &LockWorker::switchToUser);
         QObject::connect(lockFrame, &LockFrame::requestAuthUser, worker, &LockWorker::authUser);

@@ -125,10 +125,9 @@ int main(int argc, char *argv[])
         ShutdownFrontDBus adaptor(dbusAgent, model);
 
         auto createFrame = [&](QScreen * screen, int size) -> QWidget* {
-            Q_UNUSED(size);
             ShutdownFrame *frame = new ShutdownFrame(model);
             dbusAgent->addFrame(frame);
-            frame->setScreen(screen);
+            frame->setScreen(screen, size <= 0);
             property_group->addObject(frame);
             QObject::connect(model, &SessionBaseModel::visibleChanged, frame, &ShutdownFrame::setVisible);
             QObject::connect(frame, &ShutdownFrame::requestEnableHotzone, worker, &ShutdownWorker::enableZoneDetected);
