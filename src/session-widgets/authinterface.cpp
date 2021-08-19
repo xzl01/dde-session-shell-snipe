@@ -248,18 +248,29 @@ QVariant AuthInterface::getGSettings(const QString& key)
     return value;
 }
 
-bool AuthInterface::checkIsADDomain()
+bool AuthInterface::checkIsADDomain(const QString &key)
 {
     //当没有安装realmd或没有加入AD域时，返回为空
     QProcess process;
-    process.start("sudo realm list");
+    QString command = "";
+    if(key == "lock") {
+        command = "realm list";
+    } else if(key == "greeter"){
+        //因为登录界面时，用户是lightdm，直接realm list，会返回为空，所以需要sudo
+        command = "sudo realm list";
+    } else {
+        qDebug() << "is not lock/greeter";
+        return false;
+    }
+
+    process.start(command);
     process.waitForFinished();
     QString cmdinfo = QString(process.readAllStandardOutput());
     qDebug() << "cmd-result :" << cmdinfo;
-    if (cmdinfo.isEmpty())
-        return false;
+    if (!cmdinfo.isEmpty() && cmdinfo.contains("realm-name:"))
+        return true;
 
-    return true;
+    return false;
 }
 
 bool AuthInterface::isLogined(uint uid)
