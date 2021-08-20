@@ -33,6 +33,9 @@ public:
     virtual void onUserAdded(const QString &user);
     virtual void onUserRemove(const QString &user);
 
+    //判断是否加入AD域,这里用静态函数，里面的内容不受到类的成员影响
+    static bool checkIsADDomain(const QString& key);
+
     enum SwitchUser {
         Always = 0,
         Ondemand,
@@ -65,9 +68,6 @@ protected:
                                        key,
                                        failback);
     }
-
-    //判断是否加入AD域
-    bool checkIsADDomain(const QString& key);
 
 protected:
     SessionBaseModel*  m_model;
