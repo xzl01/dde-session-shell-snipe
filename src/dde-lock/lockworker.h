@@ -56,7 +56,7 @@ public:
     void setEditReadOnly(bool isReadOnly) override;
 
 private:
-    void onUserAdded(const QString &user) override;
+    void onUserAdded(const QString &user, std::shared_ptr<User> user_ptr) override;
     void saveNumlockStatus(std::shared_ptr<User> user, const bool &on);
     void recoveryUserKBState(std::shared_ptr<User> user);
 

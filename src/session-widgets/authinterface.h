@@ -30,7 +30,7 @@ public:
     virtual void switchToUser(std::shared_ptr<User> user);
     virtual void setLayout(std::shared_ptr<User> user, const QString &layout);
     virtual void onUserListChanged(const QStringList &list);
-    virtual void onUserAdded(const QString &user);
+    virtual void onUserAdded(const QString &user, std::shared_ptr<User> user_ptr);
     virtual void onUserRemove(const QString &user);
 
     //判断是否加入AD域,这里用静态函数，里面的内容不受到类的成员影响

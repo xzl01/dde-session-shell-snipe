@@ -78,8 +78,10 @@ const QList<std::shared_ptr<User> > SessionBaseModel::logindUser()
     QList<std::shared_ptr<User>> userList;
     for (auto user : m_userList) {
         if (user->isLogin()) {
-            userList << user;
+            if(!userList.contains(user))
+                userList << user;
         }
+        qDebug() << Q_FUNC_INFO << user->name();
     }
 
     return userList;
@@ -88,6 +90,7 @@ const QList<std::shared_ptr<User> > SessionBaseModel::logindUser()
 void SessionBaseModel::userAdd(std::shared_ptr<User> user)
 {
     // NOTE(zorowk): If there are duplicate uids, delete ADDomainUser first
+    qDebug() << Q_FUNC_INFO << user->type() << user->uid() << user->displayName() << user->name();
     auto user_exist = findUserByUid(user->uid());
     if (user_exist != nullptr && user_exist->metaObject() == &ADDomainUser::staticMetaObject) {
         userRemoved(user_exist);

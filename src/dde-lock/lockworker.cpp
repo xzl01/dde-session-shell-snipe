@@ -149,6 +149,7 @@ LockWorker::LockWorker(SessionBaseModel *const model, QObject *parent)
 void LockWorker::switchToUser(std::shared_ptr<User> user)
 {
     qDebug() << "switch user from" << m_model->currentUser()->name() << " to " << user->name();
+
     Auth::AuthInterface::switchToUser(user);
     // if type is lock, switch to greeter
     QJsonObject json;
@@ -218,9 +219,8 @@ void LockWorker::onPasswordResult(const QString &msg)
     onUnlockFinished(unlocked, true);
 }
 
-void LockWorker::onUserAdded(const QString &user)
+void LockWorker::onUserAdded(const QString &user, std::shared_ptr<User> user_ptr)
 {
-    std::shared_ptr<User> user_ptr(new NativeUser(user));
     if (!user_ptr->isUserIsvalid())
         return;
 

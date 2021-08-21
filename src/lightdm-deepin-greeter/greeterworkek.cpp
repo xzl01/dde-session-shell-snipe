@@ -161,20 +161,21 @@ GreeterWorkek::GreeterWorkek(SessionBaseModel *const model, QObject *parent)
         initDBus();
         initData();
 
+        //因为拉起认证之前需要先初始化用户列表，并添加自定义入口，防止因为没有添加自定义入口导致在切换用户时找不到入口
+        if(checkIsADDomain("greeter")) {
+               //平安科技1022专业版需要支持用户手动输入用户名和密码去请求认证
+               std::shared_ptr<User> user = std::make_shared<ADDomainUser>(INT_MAX);
+               static_cast<ADDomainUser *>(user.get())->setUserDisplayName("...");
+               m_model->userAdd(user);
+               //m_model->setCurrentUser(user);
+        }
+        
         if (QFile::exists("/etc/deepin/no_suspend"))
             m_model->setCanSleep(false);
 
         checkDBusServer(m_accountsInter->isValid());
         oneKeyLogin();
     }
-
-    if(checkIsADDomain("greeter")) {
-           //平安科技1022专业版需要支持用户手动输入用户名和密码去请求认证
-           std::shared_ptr<User> user = std::make_shared<ADDomainUser>(INT_MAX);
-           static_cast<ADDomainUser *>(user.get())->setUserDisplayName("...");
-           m_model->userAdd(user);
-           //m_model->setCurrentUser(user);
-       }
 
     if (DSysInfo::deepinType() == DSysInfo::DeepinServer || valueByQSettings<bool>("", "loginPromptInput", false)) {
         std::shared_ptr<User> user = std::make_shared<ADDomainUser>(INT_MAX);
@@ -206,7 +207,7 @@ GreeterWorkek::GreeterWorkek(SessionBaseModel *const model, QObject *parent)
 void GreeterWorkek::switchToUser(std::shared_ptr<User> user)
 {
     qDebug() << "switch user from" << m_model->currentUser()->name() << " to "
-             << user->name();
+             << user->name() << user->displayName();
 
     Auth::AuthInterface::switchToUser(user);
     // clear old password
@@ -257,10 +258,8 @@ void GreeterWorkek::authUser(const QString &password)
     }
 }
 
-void GreeterWorkek::onUserAdded(const QString &user)
+void GreeterWorkek::onUserAdded(const QString &user, std::shared_ptr<User> user_ptr)
 {
-    std::shared_ptr<User> user_ptr(new NativeUser(user));
-
     user_ptr->setisLogind(isLogined(user_ptr->uid()));
 
     if (m_model->currentUser().get() == nullptr) {
@@ -277,7 +276,6 @@ void GreeterWorkek::onUserAdded(const QString &user)
     if (user_ptr->uid() == m_lastLogoutUid) {
         m_model->setLastLogoutUser(user_ptr);
     }
-
     m_model->userAdd(user_ptr);
 }
 

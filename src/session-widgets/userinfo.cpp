@@ -349,9 +349,46 @@ bool NativeUser::is24HourFormat() const
     return true;
 }
 
+ADDomainUser::ADDomainUser(const QString &path, uid_t uid, QObject *parent)
+    : User(parent)
+{
+    m_uid = uid;
+    m_userInter = new UserInter(ACCOUNT_DBUS_SERVICE, path, QDBusConnection::systemBus(), this);
+
+    connect(m_userInter, &UserInter::IconFileChanged, this, &NativeUser::avatarChanged);
+    connect(m_userInter, &UserInter::FullNameChanged, this, [ = ](const QString & fullname) {
+        m_fullName = fullname;
+        emit displayNameChanged(fullname.isEmpty() ? m_userName : fullname);
+    });
+    connect(m_userInter, &UserInter::UserNameChanged, this, [ = ](const QString & user_name) {
+        m_userName = user_name;
+        emit displayNameChanged(m_fullName.isEmpty() ? m_userName : m_fullName);
+    });
+
+    connect(m_userInter, &UserInter::DesktopBackgroundsChanged, this, [ = ] {
+        emit desktopBackgroundPathChanged(desktopBackgroundPath());
+    });
+
+    connect(m_userInter, &UserInter::GreeterBackgroundChanged, this, [ = ](const QString & path) {
+        emit greeterBackgroundPathChanged(toLocalFile(path));
+    });
+
+    connect(m_userInter, &UserInter::LocaleChanged, this, &NativeUser::setLocale);
+    connect(m_userInter, &UserInter::HistoryLayoutChanged, this, &NativeUser::kbLayoutListChanged);
+    connect(m_userInter, &UserInter::LayoutChanged, this, &NativeUser::currentKBLayoutChanged);
+    connect(m_userInter, &UserInter::NoPasswdLoginChanged, this, &NativeUser::noPasswdLoginChanged);
+    connect(m_userInter, &UserInter::Use24HourFormatChanged, this, &NativeUser::use24HourFormatChanged);
+
+    m_userName = m_userInter->userName();
+
+    setPath(path);
+    checkUserInfo();
+}
+
 ADDomainUser::ADDomainUser(uid_t uid, QObject *parent)
     : User(parent)
 {
+    assert(uid == INT_MAX);
     m_uid = uid;
     checkUserInfo();
 }
@@ -410,7 +447,11 @@ QString ADDomainUser::displayName() const
 
 QString ADDomainUser::avatarPath() const
 {
-    return QString(":/img/default_avatar.svg");
+    if (isVirtualDomainUser()) {
+        return QString(":/img/default_avatar.svg");
+    } else {
+        return m_userInter->iconFile();
+    }
 }
 
 QString ADDomainUser::greeterBackgroundPath() const

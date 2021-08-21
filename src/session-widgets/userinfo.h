@@ -76,6 +76,8 @@ public:
     virtual QString currentKBLayout() { return QString(); }
     void onLockTimeOut();
 
+    bool isVirtualDomainUser() const {return m_uid == INT_MAX && ADDomain == type();}
+
 protected:
     void checkUserInfo();
 
@@ -127,6 +129,7 @@ class ADDomainUser : public User
     Q_OBJECT
 
 public:
+    ADDomainUser(const QString &path, uid_t uid, QObject *parent = nullptr);
     ADDomainUser(uid_t uid, QObject *parent = nullptr);
 
     void setUserDisplayName(const QString &name);

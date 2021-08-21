@@ -47,7 +47,7 @@ public:
 
     void switchToUser(std::shared_ptr<User> user) override;
     void authUser(const QString &password) override;
-    void onUserAdded(const QString &user) override;
+    void onUserAdded(const QString &user, std::shared_ptr<User> user_ptr) override;
 
 signals:
     void requestUpdateBackground(const QString &path);

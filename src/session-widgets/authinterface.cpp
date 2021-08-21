@@ -7,6 +7,7 @@
 #include <pwd.h>
 #include <unistd.h>
 #include <QProcessEnvironment>
+#include <stdio.h>
 
 #define POWER_CAN_SLEEP "POWER_CAN_SLEEP"
 #define POWER_CAN_HIBERNATE "POWER_CAN_HIBERNATE"
@@ -48,6 +49,26 @@ static qint64 get_power_image_size()
     return size;
 }
 
+static std::shared_ptr<User> createUser(const QString &path)
+{
+    uint uid = 0;
+    sscanf(path.toLatin1().data(), "/com/deepin/daemon/Accounts/User%u", &uid);
+    std::shared_ptr<User> usr_ptr;
+    if (uid > 10000) {
+        struct passwd *pws;
+        pws = getpwuid(uid);
+
+        usr_ptr = std::shared_ptr<User>(new ADDomainUser(path, uid));
+        static_cast<ADDomainUser *>(usr_ptr.get())->setUserDisplayName(pws->pw_name);
+        static_cast<ADDomainUser *>(usr_ptr.get())->setUserName(pws->pw_name);
+        qDebug() << "AuthInterface add domain user:" << uid;
+    } else {
+        usr_ptr = std::shared_ptr<User>(new NativeUser(path));
+    }
+
+    return usr_ptr;
+}
+
 AuthInterface::AuthInterface(SessionBaseModel *const model, QObject *parent)
     : QObject(parent)
     , m_model(model)
@@ -77,15 +98,19 @@ void AuthInterface::setLayout(std::shared_ptr<User> user, const QString &layout)
 
 void AuthInterface::onUserListChanged(const QStringList &list)
 {
+    qDebug() << Q_FUNC_INFO << list;
     QStringList tmpList;
     for (std::shared_ptr<User> u : m_model->userList()) {
         tmpList << QString("/com/deepin/daemon/Accounts/User%1").arg(u->uid());
     }
 
     for (const QString &u : list) {
+        std::shared_ptr<User> usr_ptr = createUser(u);
+        usr_ptr->setisLogind(this->isLogined(usr_ptr->uid()));
+
         if (!tmpList.contains(u)) {
             tmpList << u;
-            onUserAdded(u);
+            onUserAdded(u, usr_ptr);
         }
     }
 
@@ -96,9 +121,8 @@ void AuthInterface::onUserListChanged(const QStringList &list)
     }
 }
 
-void AuthInterface::onUserAdded(const QString &user)
+void AuthInterface::onUserAdded(const QString &user, std::shared_ptr<User> user_ptr)
 {
-    std::shared_ptr<User> user_ptr(new NativeUser(user));
     user_ptr->setisLogind(isLogined(user_ptr->uid()));
     m_model->userAdd(user_ptr);
 }
@@ -131,7 +155,11 @@ void AuthInterface::initDBus()
     m_loginedInter->setSync(true);
 
     connect(m_accountsInter, &AccountsInter::UserListChanged, this, &AuthInterface::onUserListChanged, Qt::QueuedConnection);
-    connect(m_accountsInter, &AccountsInter::UserAdded, this, &AuthInterface::onUserAdded, Qt::QueuedConnection);
+    connect(m_accountsInter, &AccountsInter::UserAdded, this, [this](QString path){
+        std::shared_ptr<User> usr_ptr = createUser(path);
+        usr_ptr->setisLogind(this->isLogined(usr_ptr->uid()));
+        this->onUserAdded(path, usr_ptr);
+    }, Qt::QueuedConnection);
     connect(m_accountsInter, &AccountsInter::UserDeleted, this, &AuthInterface::onUserRemove, Qt::QueuedConnection);
 
     connect(m_loginedInter, &LoginedInter::LastLogoutUserChanged, this, &AuthInterface::onLastLogoutUserChanged);
@@ -172,47 +200,13 @@ void AuthInterface::onLoginUserListChanged(const QString &list)
         if (haveDisplay) {
             m_loginUserList.push_back(uid);
         }
-
-        auto find_it = std::find_if(
-            availableUidList.begin(), availableUidList.end(),
-            [=](const uint find_addomain_uid) { return find_addomain_uid == uid; });
-
-        if (haveDisplay && find_it == availableUidList.end()) {
-            // init addoman user
-            std::shared_ptr<User> u(new ADDomainUser(uid));
-            u->setisLogind(true);
-
-            struct passwd *pws;
-            pws = getpwuid(uid);
-
-            static_cast<ADDomainUser *>(u.get())->setUserDisplayName(pws->pw_name);
-            static_cast<ADDomainUser *>(u.get())->setUserName(pws->pw_name);
-
-            if (uid == m_currentUserUid && m_model->currentUser().get() == nullptr) {
-                m_model->setCurrentUser(u);
-            }
-            m_model->userAdd(u);
-            availableUidList.push_back(uid);
-        }
     }
 
     QList<std::shared_ptr<User>> uList = m_model->userList();
     for (auto it = uList.begin(); it != uList.end();) {
         std::shared_ptr<User> user = *it;
-
-        auto find_it =
-            std::find_if(m_loginUserList.begin(), m_loginUserList.end(),
-                         [=](const uint find_uid) { return find_uid == user->uid(); });
-
-        if (find_it == m_loginUserList.end() &&
-            (user->type() == User::ADDomain && user->uid() != INT_MAX)) {
-            m_model->userRemoved(user);
-            it = uList.erase(it);
-        }
-        else {
-            user->setisLogind(isLogined(user->uid()));
-            ++it;
-        }
+        user->setisLogind(isLogined(user->uid()));
+        ++it;
     }
 
     if(m_model->isServerModel())
