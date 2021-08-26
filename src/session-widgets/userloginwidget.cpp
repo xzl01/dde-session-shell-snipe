@@ -67,7 +67,6 @@ UserLoginWidget::UserLoginWidget(QWidget *parent)
                                        "/com/deepin/daemon/Appearance",
                                        QDBusConnection::sessionBus(),
                                        this))
-    , m_passwordEditIsReadOnly(false)
 {
     initUI();
     initConnect();
@@ -124,7 +123,6 @@ void UserLoginWidget::setFaildMessage(const QString &message, SessionBaseModel::
 //密码输入错误,设置错误信息
 void UserLoginWidget::setFaildTipMessage(const QString &message, SessionBaseModel::AuthFaildType type)
 {
-    qDebug() << Q_FUNC_INFO << message;
     m_accountEdit->lineEdit()->setEnabled(true);
     m_passwordEdit->hideLoadSlider();
 
@@ -137,11 +135,6 @@ void UserLoginWidget::setFaildTipMessage(const QString &message, SessionBaseMode
     m_passwordEdit->hideLoadSlider();
     m_passwordEdit->showAlertMessage(message, 3000);
     m_passwordEdit->raise();
-}
-
-void UserLoginWidget::setEditReadOnly(bool isReadOnly)
-{
-    m_passwordEditIsReadOnly = isReadOnly;
 }
 
 //设置窗体显示模式
@@ -442,15 +435,9 @@ void UserLoginWidget::hideEvent(QHideEvent *event)
 bool UserLoginWidget::eventFilter(QObject *watched, QEvent *event)
 {
     if (event->type() == QEvent::KeyPress) {
-        qDebug() << watched << m_passwordEdit->lineEdit();
         QKeyEvent *key_event = static_cast<QKeyEvent *>(event);
         if (key_event->modifiers() & (Qt::ControlModifier | Qt::AltModifier | Qt::MetaModifier)) {
             if ((key_event->modifiers() & Qt::ControlModifier) && key_event->key() == Qt::Key_A) return false;
-            return true;
-        }
-
-        if (watched == m_passwordEdit->lineEdit() && m_passwordEditIsReadOnly) {
-            qDebug() << "========" << Q_FUNC_INFO << event->type() << m_passwordEditIsReadOnly;
             return true;
         }
     }

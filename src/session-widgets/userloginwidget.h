@@ -100,8 +100,6 @@ public:
 
     void setLockMessage(const QString &message);
 
-    void setEditReadOnly(bool isReadOnly);
-
 signals:
     void requestAuthUser(const QString &account, const QString &password);
     void clicked();
@@ -180,8 +178,6 @@ private:
     int m_timerIndex = 0;                           //解锁动画计数
     int m_action;                                   //重启或关机行为记录
     Appearance *m_dbusAppearance;
-
-    bool m_passwordEditIsReadOnly;
 };
 
 #endif // USERLOGINWIDGET_H

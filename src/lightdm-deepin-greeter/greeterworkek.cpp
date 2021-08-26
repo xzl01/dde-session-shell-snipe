@@ -411,7 +411,6 @@ void GreeterWorkek::message(QString text, QLightDM::Greeter::MessageType type)
 
     case QLightDM::Greeter::MessageTypeError:
         emit m_model->authFaildTipsMessage(QString(dgettext("fprintd", text.toUtf8())));
-        emit m_model->setEditReadOnly(true);
         break;
     }
 }
@@ -419,9 +418,6 @@ void GreeterWorkek::message(QString text, QLightDM::Greeter::MessageType type)
 void GreeterWorkek::authenticationComplete()
 {
     qDebug() << "authentication complete, authenticated " << m_greeter->isAuthenticated();
-
-    emit m_model->setEditReadOnly(false); //得到认证返回时，设置edit可输入
-
     if (!m_authSuccess) {
         m_authSuccess = m_greeter->isAuthenticated();
     }
@@ -530,7 +526,7 @@ void GreeterWorkek::recoveryUserKBState(std::shared_ptr<User> user)
 
 void GreeterWorkek::resetLightdmAuth(std::shared_ptr<User> user,int delay_time , bool is_respond)
 {
-    qDebug() << "suo: " << __func__ << __LINE__;
+        qDebug() << "suo: " << __func__ << __LINE__;
     if (user->isLock()) {return;}
 
     QTimer::singleShot(delay_time, this, [ = ] {
