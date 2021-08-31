@@ -431,7 +431,7 @@ void GreeterWorkek::createAuthentication(const QString &account)
         user_ptr->updatePasswordExpiredInfo();
     }
     switch (m_model->getAuthProperty().FrameworkState) {
-    case 0:
+    case Available:
         m_authFramework->CreateAuthController(account, m_authFramework->GetSupportedMixAuthFlags(), AppTypeLogin);
         m_authFramework->SetAuthQuitFlag(account, DeepinAuthFramework::ManualQuit);
         if (m_model->getAuthProperty().MFAFlag) {
@@ -456,7 +456,7 @@ void GreeterWorkek::destoryAuthentication(const QString &account)
 {
     qDebug() << "GreeterWorkek::destoryAuthentication:" << account;
     switch (m_model->getAuthProperty().FrameworkState) {
-    case 0:
+    case Available:
         m_authFramework->DestoryAuthController(account);
         break;
     default:
@@ -475,7 +475,7 @@ void GreeterWorkek::startAuthentication(const QString &account, const int authTy
 {
     qDebug() << "GreeterWorkek::startAuthentication:" << account << authType;
     switch (m_model->getAuthProperty().FrameworkState) {
-    case 0:
+    case Available:
         if (m_model->getAuthProperty().MFAFlag) {
             m_authFramework->StartAuthentication(account, authType, -1);
         } else {
@@ -502,7 +502,7 @@ void GreeterWorkek::sendTokenToAuth(const QString &account, const int authType, 
 {
     qDebug() << "GreeterWorkek::sendTokenToAuth:" << account << authType;
     switch (m_model->getAuthProperty().FrameworkState) {
-    case 0:
+    case Available:
         if (m_model->getAuthProperty().MFAFlag) {
             m_authFramework->SendTokenToAuth(account, authType, token);
             if (authType == AuthTypePassword) {
@@ -528,7 +528,7 @@ void GreeterWorkek::endAuthentication(const QString &account, const int authType
 {
     qDebug() << "GreeterWorkek::endAuthentication:" << account << authType;
     switch (m_model->getAuthProperty().FrameworkState) {
-    case 0:
+    case Available:
         if (authType == AuthTypeAll) {
             m_authFramework->SetPrivilegesDisable(account);
         }
