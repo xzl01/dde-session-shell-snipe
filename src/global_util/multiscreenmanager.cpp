@@ -80,7 +80,7 @@ void MultiScreenManager::raiseContentFrame()
     if (m_model == nullptr || !m_model->isShow()) {
         return;
     }
-    qDebug() << "MultiScreenManager::raiseContentFrame, monitor num=" << m_frameMoniter.size();
+    qDebug() << "MultiScreenManager::raiseContentFrame, monitor num=" << m_frameMoniter.size() << m_frameMoniter;
 
     //统计screen的信息
     QHash<QRect, Monitor*> rect2Screen;
@@ -176,8 +176,6 @@ void MultiScreenManager::raiseContentFrame()
             rect2Screen.remove(geometry);
         }
     }
-
-    m_frameMoniter[contentVisibleScreen]->setProperty("contentVisible", QVariant(true));
 }
 
 void MultiScreenManager::onMonitorsChanged(const QList<QDBusObjectPath> & mons)

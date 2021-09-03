@@ -123,6 +123,7 @@ void ShutdownFrame::globalShortcutsChanged(bool isEnable)
 
 void ShutdownFrame::showEvent(QShowEvent *event)
 {
+    qDebug() << "ShutdownFrame::showEvent:" << m_monitor << this << this->geometry();
     Q_EMIT requestEnableHotzone(false);
 
     m_model->setIsShow(true);
