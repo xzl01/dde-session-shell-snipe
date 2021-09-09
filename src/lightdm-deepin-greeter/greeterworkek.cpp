@@ -174,7 +174,8 @@ void GreeterWorkek::authUser(const QString &password)
             m_greeter->respond(password);
         }
         else {
-            m_greeter->authenticate(user->name());
+            QString name = user->name();
+            m_greeter->authenticate(name.remove(QRegExp("\\s")));
         }
     }
 }
