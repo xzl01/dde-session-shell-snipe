@@ -116,6 +116,9 @@ void UserLoginInfo::initConnect()
     connect(m_userLoginWidget, &UserLoginWidget::requestAuthUser, this, [ = ](const QString & account, const QString & password) {
         if (!m_userLoginWidget->inputInfoCheck(m_model->isServerModel())) return;
 
+        QString userName = account;
+        userName.remove(QRegExp("\\s"));
+
         //当前锁定不需要密码和当前用户不需要密码登录则直接进入系统
         if(m_model->isLockNoPassword() && m_model->currentUser()->isNoPasswdGrp()) {
             emit m_model->authFinished(true);
@@ -123,7 +126,7 @@ void UserLoginInfo::initConnect()
         }
 
         if (m_model->isServerModel() && m_model->currentUser()->isDoMainUser()) {
-            auto user = dynamic_cast<NativeUser *>(m_model->findUserByName(account).get());
+            auto user = dynamic_cast<NativeUser *>(m_model->findUserByName(userName).get());
             auto current_user = dynamic_cast<ADDomainUser *>(m_model->currentUser().get());
 
             if (!current_user->name().isEmpty()) {
@@ -138,7 +141,7 @@ void UserLoginInfo::initConnect()
             current_user->setUserInter(nullptr);
 
             if (user != nullptr) {
-                current_user->setUserName(account);
+                current_user->setUserName(userName);
                 current_user->setUserInter(user->getUserInter());
 
                 //连接用户密码锁定相关信息到当前登录界面
