@@ -1,3 +1,8 @@
+
+#include <sys/time.h>
+#define TRACE_ME_IN struct timeval tp ; gettimeofday ( &tp , nullptr ); printf("[%4ld.%4ld] In: %s\n",tp.tv_sec , tp.tv_usec,__PRETTY_FUNCTION__);
+#define TRACE_ME_OUT gettimeofday (const_cast<timeval *>(&tp) , nullptr ); printf("[%4ld.%4ld] Out: %s\n",tp.tv_sec , tp.tv_usec,__PRETTY_FUNCTION__);
+
 /*
  * Copyright (C) 2019 ~ 2019 Deepin Technology Co., Ltd.
  *
@@ -65,18 +70,25 @@ UserLoginWidget::UserLoginWidget(QWidget *parent)
     , m_isAlertMessageShow(false)
     , m_aniTimer(new QTimer(this))
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     initUI();
     initConnect();
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 UserLoginWidget::~UserLoginWidget()
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     m_kbLayoutBorder->deleteLater();
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 //重置控件的状态
 void UserLoginWidget::resetAllState()
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     m_passwordEdit->hideLoadSlider();
     m_passwordEdit->lineEdit()->clear();
     m_passwordEdit->lineEdit()->setPlaceholderText(QString());
@@ -88,15 +100,19 @@ void UserLoginWidget::resetAllState()
         m_lockButton->setIcon(DStyle::SP_LockElement);
     }
     updateUI();
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 //密码连续输入错误5次，设置提示信息
 void UserLoginWidget::setFaildMessage(const QString &message, SessionBaseModel::AuthFaildType type)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     if (m_isLock && !message.isEmpty()) {
         m_lockPasswordWidget->setMessage(message);
         m_accountEdit->lineEdit()->setEnabled(false);
         m_passwordEdit->hideAlertMessage();
+        TRACE_ME_OUT;	//<<==--TracePoint!
         return;
     }
 
@@ -109,27 +125,34 @@ void UserLoginWidget::setFaildMessage(const QString &message, SessionBaseModel::
     m_passwordEdit->lineEdit()->clear();
     m_passwordEdit->lineEdit()->setPlaceholderText(message);
     m_passwordEdit->lineEdit()->update();
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 //密码输入错误,设置错误信息
 void UserLoginWidget::setFaildTipMessage(const QString &message, SessionBaseModel::AuthFaildType type)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     Q_UNUSED(type);
 
     m_accountEdit->lineEdit()->setEnabled(true);
     if (m_isLock && !message.isEmpty()) {
         m_passwordEdit->hideAlertMessage();
+        TRACE_ME_OUT;	//<<==--TracePoint!
         return;
     }
     m_passwordEdit->lineEdit()->clear();
     m_passwordEdit->hideLoadSlider();
     m_passwordEdit->showAlertMessage(message, 3000);
     m_passwordEdit->raise();
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 //设置窗体显示模式
 void UserLoginWidget::setWidgetShowType(UserLoginWidget::WidgetShowType showType)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     m_showType = showType;
     updateUI();
     if (m_showType == NormalType || m_showType == IDAndPasswordType) {
@@ -153,11 +176,14 @@ void UserLoginWidget::setWidgetShowType(UserLoginWidget::WidgetShowType showType
             FrameDataBind::Instance()->refreshData("UserLoginKBLayout");
         });
     }
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 //更新窗体控件显示
 void UserLoginWidget::updateUI()
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     m_lockPasswordWidget->hide();
     m_accountEdit->hide();
     m_nameLbl->hide();
@@ -223,54 +249,71 @@ void UserLoginWidget::updateUI()
         setFocusProxy(m_accountEdit->lineEdit());
     } else if (m_passwordEdit->isVisible())
         setFocusProxy(m_passwordEdit->lineEdit());
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 
 }
 
 void UserLoginWidget::ShutdownPrompt(SessionBaseModel::PowerAction action)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     m_action = action;
 
     resetPowerIcon();
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 bool UserLoginWidget::inputInfoCheck(bool is_server)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     if (is_server && m_accountEdit->isVisible() && m_accountEdit->text().isEmpty()) {
         setFaildTipMessage(tr("Please enter the account"));
         m_accountEdit->lineEdit()->setFocus();
+        TRACE_ME_OUT;	//<<==--TracePoint!
         return false;
     }
 
     if (m_passwordEdit->isVisible() && m_passwordEdit->lineEdit()->text().isEmpty()) {
         m_passwordEdit->hideLoadSlider();
         if (is_server) setFaildTipMessage(tr("Please enter the password"));
+        TRACE_ME_OUT;	//<<==--TracePoint!
         return false;
     }
 
     if (m_lockPasswordWidget->isVisible()) {
         m_passwordEdit->hideLoadSlider();
+        TRACE_ME_OUT;	//<<==--TracePoint!
         return false;
     }
 
+    TRACE_ME_OUT;	//<<==--TracePoint!
     return true;
 }
 
 void UserLoginWidget::onOtherPageAccountChanged(const QVariant &value)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     int cursorIndex =  m_accountEdit->lineEdit()->cursorPosition();
     m_accountEdit->setText(value.toString());
     m_accountEdit->lineEdit()->setCursorPosition(cursorIndex);
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void UserLoginWidget::onOtherPagePasswordChanged(const QVariant &value)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     int cursorIndex =  m_passwordEdit->lineEdit()->cursorPosition();
     m_passwordEdit->setText(value.toString());
     m_passwordEdit->lineEdit()->setCursorPosition(cursorIndex);
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void UserLoginWidget::onOtherPageKBLayoutChanged(const QVariant &value)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     if (value.toBool()) {
         m_kbLayoutBorder->setParent(window());
     }
@@ -282,10 +325,13 @@ void UserLoginWidget::onOtherPageKBLayoutChanged(const QVariant &value)
     }
 
     refreshKBLayoutWidgetPosition();
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void UserLoginWidget::toggleKBLayoutWidget()
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     if (m_kbLayoutBorder->isVisible()) {
         m_kbLayoutBorder->hide();
     } else {
@@ -298,20 +344,26 @@ void UserLoginWidget::toggleKBLayoutWidget()
     }
     FrameDataBind::Instance()->updateValue("UserLoginKBLayout", m_kbLayoutBorder->isVisible());
     updateClipPath();
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void UserLoginWidget::refreshKBLayoutWidgetPosition()
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     const QPoint &point = mapTo(m_kbLayoutBorder->parentWidget(), QPoint(m_passwordEdit->geometry().x() + (m_passwordEdit->width() / 2),
                                                                          m_passwordEdit->geometry().bottomLeft().y()));
     m_kbLayoutBorder->move(point.x(), point.y());
     m_kbLayoutBorder->setArrowX(15);
     updateClipPath();
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 //设置密码输入框不可用
 void UserLoginWidget::disablePassword(bool disable, uint lockTime)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     m_isLock = disable;
     m_passwordEdit->setDisabled(disable);
     m_passwordEdit->setVisible(!disable);
@@ -329,101 +381,138 @@ void UserLoginWidget::disablePassword(bool disable, uint lockTime)
     if ( false == disable && true == m_isServerMode){
         m_accountEdit->lineEdit()->setEnabled(true);
     }
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void UserLoginWidget::updateAuthType(SessionBaseModel::AuthType type)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     m_authType = type;
     if (m_authType == SessionBaseModel::LightdmType) {
         m_lockButton->setIcon(DStyle::SP_ArrowNext);
     }
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void UserLoginWidget::updateIsLockNoPassword(const bool lockNoPassword)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     m_isLockNoPassword = lockNoPassword;
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void UserLoginWidget::receiveUserKBLayoutChanged(const QString &layout)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     m_passwordEdit->receiveUserKBLayoutChanged(layout);
     m_passwordEdit->lineEdit()->setFocus();
     emit requestUserKBLayoutChanged(layout);
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void UserLoginWidget::refreshBlurEffectPosition()
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     QRect rect = m_userLayout->geometry();
     rect.setTop(rect.top() + m_userAvatar->height() / 2 + m_userLayout->margin());
 
     m_blurEffectWidget->setGeometry(rect);
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 //窗体resize事件,更新阴影窗体的位置
 void UserLoginWidget::resizeEvent(QResizeEvent *event)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     refreshBlurEffectPosition();
     QTimer::singleShot(0, this, &UserLoginWidget::refreshKBLayoutWidgetPosition);
 
+    TRACE_ME_OUT;	//<<==--TracePoint!
     return QWidget::resizeEvent(event);
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void UserLoginWidget::showEvent(QShowEvent *event)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     updateUI();
 
     m_lockPasswordWidget->setFixedSize(QSize(m_passwordEdit->width(), m_passwordEdit->height()));
 
+    TRACE_ME_OUT;	//<<==--TracePoint!
     return QWidget::showEvent(event);
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void UserLoginWidget::mousePressEvent(QMouseEvent *event)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     Q_UNUSED(event);
     emit clicked();
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void UserLoginWidget::paintEvent(QPaintEvent *event)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     Q_UNUSED(event);
-    if (!m_isSelected)
-        return;
+    if (!m_isSelected) {
+        TRACE_ME_OUT;	//<<==--TracePoint!
+        return;}
     QPainter painter(this);
     //选中时，在窗体底端居中，绘制92*4尺寸的圆角矩形，样式数据来源于设计图
     painter.setPen(QColor(255, 255, 255, 76));
     painter.setBrush(QColor(255, 255, 255, 76));
     painter.setRenderHint(QPainter::Antialiasing, true);
     painter.drawRoundedRect(QRect(width() / 2 - 46, rect().bottom() - 4, 92, 4), 2, 2);
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 //fixed BUG 3518
 void UserLoginWidget::hideEvent(QHideEvent *event)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     Q_UNUSED(event);
 
     m_passwordEdit->hideAlertMessage();
     m_kbLayoutBorder->hide();
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 bool UserLoginWidget::eventFilter(QObject *watched, QEvent *event)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     if (event->type() == QEvent::KeyPress) {
         QKeyEvent *key_event = static_cast<QKeyEvent *>(event);
         if (key_event->modifiers() & (Qt::ControlModifier | Qt::AltModifier | Qt::MetaModifier)) {
             if ((key_event->modifiers() & Qt::ControlModifier) && key_event->key() == Qt::Key_A)
-{
-    return false;
-}
+            {
+                TRACE_ME_OUT;	//<<==--TracePoint!
+                return false;
+            }
+            TRACE_ME_OUT;	//<<==--TracePoint!
             return true;
         }
     }
 
+    TRACE_ME_OUT;	//<<==--TracePoint!
     return QObject::eventFilter(watched, event);
 }
 
 //初始化窗体控件
 void UserLoginWidget::initUI()
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     m_userAvatar->setAvatarSize(UserAvatar::AvatarLargeSize);
     m_userAvatar->setFixedSize(100, 100);
     m_userAvatar->setFocusPolicy(Qt::NoFocus);
@@ -518,11 +607,14 @@ void UserLoginWidget::initUI()
     mainLayout->addStretch();
 
     setLayout(mainLayout);
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 //初始化槽函数连接
 void UserLoginWidget::initConnect()
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     connect(m_passwordEdit->lineEdit(), &QLineEdit::textChanged, this, [ = ](const QString & value) {
         FrameDataBind::Instance()->updateValue("UserLoginPassword", value);
     });
@@ -558,26 +650,35 @@ void UserLoginWidget::initConnect()
     connect(m_passwordEdit, &DPasswordEditEx::selectionChanged, this, &UserLoginWidget::hidePasswordEditMessage);
     //字体大小改变需要更新用户名显示
     connect(qGuiApp, &QGuiApplication::fontChanged, this, &UserLoginWidget::updateNameLabel);
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 //设置用户名
 void UserLoginWidget::setName(const QString &name)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     if (m_showType != IDAndPasswordType) {
         m_name = name;
     }
     updateNameLabel();
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 //设置用户头像
 void UserLoginWidget::setAvatar(const QString &avatar)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     m_userAvatar->setIcon(avatar);
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 //设置用户头像尺寸
 void UserLoginWidget::setUserAvatarSize(const AvatarSize &avatarSize)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     if (avatarSize == AvatarSmallSize) {
         m_userAvatar->setAvatarSize(m_userAvatar->AvatarSmallSize);
     } else if (avatarSize == AvatarNormalSize) {
@@ -586,15 +687,21 @@ void UserLoginWidget::setUserAvatarSize(const AvatarSize &avatarSize)
         m_userAvatar->setAvatarSize(m_userAvatar->AvatarLargeSize);
     }
     m_userAvatar->setFixedSize(avatarSize, avatarSize);
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void UserLoginWidget::setWidgetWidth(int width)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     this->setFixedWidth(width);
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void UserLoginWidget::setIsLogin(bool isLogin)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     m_isLogin = isLogin;
     m_loginLabel->setVisible(isLogin);
     updateNameLabel();
@@ -603,101 +710,148 @@ void UserLoginWidget::setIsLogin(bool isLogin)
     } else {
         m_nameFrame->setContentsMargins(0, 0, 0, 0);
     }
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 bool UserLoginWidget::getIsLogin()
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
+    TRACE_ME_OUT;	//<<==--TracePoint!
     return  m_isLogin;
 }
 
 bool UserLoginWidget::getSelected()
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
+    TRACE_ME_OUT;	//<<==--TracePoint!
     return  m_isSelected;
 }
 
 void UserLoginWidget::setIsServer(bool isServer)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     m_isServerUser = isServer;
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 bool UserLoginWidget::getIsServer()
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
+    TRACE_ME_OUT;	//<<==--TracePoint!
     return m_isServerUser;
 }
 
 void UserLoginWidget::setIsServerMode(bool isServer)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     m_isServerMode = isServer;
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 bool UserLoginWidget::getIsServerMode()
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
+    TRACE_ME_OUT;	//<<==--TracePoint!
     return m_isServerMode;
 }
 
 void UserLoginWidget::updateKBLayout(const QStringList &list)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     QTimer::singleShot(0, this, [this, list] {
         m_kbLayoutWidget->updateButtonList(list);
         m_kbLayoutBorder->setContent(m_kbLayoutWidget);
         m_passwordEdit->setKBLayoutList(list);
         updateClipPath();
     });
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void UserLoginWidget::hideKBLayout()
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     m_kbLayoutBorder->hide();
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void UserLoginWidget::setKBLayoutList(QStringList kbLayoutList)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     m_KBLayoutList = kbLayoutList;
     updateKBLayout(m_KBLayoutList);
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void UserLoginWidget::setDefaultKBLayout(const QString &layout)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     m_kbLayoutWidget->setDefault(layout);
     updateClipPath();
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void UserLoginWidget::clearPassWord()
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     m_passwordEdit->lineEdit()->clear();
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void UserLoginWidget::setPassWordEditFocus()
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     m_passwordEdit->lineEdit()->setFocus();
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void UserLoginWidget::setUid(uint uid)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     m_uid = uid;
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 uint UserLoginWidget::uid()
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
+    TRACE_ME_OUT;	//<<==--TracePoint!
     return m_uid;
 }
 
 void UserLoginWidget::setSelected(bool isSelected)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     m_isSelected = isSelected;
     update();
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void UserLoginWidget::setFastSelected(bool isSelected)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     m_isSelected = isSelected;
     repaint();
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void UserLoginWidget::updateClipPath() 
 {
-    if (!m_kbLayoutClip)
-        return;
+    TRACE_ME_IN;	//<<==--TracePoint!
+    if (!m_kbLayoutClip) {
+        TRACE_ME_OUT;	//<<==--TracePoint!
+        return;}
     QRectF rc (0, 0, DDESESSIONCC::PASSWDLINEEIDT_WIDTH, m_kbLayoutBorder->height());
     qInfo() << "m_kbLayoutBorder->arrowHeight()-->" << rc.height();
     int iRadius = 20;
@@ -712,18 +866,24 @@ void UserLoginWidget::updateClipPath()
     path.lineTo (0, rc.height() - iRadius);
     path.lineTo (0, 0);
     m_kbLayoutClip->setClipPath (path);
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void UserLoginWidget::hidePasswordEditMessage()
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     if (m_isAlertMessageShow) {
         m_passwordEdit->hideAlertMessage();
         m_isAlertMessageShow = false;
     }
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void UserLoginWidget::updateNameLabel()
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     int width = m_nameLbl->fontMetrics().width(m_name);
     int labelMaxWidth = this->width() - 3 * m_nameLayout->spacing();
     if (m_isLogin)
@@ -735,10 +895,13 @@ void UserLoginWidget::updateNameLabel()
     }else{
         m_nameLbl->setText(m_name);
     }
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void UserLoginWidget::resetPowerIcon()
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     QPalette lockPalatte;
     if (m_action == SessionBaseModel::PowerAction::RequireRestart) {
         m_lockButton->setIcon(QIcon(":/img/bottom_actions/reboot.svg"));
@@ -749,16 +912,20 @@ void UserLoginWidget::resetPowerIcon()
     } else {
         if (m_authType == SessionBaseModel::LightdmType) {
             m_lockButton->setIcon(DStyle::SP_ArrowNext);
+            TRACE_ME_OUT;	//<<==--TracePoint!
             return;
         } else {
             m_lockButton->setIcon(DStyle::SP_LockElement);
         }
     }
     m_lockButton->setPalette(lockPalatte);
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void UserLoginWidget::unlockSuccessAni()
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     m_timerIndex = 0;
     m_lockButton->setIcon(DStyle::SP_LockElement);
 
@@ -776,10 +943,13 @@ void UserLoginWidget::unlockSuccessAni()
     });
 
     m_aniTimer->start(15);
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void UserLoginWidget::unlockFailedAni()
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     m_passwordEdit->lineEdit()->clear();
     m_passwordEdit->hideLoadSlider();
 
@@ -799,4 +969,6 @@ void UserLoginWidget::unlockFailedAni()
     });
 
     m_aniTimer->start(15);
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }

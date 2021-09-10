@@ -1,3 +1,8 @@
+
+#include <sys/time.h>
+#define TRACE_ME_IN struct timeval tp ; gettimeofday ( &tp , nullptr ); printf("[%4ld.%4ld] In: %s\n",tp.tv_sec , tp.tv_usec,__PRETTY_FUNCTION__);
+#define TRACE_ME_OUT gettimeofday (const_cast<timeval *>(&tp) , nullptr ); printf("[%4ld.%4ld] Out: %s\n",tp.tv_sec , tp.tv_usec,__PRETTY_FUNCTION__);
+
 /*
  * Copyright (C) 2011 ~ 2018 Deepin Technology Co., Ltd.
  *
@@ -46,11 +51,14 @@ static int xi2_opcode;
 
 int KeyboardPlantformX11::xinput_version(Display *display)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     XExtensionVersion *version;
     static int vers = -1;
 
-    if (vers != -1)
+    if (vers != -1) {
+        TRACE_ME_OUT;	//<<==--TracePoint!
         return vers;
+    }
 
     version = XGetExtensionVersion(display, INAME);
 
@@ -78,11 +86,13 @@ int KeyboardPlantformX11::xinput_version(Display *display)
         XIQueryVersion(display, &maj, &min);
     }
 
+    TRACE_ME_OUT;	//<<==--TracePoint!
     return vers;
 }
 
 void KeyboardPlantformX11::select_events(Display* display)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     XIEventMask m;
     m.deviceid = XIAllMasterDevices;
     m.mask_len = XIMaskLen(XI_LASTEVENT);
@@ -101,10 +111,13 @@ void KeyboardPlantformX11::select_events(Display* display)
 
     free(m.mask);
     XSync(display, False);
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 int KeyboardPlantformX11::listen(Display *display)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     Window root = DefaultRootWindow(display);
     int root_x, root_y, nouse;
     Window noused_window;
@@ -154,6 +167,7 @@ int KeyboardPlantformX11::listen(Display *display)
 
         XFreeEventData(display, cookie);
     }
+    TRACE_ME_OUT;	//<<==--TracePoint!
     return EXIT_SUCCESS;
 }
 
@@ -165,6 +179,7 @@ KeyboardPlantformX11::KeyboardPlantformX11(QObject *parent)
 
 bool KeyboardPlantformX11::isCapslockOn()
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     bool result;
     unsigned int n = 0;
     static Display* d = QX11Info::display();
@@ -172,11 +187,13 @@ bool KeyboardPlantformX11::isCapslockOn()
     XkbGetIndicatorState(d, XkbUseCoreKbd, &n);
     result = (n & 0x01) != 0;
 
+    TRACE_ME_OUT;	//<<==--TracePoint!
     return result;
 }
 
 bool KeyboardPlantformX11::isNumlockOn()
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     bool result;
     unsigned int n = 0;
     static Display* d = QX11Info::display();
@@ -184,11 +201,13 @@ bool KeyboardPlantformX11::isNumlockOn()
     XkbGetIndicatorState(d, XkbUseCoreKbd, &n);
     result = (n & 0x02) != 0;
 
+    TRACE_ME_OUT;	//<<==--TracePoint!
     return result;
 }
 
 bool KeyboardPlantformX11::setNumlockStatus(const bool &on)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     Display* d = QX11Info::display();
 
     XKeyboardState x;
@@ -196,6 +215,7 @@ bool KeyboardPlantformX11::setNumlockStatus(const bool &on)
     const bool numLockEnabled = x.led_mask & 2;
 
     if (numLockEnabled == on) {
+        TRACE_ME_OUT;	//<<==--TracePoint!
         return true;
     }
 
@@ -210,24 +230,30 @@ bool KeyboardPlantformX11::setNumlockStatus(const bool &on)
     int releseExit = XTestFakeKeyEvent(d, keycode, False, CurrentTime);
     XFlush(d);
 
+    TRACE_ME_OUT;	//<<==--TracePoint!
     return pressExit == 0 && releseExit == 0;
 }
 
 void KeyboardPlantformX11::run()
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     Display* display = XOpenDisplay(nullptr);
     int event, error;
 
     if (!XQueryExtension(display, "XInputExtension", &xi2_opcode, &event, &error)) {
         fprintf(stderr, "XInput2 not available.\n");
+        TRACE_ME_OUT;	//<<==--TracePoint!
         return;
     }
 
     if (!xinput_version(display)) {
         fprintf(stderr, "XInput2 extension not available\n");
+        TRACE_ME_OUT;	//<<==--TracePoint!
         return;
     }
 
     select_events(display);
     listen(display);
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }

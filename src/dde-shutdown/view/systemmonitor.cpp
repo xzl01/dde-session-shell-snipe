@@ -1,3 +1,8 @@
+
+#include <sys/time.h>
+#define TRACE_ME_IN struct timeval tp ; gettimeofday ( &tp , nullptr ); printf("[%4ld.%4ld] In: %s\n",tp.tv_sec , tp.tv_usec,__PRETTY_FUNCTION__);
+#define TRACE_ME_OUT gettimeofday (const_cast<timeval *>(&tp) , nullptr ); printf("[%4ld.%4ld] Out: %s\n",tp.tv_sec , tp.tv_usec,__PRETTY_FUNCTION__);
+
 /*
  * Copyright (C) 2011 ~ 2018 Deepin Technology Co., Ltd.
  *
@@ -36,6 +41,7 @@
 
 SystemMonitor::SystemMonitor(QWidget *parent) : QWidget(parent)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     m_state = Leave;
 
     m_icon = new QWidget;
@@ -57,16 +63,22 @@ SystemMonitor::SystemMonitor(QWidget *parent) : QWidget(parent)
 
     setLayout(layout);
     setMinimumHeight(40);
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void SystemMonitor::setState(SystemMonitor::State state)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     m_state = state;
     update();
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void SystemMonitor::enterEvent(QEvent *event)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     QWidget::enterEvent(event);
 
     m_text->setStyleSheet("color: white;"
@@ -74,10 +86,13 @@ void SystemMonitor::enterEvent(QEvent *event)
 
     m_state = Enter;
     update();
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void SystemMonitor::leaveEvent(QEvent *event)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     QWidget::leaveEvent(event);
 
     m_text->setStyleSheet("color: white;"
@@ -85,10 +100,13 @@ void SystemMonitor::leaveEvent(QEvent *event)
 
     m_state = Leave;
     update();
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void SystemMonitor::mouseReleaseEvent(QMouseEvent *event)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     QWidget::mouseReleaseEvent(event);
 
     m_text->setStyleSheet("color: white;"
@@ -98,10 +116,13 @@ void SystemMonitor::mouseReleaseEvent(QMouseEvent *event)
     update();
 
     emit clicked();
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void SystemMonitor::mousePressEvent(QMouseEvent *event)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     QWidget::mousePressEvent(event);
 
     m_text->setStyleSheet("color: #2ca7f8;"
@@ -111,10 +132,13 @@ void SystemMonitor::mousePressEvent(QMouseEvent *event)
     update();
 
     event->accept();
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 bool SystemMonitor::eventFilter(QObject *watched, QEvent *event)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     if (watched == m_icon) {
         if (event->type() == QEvent::Paint) {
             QPainter painter(m_icon);
@@ -123,11 +147,13 @@ bool SystemMonitor::eventFilter(QObject *watched, QEvent *event)
         }
     }
 
+    TRACE_ME_OUT;	//<<==--TracePoint!
     return false;
 }
 
 void SystemMonitor::paintEvent(QPaintEvent *event)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     Q_UNUSED(event);
 
     QPainter painter(this);
@@ -152,4 +178,6 @@ void SystemMonitor::paintEvent(QPaintEvent *event)
     default:
         break;
     }
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }

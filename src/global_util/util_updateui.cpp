@@ -1,3 +1,8 @@
+
+#include <sys/time.h>
+#define TRACE_ME_IN struct timeval tp ; gettimeofday ( &tp , nullptr ); printf("[%4ld.%4ld] In: %s\n",tp.tv_sec , tp.tv_usec,__PRETTY_FUNCTION__);
+#define TRACE_ME_OUT gettimeofday (const_cast<timeval *>(&tp) , nullptr ); printf("[%4ld.%4ld] Out: %s\n",tp.tv_sec , tp.tv_usec,__PRETTY_FUNCTION__);
+
 /*
  * Copyright (C) 2015 ~ 2018 Deepin Technology Co., Ltd.
  *
@@ -26,6 +31,7 @@
 #include "util_updateui.h"
 
 void updateStyle(QString styleFiles, QWidget* widget){
+    TRACE_ME_IN;	//<<==--TracePoint!
     QFile qssFile(QString("%1").arg(styleFiles));
 
     QString qss;
@@ -35,5 +41,7 @@ void updateStyle(QString styleFiles, QWidget* widget){
         widget->setStyleSheet(qss);
         qssFile.close();
     }
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 

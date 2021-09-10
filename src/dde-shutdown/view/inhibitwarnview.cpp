@@ -1,3 +1,8 @@
+
+#include <sys/time.h>
+#define TRACE_ME_IN struct timeval tp ; gettimeofday ( &tp , nullptr ); printf("[%4ld.%4ld] In: %s\n",tp.tv_sec , tp.tv_usec,__PRETTY_FUNCTION__);
+#define TRACE_ME_OUT gettimeofday (const_cast<timeval *>(&tp) , nullptr ); printf("[%4ld.%4ld] Out: %s\n",tp.tv_sec , tp.tv_usec,__PRETTY_FUNCTION__);
+
 /*
  * Copyright (C) 2011 ~ 2018 Deepin Technology Co., Ltd.
  *
@@ -36,6 +41,7 @@ const int ButtonHeight = 64;
 InhibitorRow::InhibitorRow(QString who, QString why, const QIcon &icon, QWidget *parent)
     : QWidget(parent)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     QHBoxLayout *layout = new QHBoxLayout;
     QLabel *whoLabel = new QLabel(who);
     QLabel *whyLabel = new QLabel("-" + why);
@@ -58,6 +64,8 @@ InhibitorRow::InhibitorRow(QString who, QString why, const QIcon &icon, QWidget 
     this->setFixedHeight(ButtonHeight);
     this->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     this->setLayout(layout);
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 InhibitorRow::~InhibitorRow()
@@ -67,6 +75,7 @@ InhibitorRow::~InhibitorRow()
 
 void InhibitorRow::paintEvent(QPaintEvent *event)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     QWidget::paintEvent(event);
     QPainter painter(this);
 
@@ -74,12 +83,15 @@ void InhibitorRow::paintEvent(QPaintEvent *event)
     painter.setBrush(QColor(255, 255, 255, 25));
     painter.setRenderHint(QPainter::Antialiasing, true);
     painter.drawRoundedRect(this->rect(), 18, 18);
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 InhibitWarnView::InhibitWarnView(Actions inhibitType, QWidget *parent)
     : WarningView(parent)
     , m_inhibitType(inhibitType)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     m_acceptBtn = new QPushButton(QString());
     m_acceptBtn->setObjectName("AcceptButton");
     m_acceptBtn->setIconSize(QSize(ButtonIconSize, ButtonIconSize));
@@ -133,15 +145,21 @@ InhibitWarnView::InhibitWarnView(Actions inhibitType, QWidget *parent)
 
     connect(m_cancelBtn, &QPushButton::clicked, this, &InhibitWarnView::cancelled);
     connect(m_acceptBtn, &QPushButton::clicked, [this] {emit actionInvoked(m_action);});
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 InhibitWarnView::~InhibitWarnView()
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     FrameDataBind::Instance()->unRegisterFunction("InhibitWarnView", m_dataBindIndex);
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void InhibitWarnView::setInhibitorList(const QList<InhibitorData> &list)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     for (QWidget *widget : m_inhibitorPtrList) {
         m_inhibitorListLayout->removeWidget(widget);
         widget->deleteLater();
@@ -170,20 +188,29 @@ void InhibitWarnView::setInhibitorList(const QList<InhibitorData> &list)
         m_inhibitorPtrList.append(inhibitorWidget);
         m_inhibitorListLayout->addWidget(inhibitorWidget, 0, Qt::AlignHCenter);
     }
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void InhibitWarnView::setInhibitConfirmMessage(const QString &text)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     m_confirmTextLabel->setText(text);
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void InhibitWarnView::setAcceptReason(const QString &reason)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     m_acceptBtn->setText(reason);
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void InhibitWarnView::setAction(const Actions action)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     m_action = action;
 
     QString icon_string;
@@ -202,15 +229,21 @@ void InhibitWarnView::setAction(const Actions action)
     const auto ratio = devicePixelRatioF();
     QIcon icon_pix = QIcon::fromTheme(icon_string).pixmap(m_acceptBtn->iconSize() * ratio);
     m_acceptBtn->setIcon(icon_pix);
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void InhibitWarnView::setAcceptVisible(const bool acceptable)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     m_acceptBtn->setVisible(acceptable);
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void InhibitWarnView::toggleButtonState()
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     if (m_cancelBtn->isChecked() && m_acceptBtn->isVisible()) {
         m_cancelBtn->setChecked(false);
         m_acceptBtn->setChecked(true);
@@ -222,20 +255,28 @@ void InhibitWarnView::toggleButtonState()
     }
 
     FrameDataBind::Instance()->updateValue("InhibitWarnView", m_currentBtn->objectName());
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void InhibitWarnView::buttonClickHandle()
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     emit m_currentBtn->clicked();
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 Actions InhibitWarnView::inhibitType() const
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
+    TRACE_ME_OUT;	//<<==--TracePoint!
     return m_inhibitType;
 }
 
 void InhibitWarnView::onOtherPageDataChanged(const QVariant &value)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     const QString objectName { value.toString() };
 
     if (objectName == "AcceptButton") {
@@ -247,4 +288,6 @@ void InhibitWarnView::onOtherPageDataChanged(const QVariant &value)
         m_cancelBtn->setChecked(true);
         m_currentBtn = m_cancelBtn;
     }
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }

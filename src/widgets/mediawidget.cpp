@@ -1,3 +1,8 @@
+
+#include <sys/time.h>
+#define TRACE_ME_IN struct timeval tp ; gettimeofday ( &tp , nullptr ); printf("[%4ld.%4ld] In: %s\n",tp.tv_sec , tp.tv_usec,__PRETTY_FUNCTION__);
+#define TRACE_ME_OUT gettimeofday (const_cast<timeval *>(&tp) , nullptr ); printf("[%4ld.%4ld] Out: %s\n",tp.tv_sec , tp.tv_usec,__PRETTY_FUNCTION__);
+
 /*
  * Copyright (C) 2011 ~ 2018 Deepin Technology Co., Ltd.
  *
@@ -31,12 +36,16 @@
 
 MediaWidget::MediaWidget(QWidget *parent) : QWidget(parent)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     initUI();
     initConnect();
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void MediaWidget::initUI()
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     m_dmprisWidget = new DMPRISControl;
     m_dmprisWidget->setFixedWidth(200);
     m_dmprisWidget->setPictureVisible(false);
@@ -46,20 +55,26 @@ void MediaWidget::initUI()
     mainlayout->addWidget(m_dmprisWidget, 0, Qt::AlignBottom);
 
     setLayout(mainlayout);
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 
     //updateStyle(":/skin/mediawidget.qss", this);
 }
 
 void MediaWidget::initConnect()
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     connect(m_dmprisWidget, &DMPRISControl::mprisAcquired, this, &MediaWidget::changeVisible);
     connect(m_dmprisWidget, &DMPRISControl::mprisLosted, this, &MediaWidget::changeVisible);
 
     changeVisible();
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void MediaWidget::initMediaPlayer()
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     QDBusInterface dbusInter("org.freedesktop.DBus", "/", "org.freedesktop.DBus", QDBusConnection::sessionBus(), this);
 
     QDBusPendingCall call = dbusInter.asyncCall("ListNames");
@@ -90,6 +105,7 @@ void MediaWidget::initMediaPlayer()
                     }
                 }
                        );
+                TRACE_ME_OUT;	//<<==--TracePoint!
                 return;
             }
 
@@ -106,10 +122,15 @@ void MediaWidget::initMediaPlayer()
 
         watcher->deleteLater();
     });
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void MediaWidget::changeVisible()
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     const bool isWorking = m_dmprisWidget->isWorking();
     m_dmprisWidget->setVisible(isWorking);
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }

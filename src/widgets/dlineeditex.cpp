@@ -1,3 +1,8 @@
+
+#include <sys/time.h>
+#define TRACE_ME_IN struct timeval tp ; gettimeofday ( &tp , nullptr ); printf("[%4ld.%4ld] In: %s\n",tp.tv_sec , tp.tv_usec,__PRETTY_FUNCTION__);
+#define TRACE_ME_OUT gettimeofday (const_cast<timeval *>(&tp) , nullptr ); printf("[%4ld.%4ld] Out: %s\n",tp.tv_sec , tp.tv_usec,__PRETTY_FUNCTION__);
+
 /*
  * Copyright (C) 2019 ~ 2019 Deepin Technology Co., Ltd.
  *
@@ -31,6 +36,7 @@ DLineEditEx::DLineEditEx(QWidget *parent)
 //重写QLineEdit paintEvent函数，实现当文本设置居中后，holderText仍然显示的需求
 void DLineEditEx::paintEvent(QPaintEvent *event)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     Q_UNUSED(event);
 
     if (lineEdit()->hasFocus() && lineEdit()->alignment() == Qt::AlignCenter
@@ -45,4 +51,6 @@ void DLineEditEx::paintEvent(QPaintEvent *event)
         option.setAlignment(Qt::AlignCenter);
         pa.drawText(lineEdit()->rect(), lineEdit()->placeholderText(), option);
     }
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }

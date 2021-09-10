@@ -1,3 +1,8 @@
+
+#include <sys/time.h>
+#define TRACE_ME_IN struct timeval tp ; gettimeofday ( &tp , nullptr ); printf("[%4ld.%4ld] In: %s\n",tp.tv_sec , tp.tv_usec,__PRETTY_FUNCTION__);
+#define TRACE_ME_OUT gettimeofday (const_cast<timeval *>(&tp) , nullptr ); printf("[%4ld.%4ld] Out: %s\n",tp.tv_sec , tp.tv_usec,__PRETTY_FUNCTION__);
+
 /*
  * Copyright (C) 2015 ~ 2018 Deepin Technology Co., Ltd.
  *
@@ -52,6 +57,7 @@ DWIDGET_USE_NAMESPACE
 
 int main(int argc, char *argv[])
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     DApplication app(argc, argv);
     QApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
     app.setOrganizationName("deepin");
@@ -110,6 +116,7 @@ int main(int argc, char *argv[])
             .call();
         }
 
+        TRACE_ME_OUT;	//<<==--TracePoint!
         return 0;
     } else {
         qDebug() << "dbus registration success.";
@@ -143,6 +150,7 @@ int main(int argc, char *argv[])
                 emit adaptor.ChangKey(key);
             });
             frame->setVisible(model->isShow());
+            TRACE_ME_OUT;	//<<==--TracePoint!
             return frame;
         };
 
@@ -162,6 +170,7 @@ int main(int argc, char *argv[])
         Q_UNUSED(adaptor);
         QDBusConnection::sessionBus().registerObject(DBUS_PATH, dbusAgent);
 
+        TRACE_ME_OUT;	//<<==--TracePoint!
         return app.exec();
     }
 }

@@ -1,3 +1,8 @@
+
+#include <sys/time.h>
+#define TRACE_ME_IN struct timeval tp ; gettimeofday ( &tp , nullptr ); printf("[%4ld.%4ld] In: %s\n",tp.tv_sec , tp.tv_usec,__PRETTY_FUNCTION__);
+#define TRACE_ME_OUT gettimeofday (const_cast<timeval *>(&tp) , nullptr ); printf("[%4ld.%4ld] Out: %s\n",tp.tv_sec , tp.tv_usec,__PRETTY_FUNCTION__);
+
 /*
  * Copyright (C) 2015 ~ 2018 Deepin Technology Co., Ltd.
  *
@@ -31,6 +36,7 @@
 LayoutButton::LayoutButton(QString text, QWidget *parent)
     : QPushButton(parent)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     setObjectName("LayoutButton");
     setCheckable(true);
     setFocusPolicy(Qt::NoFocus);
@@ -58,28 +64,40 @@ LayoutButton::LayoutButton(QString text, QWidget *parent)
 
 
     updateStyle(":/skin/layoutbutton.qss", this);
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 void LayoutButton::enterEvent(QEvent *event) {
+    TRACE_ME_IN;	//<<==--TracePoint!
     emit mouseEnter(m_text);
     Q_UNUSED(event);
 //    qDebug() << "enterEvent;";
     updateStyleSelf();
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void LayoutButton::leaveEvent(QEvent *event) {
+    TRACE_ME_IN;	//<<==--TracePoint!
     emit mouseLeave(m_text);
     Q_UNUSED(event);
 //    qDebug() << "leaveEvent;";
      updateStyleSelf();
+     TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void LayoutButton::updateStyleSelf() {
+    TRACE_ME_IN;	//<<==--TracePoint!
     style()->unpolish(this);
     style()->polish(this);
     this->update();
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void LayoutButton::setButtonChecked(bool checked) {
+    TRACE_ME_IN;	//<<==--TracePoint!
     if (checked) {
         this->setChecked(true);
         m_textLabel->setProperty("Checked", true);
@@ -93,13 +111,18 @@ void LayoutButton::setButtonChecked(bool checked) {
     }
 
     updateStyleSelf();
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 
 }
 
 void LayoutButton::OnlyMeChecked(bool checked) {
+    TRACE_ME_IN;	//<<==--TracePoint!
     setButtonChecked(checked);
     qDebug() << "onLyMeChecked" << m_text;
     emit onlyOneChecked(m_text);
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 LayoutButton::~LayoutButton()
@@ -109,6 +132,7 @@ LayoutButton::~LayoutButton()
 KbLayoutWidget::KbLayoutWidget(QStringList buttons, QWidget *parent)
     : QListWidget(parent)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     if (!buttons.isEmpty()) {
         m_buttons.clear();
         m_buttons = buttons;
@@ -120,9 +144,12 @@ KbLayoutWidget::KbLayoutWidget(QStringList buttons, QWidget *parent)
     updateButtonList(buttons);
     updateUI();
     setFocusPolicy(Qt::StrongFocus);
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void KbLayoutWidget::initUI() {
+    TRACE_ME_IN;	//<<==--TracePoint!
     setObjectName("KeyboardLayoutFrame");
     setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     this->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
@@ -135,9 +162,12 @@ void KbLayoutWidget::initUI() {
     this->setMaximumHeight(DDESESSIONCC::LAYOUTBUTTON_HEIGHT * 3);
 
     updateStyle(":/skin/keybdlayoutwidget.qss", this);
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void KbLayoutWidget::setButtonsChecked(QString text) {
+    TRACE_ME_IN;	//<<==--TracePoint!
     qDebug() << "XsetButtonsChecked:" << text;
     for (int i = 0; i < m_layoutButtons.length(); i++) {
         if (m_layoutButtons.at(i)->m_text != text) {
@@ -170,21 +200,28 @@ void KbLayoutWidget::setButtonsChecked(QString text) {
     qDebug() << proc->exitCode() << proc->readAll() << proc->program() << proc->arguments();
 
     emit setButtonClicked(kbd);
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void KbLayoutWidget::setListItemChecked(int itemIndex) {
+    TRACE_ME_IN;	//<<==--TracePoint!
     qDebug() << "m_layoutbuttons.length:" << m_layoutButtons.length() << itemIndex;
     if (itemIndex <  m_layoutButtons.length()) {
         QString itemText = m_layoutButtons.at(itemIndex)->m_text;
         qDebug() << "itemIndex itemText:" << itemIndex << itemText;
         setButtonsChecked(itemText);
     }
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void KbLayoutWidget::updateButtonList(const QStringList &buttons)
 {
-    if (buttons == m_buttons)
-        return;
+    TRACE_ME_IN;	//<<==--TracePoint!
+    if (buttons == m_buttons) {
+        TRACE_ME_OUT;	//<<==--TracePoint!
+        return;}
 
     m_buttons = buttons;
 
@@ -223,19 +260,27 @@ void KbLayoutWidget::updateButtonList(const QStringList &buttons)
     if (!m_userLayout.isEmpty()) {
         setDefault(m_userLayout);
     }
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void KbLayoutWidget::setDefault(const QString &layout)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     m_userLayout = layout;
 
     const int index = m_buttons.indexOf(layout);
-    if(index > -1)
+    if(index > -1) {
         setListItemChecked(index);
+    }
+
+        TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void KbLayoutWidget::addButton(const QString &button)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     LayoutButton* itemButton = new LayoutButton(button);
     m_layoutButtons.append(itemButton);
     itemButton->setFixedSize(widget_width, DDESESSIONCC::LAYOUTBUTTON_HEIGHT);
@@ -259,13 +304,19 @@ void KbLayoutWidget::addButton(const QString &button)
 
     connect(itemButton, &LayoutButton::clicked, itemButton, &LayoutButton::OnlyMeChecked, Qt::UniqueConnection);
     connect(itemButton, &LayoutButton::onlyOneChecked, this, &KbLayoutWidget::setButtonsChecked, Qt::UniqueConnection);
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void KbLayoutWidget::focusOutEvent(QFocusEvent *event)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     emit focusOuted();
 
+    TRACE_ME_OUT;	//<<==--TracePoint!
     return QListWidget::focusOutEvent(event);
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void KbLayoutWidget::updateUI() {

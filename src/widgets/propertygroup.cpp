@@ -1,3 +1,8 @@
+
+#include <sys/time.h>
+#define TRACE_ME_IN struct timeval tp ; gettimeofday ( &tp , nullptr ); printf("[%4ld.%4ld] In: %s\n",tp.tv_sec , tp.tv_usec,__PRETTY_FUNCTION__);
+#define TRACE_ME_OUT gettimeofday (const_cast<timeval *>(&tp) , nullptr ); printf("[%4ld.%4ld] Out: %s\n",tp.tv_sec , tp.tv_usec,__PRETTY_FUNCTION__);
+
 /*
  * Copyright (C) 2017 ~ 2019 Deepin Technology Co., Ltd.
  *
@@ -33,13 +38,15 @@ PropertyGroup::PropertyGroup(QObject *parent)
 
 int PropertyGroup::addObject(QObject *obj)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     m_objList.append(obj);
     int objIndex = m_objList.count() - 1;
 
     connect(obj, &QObject::destroyed, this, &PropertyGroup::removeObject);
 
-    if (m_propertyList.isEmpty())
-        return objIndex;
+    if (m_propertyList.isEmpty()) {
+        TRACE_ME_OUT;	//<<==--TracePoint!
+        return objIndex;}
 
     const QMetaObject *mo = obj->metaObject();
 
@@ -64,20 +71,25 @@ int PropertyGroup::addObject(QObject *obj)
         }
     }
 
+    TRACE_ME_OUT;	//<<==--TracePoint!
     return objIndex;
 }
 
 void PropertyGroup::removeObject(QObject *obj)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     for (QSignalMapper *mapper : m_signalMapperMap) {
         mapper->removeMappings(obj);
     }
 
     m_objList.removeOne(obj);
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void PropertyGroup::addProperty(const QByteArray &propertyName)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     m_propertyList.append(propertyName);
 
     QSignalMapper *mapper = new QSignalMapper(this);
@@ -86,15 +98,21 @@ void PropertyGroup::addProperty(const QByteArray &propertyName)
 
     connect(mapper, static_cast<void (QSignalMapper::*)(QObject *)>(&QSignalMapper::mapped),
             this, &PropertyGroup::onObjectPropertyChanged);
+            TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void PropertyGroup::removeProperty(const QByteArray &propertyName)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     m_signalMapperMap.take(propertyName)->deleteLater();
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void PropertyGroup::onObjectPropertyChanged(QObject *obj)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     if (QSignalMapper *mapper = qobject_cast<QSignalMapper*>(sender())) {
         const QByteArray &property_name = m_signalMapperMap.key(mapper);
         Q_ASSERT(!property_name.isEmpty());
@@ -115,4 +133,6 @@ void PropertyGroup::onObjectPropertyChanged(QObject *obj)
             }
         }
     }
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }

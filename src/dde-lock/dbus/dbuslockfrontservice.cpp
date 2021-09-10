@@ -1,3 +1,8 @@
+
+#include <sys/time.h>
+#define TRACE_ME_IN struct timeval tp ; gettimeofday ( &tp , nullptr ); printf("[%4ld.%4ld] In: %s\n",tp.tv_sec , tp.tv_usec,__PRETTY_FUNCTION__);
+#define TRACE_ME_OUT gettimeofday (const_cast<timeval *>(&tp) , nullptr ); printf("[%4ld.%4ld] Out: %s\n",tp.tv_sec , tp.tv_usec,__PRETTY_FUNCTION__);
+
 /*
  * Copyright (C) 2011 ~ 2018 Deepin Technology Co., Ltd.
  *
@@ -32,7 +37,10 @@
 DBusLockFrontService::DBusLockFrontService(DBusLockAgent *parent)
     : QDBusAbstractAdaptor(parent)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     setAutoRelaySignals(true);
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 DBusLockFrontService::~DBusLockFrontService()
@@ -41,25 +49,40 @@ DBusLockFrontService::~DBusLockFrontService()
 
 void DBusLockFrontService::Show()
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     parent()->Show();
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void DBusLockFrontService::ShowUserList()
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     parent()->ShowUserList();
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void DBusLockFrontService::ShowAuth(bool active)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     parent()->ShowAuth(active);
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void DBusLockFrontService::Suspend(bool enable)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     parent()->Suspend(enable);
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void DBusLockFrontService::Hibernate(bool enable)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     parent()->Hibernate(enable);
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }

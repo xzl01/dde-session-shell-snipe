@@ -1,3 +1,8 @@
+
+#include <sys/time.h>
+#define TRACE_ME_IN struct timeval tp ; gettimeofday ( &tp , nullptr ); printf("[%4ld.%4ld] In: %s\n",tp.tv_sec , tp.tv_usec,__PRETTY_FUNCTION__);
+#define TRACE_ME_OUT gettimeofday (const_cast<timeval *>(&tp) , nullptr ); printf("[%4ld.%4ld] Out: %s\n",tp.tv_sec , tp.tv_usec,__PRETTY_FUNCTION__);
+
 /*
  * Copyright (C) 2019 ~ 2019 Deepin Technology Co., Ltd.
  *
@@ -42,12 +47,16 @@ UserFrameList::UserFrameList(QWidget *parent)
     , m_scrollArea(new QScrollArea(this))
     , m_frameDataBind(FrameDataBind::Instance())
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     initUI();
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 //设置SessionBaseModel，创建用户列表窗体
 void UserFrameList::setModel(SessionBaseModel *model)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     m_model = model;
 
     connect(model, &SessionBaseModel::onUserAdded, this, &UserFrameList::handlerBeforeAddUser);
@@ -57,17 +66,23 @@ void UserFrameList::setModel(SessionBaseModel *model)
     for (auto user : userList) {
         handlerBeforeAddUser(user);
     }
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void UserFrameList::setFixedSize(const QSize &size)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     QWidget::setFixedSize(size);
     //先确定界面大小，再根据界面大小计算用户列表区域大小
     calcUserListArea();
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void UserFrameList::handlerBeforeAddUser(std::shared_ptr<User> user)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     if (m_model->isServerModel()) {
         if (user->isLogin() || user->isDoMainUser()) addUser(user);
         connect(user.get(), &User::logindChanged, this, [ = ](bool is_login) {
@@ -80,11 +95,14 @@ void UserFrameList::handlerBeforeAddUser(std::shared_ptr<User> user)
     } else {
         addUser(user);
     }
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 //创建用户窗体
 void UserFrameList::addUser(std::shared_ptr<User> user)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     UserLoginWidget *widget = new UserLoginWidget(m_centerWidget);
     widget->setFixedSize(QSize(UserFrameWidth, UserFrameHeight));
     connect(widget, &UserLoginWidget::clicked, this, &UserFrameList::onUserClicked);
@@ -111,6 +129,7 @@ void UserFrameList::addUser(std::shared_ptr<User> user)
     //多用户的情况按照其uid排序，升序排列，符合账户先后创建顺序
     m_loginWidgets.push_back(widget);
     qSort(m_loginWidgets.begin(), m_loginWidgets.end(), [ = ](UserLoginWidget * w1, UserLoginWidget * w2) {
+        TRACE_ME_OUT;	//<<==--TracePoint!
         return (w1->uid() < w2->uid());
     });
     int index = m_loginWidgets.indexOf(widget);
@@ -118,11 +137,14 @@ void UserFrameList::addUser(std::shared_ptr<User> user)
 
     //添加用户和删除用户时，重新计算区域大小
     calcUserListArea();
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 //删除用户
 void UserFrameList::removeUser(const uint uid)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     foreach (auto w, m_loginWidgets) {
         if (w->uid() == uid) {
             m_loginWidgets.removeOne(w);
@@ -133,14 +155,18 @@ void UserFrameList::removeUser(const uint uid)
 
     //添加用户和删除用户时，重新计算区域大小
     calcUserListArea();
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 //点击用户
 void UserFrameList::onUserClicked()
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     UserLoginWidget *widget = static_cast<UserLoginWidget *>(sender());
     if (!widget)
 {
+    TRACE_ME_OUT;	//<<==--TracePoint!
     return;
 }
 
@@ -151,28 +177,40 @@ void UserFrameList::onUserClicked()
         }
     }
     emit requestSwitchUser(m_model->findUserByUid(widget->uid()));
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void UserFrameList::mouseReleaseEvent(QMouseEvent *event)
 {
     // 触屏点击空白处不退出用户列表界面
+    TRACE_ME_IN;	//<<==--TracePoint!
     if (event->source() == Qt::MouseEventSynthesizedByQt) {
+        TRACE_ME_OUT;	//<<==--TracePoint!
         return;
     }
 
     emit clicked();
     hide();
 
+    TRACE_ME_OUT;	//<<==--TracePoint!
     return QWidget::mouseReleaseEvent(event);
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void UserFrameList::hideEvent(QHideEvent *event)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
+    TRACE_ME_OUT;	//<<==--TracePoint!
     return QWidget::hideEvent(event);
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void UserFrameList::keyPressEvent(QKeyEvent *event)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     switch (event->key()) {
     case Qt::Key_Left:
         switchPreviousUser();
@@ -195,26 +233,36 @@ void UserFrameList::keyPressEvent(QKeyEvent *event)
     default:
         break;
     }
+    TRACE_ME_OUT;	//<<==--TracePoint!
     return QWidget::keyPressEvent(event);
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void UserFrameList::focusInEvent(QFocusEvent  *event)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     Q_UNUSED(event);
     if (currentSelectedUser != nullptr) {
         currentSelectedUser->setSelected(true);
     }
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void UserFrameList::focusOutEvent(QFocusEvent  *event)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     Q_UNUSED(event);
     if (currentSelectedUser != nullptr)
         currentSelectedUser->setSelected(false);
+        TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void UserFrameList::initUI()
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     setFocusPolicy(Qt::StrongFocus);
     m_colCount = 5;
     m_rowCount = 2;
@@ -255,11 +303,14 @@ void UserFrameList::initUI()
     QScrollerProperties sp;
     sp.setScrollMetric(QScrollerProperties::VerticalOvershootPolicy, QScrollerProperties::OvershootAlwaysOff);
     scroller->setScrollerProperties(sp);
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 //切换下一个用户
 void UserFrameList::switchNextUser()
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     for (int i = 0; i != m_loginWidgets.size(); ++i) {
         if (m_loginWidgets[i]->getSelected()) {
             m_loginWidgets[i]->setSelected(false);
@@ -290,11 +341,14 @@ void UserFrameList::switchNextUser()
             break;
         }
     }
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 //切换上一个用户
 void UserFrameList::switchPreviousUser()
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     for (int i = 0; i != m_loginWidgets.size(); ++i) {
         if (m_loginWidgets[i]->getSelected()) {
             m_loginWidgets[i]->setSelected(false);
@@ -318,18 +372,24 @@ void UserFrameList::switchPreviousUser()
             break;
         }
     }
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void UserFrameList::onOtherPageChanged(const QVariant &value)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     foreach (auto w, m_loginWidgets) {
         w->setSelected(w->uid() == value.toUInt());
     }
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void UserFrameList::calcUserListArea()
 {
     //处理窗体数量小于5个时的居中显示，取 窗体数量*窗体宽度 和 最大宽度 的较小值，设置为m_centerWidget的宽度
+    TRACE_ME_IN;	//<<==--TracePoint!
     int maxWidth = this->width();
     int maxHeight = this->height();
 
@@ -353,6 +413,7 @@ void UserFrameList::calcUserListArea()
     std::shared_ptr<User> user = m_model->currentUser();
     if (user.get() == nullptr)
 {
+    TRACE_ME_OUT;	//<<==--TracePoint!
     return;
 }
     for (auto it = m_loginWidgets.constBegin(); it != m_loginWidgets.constEnd(); ++it) {
@@ -365,4 +426,6 @@ void UserFrameList::calcUserListArea()
             login_widget->setSelected(false);
         }
     }
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }

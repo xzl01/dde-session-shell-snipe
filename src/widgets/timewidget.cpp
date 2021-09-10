@@ -1,3 +1,8 @@
+
+#include <sys/time.h>
+#define TRACE_ME_IN struct timeval tp ; gettimeofday ( &tp , nullptr ); printf("[%4ld.%4ld] In: %s\n",tp.tv_sec , tp.tv_usec,__PRETTY_FUNCTION__);
+#define TRACE_ME_OUT gettimeofday (const_cast<timeval *>(&tp) , nullptr ); printf("[%4ld.%4ld] Out: %s\n",tp.tv_sec , tp.tv_usec,__PRETTY_FUNCTION__);
+
 /*
  * Copyright (C) 2015 ~ 2018 Deepin Technology Co., Ltd.
  *
@@ -39,6 +44,7 @@ const QStringList shortTimeFormat = { "h:mm", "hh:mm"};
 TimeWidget::TimeWidget(QWidget *parent)
     : QWidget(parent)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     QFont timeFont;
     timeFont.setFamily("Noto Sans CJK SC-Thin");
 
@@ -73,22 +79,31 @@ TimeWidget::TimeWidget(QWidget *parent)
     setLayout(vLayout);
 
     connect(m_refreshTimer, &QTimer::timeout, this, &TimeWidget::refreshTime);
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void TimeWidget::set24HourFormat(bool use24HourFormat)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     m_use24HourFormat = use24HourFormat;
     refreshTime();
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void TimeWidget::updateLocale(const QLocale &locale)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     m_locale = locale;
     refreshTime();
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void TimeWidget::refreshTime()
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     if (m_use24HourFormat) {
         m_timeLabel->setText(m_locale.toString(QDateTime::currentDateTime(), shortTimeFormat.at(m_shortTimeIndex)));
     } else {
@@ -97,6 +112,8 @@ void TimeWidget::refreshTime()
 
     QString date_format = shortDateFormat.at(m_shortDateIndex) + " " + weekdayFormat.at(m_weekdayIndex);
     m_dateLabel->setText(m_locale.toString(QDateTime::currentDateTime(), date_format));
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 /**
@@ -105,13 +122,17 @@ void TimeWidget::refreshTime()
  */
 void TimeWidget::setWeekdayFormatType(int type)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     if(type >= weekdayFormat.size() || type < 0)
 {
+    TRACE_ME_OUT;	//<<==--TracePoint!
     return;
 }
 
     m_weekdayIndex = type;
     refreshTime();
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 /**
@@ -120,13 +141,17 @@ void TimeWidget::setWeekdayFormatType(int type)
  */
 void TimeWidget::setShortDateFormat(int type)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     if(type >= shortDateFormat.size() || type < 0)
 {
+    TRACE_ME_OUT;	//<<==--TracePoint!
     return;
 }
 
     m_shortDateIndex = type;
     refreshTime();
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 /**
@@ -135,11 +160,15 @@ void TimeWidget::setShortDateFormat(int type)
  */
 void TimeWidget::setShortTimeFormat(int type)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     if(type >= shortTimeFormat.size() || type < 0)
 {
+    TRACE_ME_OUT;	//<<==--TracePoint!
     return;
 }
 
     m_shortTimeIndex = type;
     refreshTime();
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }

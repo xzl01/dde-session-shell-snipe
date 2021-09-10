@@ -1,3 +1,8 @@
+
+#include <sys/time.h>
+#define TRACE_ME_IN struct timeval tp ; gettimeofday ( &tp , nullptr ); printf("[%4ld.%4ld] In: %s\n",tp.tv_sec , tp.tv_usec,__PRETTY_FUNCTION__);
+#define TRACE_ME_OUT gettimeofday (const_cast<timeval *>(&tp) , nullptr ); printf("[%4ld.%4ld] Out: %s\n",tp.tv_sec , tp.tv_usec,__PRETTY_FUNCTION__);
+
 #include "userinfo.h"
 #include "src/global_util/constants.h"
 
@@ -8,8 +13,10 @@
 QString userPwdName(__uid_t uid)
 {
     //服务器版root用户的uid为0,需要特殊处理
+    TRACE_ME_IN;	//<<==--TracePoint!
     if (uid < 1000 && uid != 0)
 {
+    TRACE_ME_OUT;	//<<==--TracePoint!
     return QString();
 }
 
@@ -17,12 +24,15 @@ QString userPwdName(__uid_t uid)
     /* Fetch passwd structure (contains first group ID for user) */
     pw = getpwuid(uid);
 
+    TRACE_ME_OUT;	//<<==--TracePoint!
     return QString().fromLocal8Bit(pw->pw_name);
 }
 
 static bool checkUserIsNoPWGrp(User const *user)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     if (user->type() == User::ADDomain) {
+        TRACE_ME_OUT;	//<<==--TracePoint!
         return false;
     }
 
@@ -38,6 +48,7 @@ static bool checkUserIsNoPWGrp(User const *user)
     pw = getpwnam(user->name().toUtf8().data());
     if (pw == nullptr) {
         qDebug() << "fetch passwd structure failed, username: " << user->name();
+        TRACE_ME_OUT;	//<<==--TracePoint!
         return false;
     }
 
@@ -46,6 +57,7 @@ static bool checkUserIsNoPWGrp(User const *user)
     if (getgrouplist(user->name().toUtf8().data(), pw->pw_gid, groups, &ngroups) == -1) {
         fprintf(stderr, "getgrouplist() returned -1; ngroups = %d\n",
                 ngroups);
+        TRACE_ME_OUT;	//<<==--TracePoint!
         return false;
     }
 
@@ -54,21 +66,26 @@ static bool checkUserIsNoPWGrp(User const *user)
     for (int i = 0; i < ngroups; i++) {
         gr = getgrgid(groups[i]);
         if (gr != nullptr && QString(gr->gr_name) == QString("nopasswdlogin")) {
+            TRACE_ME_OUT;	//<<==--TracePoint!
             return true;
         }
     }
 
+    TRACE_ME_OUT;	//<<==--TracePoint!
     return false;
 }
 
 static const QString toLocalFile(const QString &path)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     QUrl url(path);
 
     if (url.isLocalFile()) {
+        TRACE_ME_OUT;	//<<==--TracePoint!
         return url.path();
     }
 
+    TRACE_ME_OUT;	//<<==--TracePoint!
     return url.url();
 }
 
@@ -79,9 +96,12 @@ User::User(QObject *parent)
     , m_lockTimer(new QTimer)
 
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     m_lockTimer->setInterval(1000 * 60);
     m_lockTimer->setSingleShot(false);
     connect(m_lockTimer.get(), &QTimer::timeout, this, &User::onLockTimeOut);
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 User::User(const User &user)
@@ -98,55 +118,74 @@ User::User(const User &user)
 
 bool User::operator==(const User &user) const
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
+    TRACE_ME_OUT;	//<<==--TracePoint!
     return type() == user.type() &&
            m_uid == user.m_uid;
 }
 
 void User::setLocale(const QString &locale)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     if (m_locale == locale)
 {
+    TRACE_ME_OUT;	//<<==--TracePoint!
     return;
 }
 
     m_locale = locale;
 
     emit localeChanged(locale);
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 bool User::isNoPasswdGrp() const
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
+    TRACE_ME_OUT;	//<<==--TracePoint!
     return checkUserIsNoPWGrp(this);
 }
 
 bool User::isUserIsvalid() const
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
+    TRACE_ME_OUT;	//<<==--TracePoint!
     return true;
 }
 
 void User::setisLogind(bool isLogind)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     if (m_isLogind == isLogind) {
+        TRACE_ME_OUT;	//<<==--TracePoint!
         return;
     }
 
     m_isLogind = isLogind;
 
     emit logindChanged(isLogind);
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void User::setPath(const QString &path)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     if (m_path == path)
 {
+    TRACE_ME_OUT;	//<<==--TracePoint!
     return;
 }
 
     m_path = path;
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void User::onLockTimeOut()
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     m_lockLimit.lockTime--;
 
     // 如果之前计时器读完秒，即间隔为所读秒数，则设置间隔为分钟
@@ -163,10 +202,13 @@ void User::onLockTimeOut()
     }
 
     emit lockChanged(m_lockLimit.isLock);
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void User::updateLockLimit(bool is_lock, uint lock_time, uint rest_second)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     m_lockLimit.lockTime = lock_time;
     m_lockLimit.isLock = is_lock;
 
@@ -183,12 +225,15 @@ void User::updateLockLimit(bool is_lock, uint lock_time, uint rest_second)
     }
 
     emit lockChanged(m_lockLimit.isLock);
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 NativeUser::NativeUser(const QString &path, QObject *parent)
     : User(parent)
     , m_userInter(new UserInter(ACCOUNT_DBUS_SERVICE, path, QDBusConnection::systemBus(), this))
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     m_userInter->setSync(false);
     connect(m_userInter, &UserInter::IconFileChanged, this, [ = ](const QString & avatar) {
         m_avatar = avatar;
@@ -251,10 +296,13 @@ NativeUser::NativeUser(const QString &path, QObject *parent)
 
     configAccountInfo(DDESESSIONCC::CONFIG_FILE + m_userName);
     setPath(path);
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void NativeUser::configAccountInfo(const QString &account_config)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     QSettings settings(account_config, QSettings::IniFormat);
     settings.beginGroup("User");
 
@@ -273,10 +321,13 @@ void NativeUser::configAccountInfo(const QString &account_config)
     } else {
         qDebug() << "configAccountInfo get error index:" << index << ", backgrounds:" << desktopBackgrounds;
     }
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 QStringList NativeUser::readDesktopBackgroundPath(const QString &path)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     QStringList desktopBackgrounds;
     QFile file(path);
     if (file.exists()) {
@@ -294,137 +345,191 @@ QStringList NativeUser::readDesktopBackgroundPath(const QString &path)
         }
     }
 
+    TRACE_ME_OUT;	//<<==--TracePoint!
     return desktopBackgrounds;
 }
 
 void NativeUser::setCurrentLayout(const QString &layout)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     m_userInter->SetLayout(layout);
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 QString NativeUser::displayName() const
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
+    TRACE_ME_OUT;	//<<==--TracePoint!
     return m_fullName.isEmpty() ? m_userName : m_fullName;
 }
 
 QString NativeUser::avatarPath() const
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     m_userInter->iconFile();
+    TRACE_ME_OUT;	//<<==--TracePoint!
     return m_avatar;
 }
 
 QString NativeUser::greeterBackgroundPath() const
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     m_userInter->greeterBackground();
+    TRACE_ME_OUT;	//<<==--TracePoint!
     return m_greeterBackground;
 }
 
 QString NativeUser::desktopBackgroundPath() const
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     m_userInter->desktopBackgrounds();
+    TRACE_ME_OUT;	//<<==--TracePoint!
     return m_desktopBackground;
 }
 
 QStringList NativeUser::kbLayoutList()
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
+    TRACE_ME_OUT;	//<<==--TracePoint!
     return m_userInter->historyLayout();
 }
 
 QString NativeUser::currentKBLayout()
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
+    TRACE_ME_OUT;	//<<==--TracePoint!
     return m_userInter->layout();
 }
 
 bool NativeUser::isNoPasswdGrp() const
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
+    TRACE_ME_OUT;	//<<==--TracePoint!
     return m_noPasswdGrp;
 }
 
 bool NativeUser::isUserIsvalid() const
 {
     //无效用户的时候m_userInter是有效的
+    TRACE_ME_IN;	//<<==--TracePoint!
+    TRACE_ME_OUT;	//<<==--TracePoint!
     return m_userInter->isValid();
 }
 
 bool NativeUser::is24HourFormat() const
 {
-    if(!isUserIsvalid() || m_isServer)
-        return true;
+    TRACE_ME_IN;	//<<==--TracePoint!
+    if(!isUserIsvalid() || m_isServer) {
+        TRACE_ME_OUT;	//<<==--TracePoint!
+        return true;}
 
+    TRACE_ME_OUT;	//<<==--TracePoint!
     return m_userInter->use24HourFormat();
 }
 
 ADDomainUser::ADDomainUser(uid_t uid, QObject *parent)
     : User(parent)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     m_uid = uid;
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void ADDomainUser::setUserDisplayName(const QString &name)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     if (m_displayName == name) {
+        TRACE_ME_OUT;	//<<==--TracePoint!
         return;
     }
 
     m_displayName = name;
 
     emit displayNameChanged(name);
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void ADDomainUser::setUserName(const QString &name)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     if (m_userName == name) {
+        TRACE_ME_OUT;	//<<==--TracePoint!
         return;
     }
 
     m_userName = name;
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void ADDomainUser::setUserInter(UserInter *user_inter)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     if (m_userInter == user_inter) {
+        TRACE_ME_OUT;	//<<==--TracePoint!
         return;
     }
 
     m_userInter = user_inter;
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void ADDomainUser::setUid(uid_t uid)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     if (m_uid == uid) {
+        TRACE_ME_OUT;	//<<==--TracePoint!
         return;
     }
 
     m_uid = uid;
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void ADDomainUser::setIsServerUser(bool is_server)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     if (m_isServer == is_server) {
+        TRACE_ME_OUT;	//<<==--TracePoint!
         return;
     }
 
     m_isServer = is_server;
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 QString ADDomainUser::displayName() const
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
+    TRACE_ME_OUT;	//<<==--TracePoint!
     return m_displayName.isEmpty() ? m_userName : m_displayName;
 }
 
 QString ADDomainUser::avatarPath() const
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
+    TRACE_ME_OUT;	//<<==--TracePoint!
     return QString(":/img/default_avatar.svg");
 }
 
 QString ADDomainUser::greeterBackgroundPath() const
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     QFileInfo background_info(DEFAULT_BACKGROUND);
+    TRACE_ME_OUT;	//<<==--TracePoint!
     return background_info.canonicalFilePath();
 }
 
 QString ADDomainUser::desktopBackgroundPath() const
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     QFileInfo background_info(DEFAULT_BACKGROUND);
+    TRACE_ME_OUT;	//<<==--TracePoint!
     return background_info.canonicalFilePath();
 }

@@ -1,3 +1,8 @@
+
+#include <sys/time.h>
+#define TRACE_ME_IN struct timeval tp ; gettimeofday ( &tp , nullptr ); printf("[%4ld.%4ld] In: %s\n",tp.tv_sec , tp.tv_usec,__PRETTY_FUNCTION__);
+#define TRACE_ME_OUT gettimeofday (const_cast<timeval *>(&tp) , nullptr ); printf("[%4ld.%4ld] Out: %s\n",tp.tv_sec , tp.tv_usec,__PRETTY_FUNCTION__);
+
 /*
  * Copyright (C) 2015 ~ 2018 Deepin Technology Co., Ltd.
  *
@@ -35,6 +40,7 @@ ShutdownFrame::ShutdownFrame(SessionBaseModel *const model, QWidget *parent)
     : FullscreenBackground(parent)
     , m_model(model)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     QTimer::singleShot(0, this, [ = ] {
         auto user = model->currentUser();
         if (user != nullptr) updateBackground(QPixmap(user->desktopBackgroundPath()));
@@ -58,40 +64,54 @@ ShutdownFrame::ShutdownFrame(SessionBaseModel *const model, QWidget *parent)
     });
 
     m_shutdownFrame->initBackground();
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 bool ShutdownFrame::powerAction(const Actions action)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
+    TRACE_ME_OUT;	//<<==--TracePoint!
     return m_shutdownFrame->powerAction(action);
 }
 
 void ShutdownFrame::setConfirm(const bool confirm)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     m_shutdownFrame->setConfirm(confirm);
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void ShutdownFrame::showEvent(QShowEvent *event)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     Q_EMIT requestEnableHotzone(false);
 
     m_model->setIsShow(true);
 
+    TRACE_ME_OUT;	//<<==--TracePoint!
     return FullscreenBackground::showEvent(event);
+
 }
 
 void ShutdownFrame::hideEvent(QHideEvent *event)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     Q_EMIT requestEnableHotzone(true);
 
     m_model->setIsShow(false);
 
     m_shutdownFrame->recoveryLayout();
 
+    TRACE_ME_OUT;	//<<==--TracePoint!
     return FullscreenBackground::hideEvent(event);
+
 }
 
 bool ShutdownFrame::eventFilter(QObject *watched, QEvent *event)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     if (event->type() == QEvent::KeyRelease) {
         QString  keyValue = "";
         switch (static_cast<QKeyEvent *>(event)->key()) {
@@ -107,6 +127,7 @@ bool ShutdownFrame::eventFilter(QObject *watched, QEvent *event)
             emit sendKeyValue(keyValue);
         }
     }
+    TRACE_ME_OUT;	//<<==--TracePoint!
     return QObject::eventFilter(watched, event);
 }
 
@@ -117,15 +138,19 @@ bool ShutdownFrame::eventFilter(QObject *watched, QEvent *event)
  */
 bool ShutdownFrame::handlePoweroffKey()
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     QDBusInterface powerInter("com.deepin.daemon.Power","/com/deepin/daemon/Power","com.deepin.daemon.Power");
     if (!powerInter.isValid()) {
+        TRACE_ME_OUT;	//<<==--TracePoint!
         return false;
     }
     int action = powerInter.property("LinePowerPressPowerBtnAction").toInt();
     // 需要特殊处理：无任何操作(4)
     if (action == 4) {
+       TRACE_ME_OUT;	//<<==--TracePoint!
        return true;
     }
+    TRACE_ME_OUT;	//<<==--TracePoint!
     return false;
 }
 
@@ -146,36 +171,57 @@ ShutdownFrontDBus::~ShutdownFrontDBus()
 
 void ShutdownFrontDBus::Shutdown()
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     m_parent->Shutdown();
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void ShutdownFrontDBus::Restart()
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     m_parent->Restart();
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void ShutdownFrontDBus::Logout()
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     m_parent->Logout();
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void ShutdownFrontDBus::Suspend()
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     m_parent->Suspend();
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void ShutdownFrontDBus::Hibernate()
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     m_parent->Hibernate();
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void ShutdownFrontDBus::SwitchUser()
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     m_parent->SwitchUser();
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void ShutdownFrontDBus::Show()
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     if ( m_model != nullptr && !m_model->isLocked() )
         m_parent->Show();
+        TRACE_ME_OUT;	//<<==--TracePoint!
+
 }

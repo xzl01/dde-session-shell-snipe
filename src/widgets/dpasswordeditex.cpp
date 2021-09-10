@@ -1,3 +1,8 @@
+
+#include <sys/time.h>
+#define TRACE_ME_IN struct timeval tp ; gettimeofday ( &tp , nullptr ); printf("[%4ld.%4ld] In: %s\n",tp.tv_sec , tp.tv_usec,__PRETTY_FUNCTION__);
+#define TRACE_ME_OUT gettimeofday (const_cast<timeval *>(&tp) , nullptr ); printf("[%4ld.%4ld] Out: %s\n",tp.tv_sec , tp.tv_usec,__PRETTY_FUNCTION__);
+
 /*
  * Copyright (C) 2019 ~ 2019 Deepin Technology Co., Ltd.
  *
@@ -38,12 +43,16 @@ LoadSlider::LoadSlider(QWidget *parent)
 
 void LoadSlider::setLoadSliderColor(const QColor &color)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     m_loadSliderColor = color;
     update();
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void LoadSlider::paintEvent(QPaintEvent *event)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     QPainter painter(this);
     QLinearGradient grad(0, height() / 2, width(), height() / 2);
     grad.setColorAt(0.0, Qt::transparent);
@@ -51,18 +60,24 @@ void LoadSlider::paintEvent(QPaintEvent *event)
     painter.fillRect(0, 1, width(), height() - 2, grad);
 
     QWidget::paintEvent(event);
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 DPasswordEditEx::DPasswordEditEx(QWidget *parent)
     : DLineEditEx(parent)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     initUI();
     initAnimation();
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void DPasswordEditEx::initUI()
 {
     //设置密码框文本显示模式
+    TRACE_ME_IN;	//<<==--TracePoint!
     setEchoMode(QLineEdit::Password);
     //禁用DLineEdit类的删除按钮
     setClearButtonEnabled(false);
@@ -89,11 +104,14 @@ void DPasswordEditEx::initUI()
 
     connect(lineEdit(), &QLineEdit::textChanged, this, &DPasswordEditEx::onTextChanged);
     connect(m_KBButton, &QPushButton::clicked, this, &DPasswordEditEx::toggleKBLayoutWidget);
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void DPasswordEditEx::initAnimation()
 {
     //初始化动画
+    TRACE_ME_IN;	//<<==--TracePoint!
     m_loadSlider = new LoadSlider(this);
     m_loadSlider->setLoadSliderColor(QColor(255, 255, 255, 90));
     m_loadSlider->hide();
@@ -107,10 +125,13 @@ void DPasswordEditEx::initAnimation()
 
     m_clipEffectWidget = new DClipEffectWidget(this);
     connect(this,  &DPasswordEditEx::returnPressed, this, &DPasswordEditEx::inputDone);
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void DPasswordEditEx::setKBLayoutList(QStringList kbLayoutList)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     m_KBLayoutList = kbLayoutList;
 
     if (kbLayoutList.size() > 1) {
@@ -118,14 +139,18 @@ void DPasswordEditEx::setKBLayoutList(QStringList kbLayoutList)
     } else {
         m_KBButton->hide();
     }
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void DPasswordEditEx::receiveUserKBLayoutChanged(const QString &layout)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     if (!m_showKB)
-{
-    return;
-}
+    {
+        TRACE_ME_OUT;	//<<==--TracePoint!
+        return;
+    }
 
     m_currentKBLayout = layout;
     QString layoutName = layout;
@@ -144,10 +169,13 @@ void DPasswordEditEx::receiveUserKBLayoutChanged(const QString &layout)
         QImage image = generateImageFromString(layoutName);
         m_KBButton->setIcon(QIcon(QPixmap::fromImage(image)));
     }
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 QImage DPasswordEditEx::generateImageFromString(const QString &name)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     QFont font = this->font();
     font.setPixelSize(32);
     font.setWeight(QFont::DemiBold);
@@ -164,27 +192,35 @@ QImage DPasswordEditEx::generateImageFromString(const QString &name)
     QRect image_rect = image.rect();
     QRect r(image_rect.left(), image_rect.top(), word_size, word_size);
     painter.drawText(r, Qt::AlignCenter, name);
+    TRACE_ME_OUT;	//<<==--TracePoint!
     return image;
 }
 
 void DPasswordEditEx::capslockStatusChanged(bool on)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     m_capsButton->setVisible(on);
     updateTextMargins();
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void DPasswordEditEx::inputDone()
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     this->hideAlertMessage();
 
     QString input = this->text();
     if (input.length() > 0) {
         showLoadSlider();
     }
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void DPasswordEditEx::showLoadSlider()
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     if (m_loadAnimEnable) {
         if (!m_isLoading) {
             m_isLoading = true;
@@ -197,10 +233,13 @@ void DPasswordEditEx::showLoadSlider()
             m_loadSliderAnim->start();
         }
     }
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void DPasswordEditEx::hideLoadSlider()
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     if (m_isLoading) {
         m_isLoading = false;
         m_loadSliderAnim->stop();
@@ -208,18 +247,24 @@ void DPasswordEditEx::hideLoadSlider()
         lineEdit()->setEnabled(true);
         lineEdit()->setFocus();
     }
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void DPasswordEditEx::updateTextMargins()
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     int left_margin = m_showCaps && m_KBButton->isVisible() ? m_KBButton->width() : 0;
     int right_margin = m_showCaps && m_capsButton->isVisible() ? m_capsButton->width() : 0;
 
     lineEdit()->setTextMargins(left_margin, 0, right_margin, 0);
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void DPasswordEditEx::onTextChanged(const QString &text)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     QFontMetrics fm = lineEdit()->fontMetrics();
     QMargins margins = lineEdit()->textMargins();
 
@@ -231,16 +276,22 @@ void DPasswordEditEx::onTextChanged(const QString &text)
         m_showCaps = false;
     }
     updateTextMargins();
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void DPasswordEditEx::setShowKB(bool show)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     m_KBButton->setVisible(show);
     m_showKB = show;
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void DPasswordEditEx::resizeEvent(QResizeEvent *event)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     DLineEdit::resizeEvent(event);
 
     QPainterPath path;
@@ -254,4 +305,6 @@ void DPasswordEditEx::resizeEvent(QResizeEvent *event)
     m_capsButton->setFixedWidth(kb_height);
 
     updateTextMargins();
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }

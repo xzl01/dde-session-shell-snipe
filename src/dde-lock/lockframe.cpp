@@ -1,3 +1,8 @@
+
+#include <sys/time.h>
+#define TRACE_ME_IN struct timeval tp ; gettimeofday ( &tp , nullptr ); printf("[%4ld.%4ld] In: %s\n",tp.tv_sec , tp.tv_usec,__PRETTY_FUNCTION__);
+#define TRACE_ME_OUT gettimeofday (const_cast<timeval *>(&tp) , nullptr ); printf("[%4ld.%4ld] Out: %s\n",tp.tv_sec , tp.tv_usec,__PRETTY_FUNCTION__);
+
 /*
  * Copyright (C) 2015 ~ 2018 Deepin Technology Co., Ltd.
  *
@@ -41,6 +46,7 @@ LockFrame::LockFrame(SessionBaseModel *const model, QWidget *parent)
     , m_preparingSleep(false)
     , m_prePreparingSleep(false)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     qDebug() << "LockFrame geometry:" << geometry();
 
     QTimer::singleShot(0, this, [ = ] {
@@ -91,10 +97,13 @@ LockFrame::LockFrame(SessionBaseModel *const model, QWidget *parent)
         //待机休眠唤醒后将界面切换到锁屏状态
         m_model->setCurrentModeState(SessionBaseModel::ModeStatus::PasswordMode);
     });
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 bool LockFrame::event(QEvent *event)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     if (event->type() == QEvent::KeyRelease) {
         QString  keyValue = "";
         switch (static_cast<QKeyEvent *>(event)->key()) {
@@ -150,14 +159,17 @@ bool LockFrame::event(QEvent *event)
             emit sendKeyValue(keyValue);
         }
     }
+    TRACE_ME_OUT;	//<<==--TracePoint!
     return FullscreenBackground::event(event);
 }
 
 bool LockFrame::handlePoweroffKey()
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     QDBusInterface powerInter("com.deepin.daemon.Power","/com/deepin/daemon/Power","com.deepin.daemon.Power");
     if (!powerInter.isValid()) {
         qDebug() << "powerInter is not valid";
+        TRACE_ME_OUT;	//<<==--TracePoint!
         return false;
     }
     bool isBattery = powerInter.property("OnBattery").toBool();
@@ -173,6 +185,7 @@ bool LockFrame::handlePoweroffKey()
         m_model->setPowerAction(SessionBaseModel::PowerAction::RequireShutdown);
         m_model->setCurrentModeState(SessionBaseModel::ModeStatus::ConfirmPasswordMode);
         m_content->pushConfirmFrame();
+        TRACE_ME_OUT;	//<<==--TracePoint!
         return true;
     } else if (action == 4) {
         //初始化时，m_prePreparingSleep = false,m_preparingSleep = false
@@ -184,47 +197,62 @@ bool LockFrame::handlePoweroffKey()
             //有些机器使用电源唤醒时，除了会唤醒机器外还会发送按键消息，会将锁屏界面切换成电源选项界面,增加唤醒时500毫秒时间检测
             //如果系统刚唤醒 ，则500毫秒内不响应电源按钮事件
             if (m_prePreparingSleep && QDateTime::currentDateTime().toMSecsSinceEpoch() - m_preparingSleepTime < 500) {
+                TRACE_ME_OUT;	//<<==--TracePoint!
                 return true;
             }
             //无任何操作时，如果是锁定时显示小关机界面
             m_model->setCurrentModeState(SessionBaseModel::ModeStatus::PowerMode);
         }
+        TRACE_ME_OUT;	//<<==--TracePoint!
         return true;
     }
+    TRACE_ME_OUT;	//<<==--TracePoint!
     return false;
 }
 
 void LockFrame::showUserList()
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     m_model->setCurrentModeState(SessionBaseModel::ModeStatus::UserMode);
     show();
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void LockFrame::keyPressEvent(QKeyEvent *e)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     switch (e->key()) {
 #ifdef QT_DEBUG
     case Qt::Key_Escape:    qApp->quit();       break;
 #endif
     }
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void LockFrame::showEvent(QShowEvent *event)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     emit requestEnableHotzone(false);
 
     m_model->setIsShow(true);
 
+    TRACE_ME_OUT;	//<<==--TracePoint!
     return FullscreenBackground::showEvent(event);
+
 }
 
 void LockFrame::hideEvent(QHideEvent *event)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     emit requestEnableHotzone(true);
 
     m_model->setIsShow(false);
 
+    TRACE_ME_OUT;	//<<==--TracePoint!
     return FullscreenBackground::hideEvent(event);
+
 }
 
 LockFrame::~LockFrame()

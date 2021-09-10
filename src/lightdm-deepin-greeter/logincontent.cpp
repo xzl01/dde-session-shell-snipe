@@ -1,3 +1,8 @@
+
+#include <sys/time.h>
+#define TRACE_ME_IN struct timeval tp ; gettimeofday ( &tp , nullptr ); printf("[%4ld.%4ld] In: %s\n",tp.tv_sec , tp.tv_usec,__PRETTY_FUNCTION__);
+#define TRACE_ME_OUT gettimeofday (const_cast<timeval *>(&tp) , nullptr ); printf("[%4ld.%4ld] Out: %s\n",tp.tv_sec , tp.tv_usec,__PRETTY_FUNCTION__);
+
 /*
  * Copyright (C) 2011 ~ 2019 Deepin Technology Co., Ltd.
  *
@@ -26,6 +31,7 @@
 LoginContent::LoginContent(SessionBaseModel *const model, QWidget *parent)
     : LockContent(model, parent)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     m_sessionFrame = new SessionWidget;
     m_sessionFrame->setModel(model);
     m_controlWidget->setSessionSwitchEnable(m_sessionFrame->sessionCount() > 1);
@@ -37,21 +43,28 @@ LoginContent::LoginContent(SessionBaseModel *const model, QWidget *parent)
     });
     connect(m_model, &SessionBaseModel::onSessionKeyChanged, m_controlWidget, &ControlWidget::chooseToSession);
     connect(m_model, &SessionBaseModel::onSessionKeyChanged, this, &LockContent::restoreMode);
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void LoginContent::onCurrentUserChanged(std::shared_ptr<User> user)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     if (user.get() == nullptr)
 {
+    TRACE_ME_OUT;	//<<==--TracePoint!
     return;
 }
 
     LockContent::onCurrentUserChanged(user);
     m_sessionFrame->switchToUser(user->name());
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void LoginContent::onStatusChanged(SessionBaseModel::ModeStatus status)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     switch (status) {
     case SessionBaseModel::ModeStatus::SessionMode:
         pushSessionFrame();
@@ -60,11 +73,16 @@ void LoginContent::onStatusChanged(SessionBaseModel::ModeStatus status)
         LockContent::onStatusChanged(status);
         break;
     }
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void LoginContent::pushSessionFrame()
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     QSize size = getCenterContentSize();
     m_sessionFrame->setFixedSize(size);
     setCenterContent(m_sessionFrame);
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }

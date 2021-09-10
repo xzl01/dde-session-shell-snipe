@@ -1,3 +1,8 @@
+
+#include <sys/time.h>
+#define TRACE_ME_IN struct timeval tp ; gettimeofday ( &tp , nullptr ); printf("[%4ld.%4ld] In: %s\n",tp.tv_sec , tp.tv_usec,__PRETTY_FUNCTION__);
+#define TRACE_ME_OUT gettimeofday (const_cast<timeval *>(&tp) , nullptr ); printf("[%4ld.%4ld] Out: %s\n",tp.tv_sec , tp.tv_usec,__PRETTY_FUNCTION__);
+
 #include "lockpasswordwidget.h"
 
 #include <QPainter>
@@ -8,6 +13,7 @@ DWIDGET_USE_NAMESPACE
 
 LockPasswordWidget::LockPasswordWidget(QWidget *parent) : QWidget(parent)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     setAttribute(Qt::WA_TranslucentBackground);
 
     QHBoxLayout *layout = new QHBoxLayout;
@@ -19,17 +25,23 @@ LockPasswordWidget::LockPasswordWidget(QWidget *parent) : QWidget(parent)
     layout->addWidget(lockLbl);
     layout->addStretch();
     setLayout(layout);
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void LockPasswordWidget::setMessage(const QString &message)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     m_message = message;
 
     update();
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void LockPasswordWidget::paintEvent(QPaintEvent *event)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     QWidget::paintEvent(event);
 
     QPainter painter(this);
@@ -48,4 +60,6 @@ void LockPasswordWidget::paintEvent(QPaintEvent *event)
     painter.setOpacity(1);
     painter.setPen(Qt::white);
     painter.drawText(rect(), m_message, option);
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }

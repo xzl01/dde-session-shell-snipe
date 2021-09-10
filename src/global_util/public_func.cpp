@@ -1,3 +1,8 @@
+
+#include <sys/time.h>
+#define TRACE_ME_IN struct timeval tp ; gettimeofday ( &tp , nullptr ); printf("[%4ld.%4ld] In: %s\n",tp.tv_sec , tp.tv_usec,__PRETTY_FUNCTION__);
+#define TRACE_ME_OUT gettimeofday (const_cast<timeval *>(&tp) , nullptr ); printf("[%4ld.%4ld] Out: %s\n",tp.tv_sec , tp.tv_usec,__PRETTY_FUNCTION__);
+
 /*
  * Copyright (C) 2015 ~ 2018 Deepin Technology Co., Ltd.
  *
@@ -48,7 +53,9 @@ using namespace std;
 QPixmap loadPixmap(const QString &file, const QSize& size)
 {
 
+    TRACE_ME_IN;	//<<==--TracePoint!
     if(!QFile::exists(file)){
+        TRACE_ME_OUT;	//<<==--TracePoint!
         return QPixmap(DDESESSIONCC::LAYOUTBUTTON_HEIGHT,DDESESSIONCC::LAYOUTBUTTON_HEIGHT);
     }
 
@@ -69,6 +76,7 @@ QPixmap loadPixmap(const QString &file, const QSize& size)
         pixmap.load(file);
     }
 
+    TRACE_ME_OUT;	//<<==--TracePoint!
     return pixmap;
 }
 
@@ -81,6 +89,7 @@ QPixmap loadPixmap(const QString &file, const QSize& size)
  */
 QString readSharedImage(uid_t uid, int purpose)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     QDBusMessage msg = QDBusMessage::createMethodCall("com.deepin.dde.preload", "/com/deepin/dde/preload", "com.deepin.dde.preload", "requestSource");
     QList<QVariant> args;
     args.append(int(uid));
@@ -97,6 +106,7 @@ QString readSharedImage(uid_t uid, int purpose)
 #ifdef QT_DEBUG
     qInfo() << __FILE__ << ", " << Q_FUNC_INFO << " user: " << uid << ", purpose: " << purpose << " share memory key: " << shareKey;
 #endif
+    TRACE_ME_OUT;	//<<==--TracePoint!
     return shareKey;
 }
 
@@ -109,6 +119,7 @@ QString readSharedImage(uid_t uid, int purpose)
  */
 bool isDeepinAuth()
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     const char* controlId = "com.deepin.dde.auth.control";
     const char* controlPath = "/com/deepin/dde/auth/control/";
     if (QGSettings::isSchemaInstalled (controlId)) {
@@ -117,8 +128,10 @@ bool isDeepinAuth()
     #ifdef QT_DEBUG
         qDebug() << "----------use deepin auth: " << bUseDeepinAuth;
     #endif
+        TRACE_ME_OUT;	//<<==--TracePoint!
         return bUseDeepinAuth;
     }
+    TRACE_ME_OUT;	//<<==--TracePoint!
     return true;
 }
 
@@ -126,6 +139,7 @@ const int MAX_STACK_FRAMES = 128;
 
 void sig_crash(int sig)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     QDir dir(QStandardPaths::standardLocations(QStandardPaths::CacheLocation)[0]);
     dir.cdUp();
     QString filePath = dir.path() + "/dde-collapse.log";
@@ -191,23 +205,30 @@ void sig_crash(int sig)
     delete file;
     file = nullptr;
     exit(0);
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void init_sig_crash()
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     signal(SIGTERM, sig_crash);
     signal(SIGSEGV, sig_crash);
     signal(SIGILL, sig_crash);
     signal(SIGINT, sig_crash);
     signal(SIGABRT, sig_crash);
     signal(SIGFPE, sig_crash);
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 uint timeFromString(QString time)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     if (!time.isEmpty()) {
         time.replace('T', ' ');
         QString timeBuffer = QString::fromStdString(time.toStdString().substr(0, time.indexOf('.')));
+        TRACE_ME_OUT;	//<<==--TracePoint!
         return QDateTime::fromString(timeBuffer, "yyyy-MM-dd hh:mm:ss").toTime_t();
     }
 }

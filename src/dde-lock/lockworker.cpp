@@ -1,3 +1,8 @@
+
+#include <sys/time.h>
+#define TRACE_ME_IN struct timeval tp ; gettimeofday ( &tp , nullptr ); printf("[%4ld.%4ld] In: %s\n",tp.tv_sec , tp.tv_usec,__PRETTY_FUNCTION__);
+#define TRACE_ME_OUT gettimeofday (const_cast<timeval *>(&tp) , nullptr ); printf("[%4ld.%4ld] Out: %s\n",tp.tv_sec , tp.tv_usec,__PRETTY_FUNCTION__);
+
 #include "lockworker.h"
 
 #include "src/session-widgets/sessionbasemodel.h"
@@ -31,6 +36,7 @@ LockWorker::LockWorker(SessionBaseModel *const model, QObject *parent)
     , m_hotZoneInter(new DBusHotzone("com.deepin.daemon.Zone", "/com/deepin/daemon/Zone", QDBusConnection::sessionBus(), this))
     , m_sessionManager(new SessionManager("com.deepin.SessionManager", "/com/deepin/SessionManager", QDBusConnection::sessionBus(), this))
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     m_currentUserUid = getuid();
     m_authFramework = new DeepinAuthFramework(this, this);
     m_sessionManager->setSync(false);
@@ -59,10 +65,12 @@ LockWorker::LockWorker(SessionBaseModel *const model, QObject *parent)
         case SessionBaseModel::PowerAction::RequireRestart:
             m_authFramework->Authenticate(m_model->currentUser());
             model->setPowerAction(SessionBaseModel::PowerAction::RequireRestart);
+            TRACE_ME_OUT;	//<<==--TracePoint!
             return;
         case SessionBaseModel::PowerAction::RequireShutdown:
             m_authFramework->Authenticate(m_model->currentUser());
             model->setPowerAction(SessionBaseModel::PowerAction::RequireShutdown);
+            TRACE_ME_OUT;	//<<==--TracePoint!
             return;
         default:
             break;
@@ -82,17 +90,20 @@ LockWorker::LockWorker(SessionBaseModel *const model, QObject *parent)
     connect(model, &SessionBaseModel::visibleChanged, this, [ = ](bool isVisible) {
         if (!isVisible || model->currentType() != SessionBaseModel::AuthType::LockType)
 {
+    TRACE_ME_OUT;	//<<==--TracePoint!
     return;
 }
 
         std::shared_ptr<User> user_ptr = model->currentUser();
         if (!user_ptr.get())
 {
+    TRACE_ME_OUT;	//<<==--TracePoint!
     return;
 }
 
         if (user_ptr->type() == User::ADDomain && user_ptr->uid() == 0)
 {
+    TRACE_ME_OUT;	//<<==--TracePoint!
     return;
 }
 
@@ -153,10 +164,13 @@ LockWorker::LockWorker(SessionBaseModel *const model, QObject *parent)
         m_model->setIsServerModel(true);
         m_model->userAdd(user);
     }
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void LockWorker::switchToUser(std::shared_ptr<User> user)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     qWarning() << "switch user from" << m_model->currentUser()->name() << " to " << user->name();
 
     // clear old password
@@ -175,12 +189,16 @@ void LockWorker::switchToUser(std::shared_ptr<User> user)
     } else {
         QProcess::startDetached("dde-switchtogreeter");
     }
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void LockWorker::authUser(const QString &password)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     if (m_authenticating)
 {
+    TRACE_ME_OUT;	//<<==--TracePoint!
     return;
 }
 
@@ -198,6 +216,7 @@ void LockWorker::authUser(const QString &password)
         QTimer::singleShot(800, this, [ = ] {
             onUnlockFinished(false);
         });
+        TRACE_ME_OUT;	//<<==--TracePoint!
         return;
     }
 
@@ -205,39 +224,56 @@ void LockWorker::authUser(const QString &password)
         m_authFramework->Authenticate(user);
 
     m_authFramework->Responsed(password);
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void LockWorker::enableZoneDetected(bool disable)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     m_hotZoneInter->EnableZoneDetected(disable);
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void LockWorker::onDisplayErrorMsg(const QString &msg)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     emit m_model->authFaildTipsMessage(msg);
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void LockWorker::onDisplayTextInfo(const QString &msg)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     m_authenticating = false;
     emit m_model->authFaildMessage(msg);
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void LockWorker::onPasswordResult(const QString &msg)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     onUnlockFinished(!msg.isEmpty());
 
     if(msg.isEmpty()) {
         m_authFramework->Authenticate(m_model->currentUser());
     }
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void LockWorker::onUserAdded(const QString &user)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     std::shared_ptr<NativeUser> user_ptr(new NativeUser(user));
 
-    if (!user_ptr->isUserIsvalid())
+    if (!user_ptr->isUserIsvalid()) {
+        TRACE_ME_OUT;	//<<==--TracePoint!
         return;
+    }
 
     user_ptr->setisLogind(isLogined(user_ptr->uid()));
 
@@ -255,17 +291,23 @@ void LockWorker::onUserAdded(const QString &user)
     }
 
     m_model->userAdd(user_ptr);
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void LockWorker::lockServiceEvent(quint32 eventType, quint32 pid, const QString &username, const QString &message)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     if (!m_model->currentUser())
 {
+    TRACE_ME_OUT;	//<<==--TracePoint!
     return;
 }
 
-    if (username != m_model->currentUser()->name())
+    if (username != m_model->currentUser()->name()) {
+        TRACE_ME_OUT;	//<<==--TracePoint!
         return;
+    }
 
     // Don't show password prompt from standard pam modules since
     // we'll provide our own prompt or just not.
@@ -276,6 +318,7 @@ void LockWorker::lockServiceEvent(quint32 eventType, quint32 pid, const QString 
     if (msg == "Verification timed out") {
         m_isThumbAuth = true;
         emit m_model->authFaildMessage(tr("Fingerprint verification timed out, please enter your password manually"));
+        TRACE_ME_OUT;	//<<==--TracePoint!
         return;
     }
 
@@ -309,10 +352,13 @@ void LockWorker::lockServiceEvent(quint32 eventType, quint32 pid, const QString 
     default:
         break;
     }
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void LockWorker::onUnlockFinished(bool unlocked)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     qWarning() << "LockWorker::onUnlockFinished -- unlocked status : " << unlocked;
     emit m_model->authFinished(unlocked);
 
@@ -321,6 +367,7 @@ void LockWorker::onUnlockFinished(bool unlocked)
     if (!unlocked && m_authFramework->GetAuthType() == AuthFlag::Password) {
         qWarning() << "Authorization password failed!";
         emit m_model->authFaildTipsMessage(tr("Wrong Password"));
+        TRACE_ME_OUT;	//<<==--TracePoint!
         return;
     }
 
@@ -330,20 +377,25 @@ void LockWorker::onUnlockFinished(bool unlocked)
         if (unlocked) {
             m_sessionManager->RequestReboot();
         }
+        TRACE_ME_OUT;	//<<==--TracePoint!
         return;
     case SessionBaseModel::PowerAction::RequireShutdown:
         m_model->setPowerAction(SessionBaseModel::PowerAction::RequireShutdown);
         if (unlocked) {
             m_sessionManager->RequestShutdown();
         }
+        TRACE_ME_OUT;	//<<==--TracePoint!
         return;
     default:
         break;
     }
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void LockWorker::onCurrentUserChanged(const QString &user)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     qWarning() << "LockWorker::onCurrentUserChanged -- change to :" << user;
     const QJsonObject obj = QJsonDocument::fromJson(user.toUtf8()).object();
     auto user_cur = static_cast<uint>(obj["Uid"].toInt());
@@ -356,4 +408,6 @@ void LockWorker::onCurrentUserChanged(const QString &user)
         }
     }
     emit m_model->switchUserFinished();
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }

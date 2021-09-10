@@ -1,3 +1,8 @@
+
+#include <sys/time.h>
+#define TRACE_ME_IN struct timeval tp ; gettimeofday ( &tp , nullptr ); printf("[%4ld.%4ld] In: %s\n",tp.tv_sec , tp.tv_usec,__PRETTY_FUNCTION__);
+#define TRACE_ME_OUT gettimeofday (const_cast<timeval *>(&tp) , nullptr ); printf("[%4ld.%4ld] Out: %s\n",tp.tv_sec , tp.tv_usec,__PRETTY_FUNCTION__);
+
 /*
  * Copyright (C) 2011 ~ 2018 Deepin Technology Co., Ltd.
  *
@@ -46,6 +51,7 @@ MultiUsersWarningView::MultiUsersWarningView(QWidget *parent)
     , m_actionBtn(new QPushButton(QString()))
     , m_currentBtn(nullptr)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     m_userList->setAttribute(Qt::WA_TranslucentBackground);
 //    m_userList->setSelectionRectVisible(false);
     m_userList->setSelectionMode(QListView::NoSelection);
@@ -94,6 +100,8 @@ MultiUsersWarningView::MultiUsersWarningView(QWidget *parent)
 
     connect(m_cancelBtn, &QPushButton::clicked, this, &MultiUsersWarningView::cancelled);
     connect(m_actionBtn, &QPushButton::clicked, this, &MultiUsersWarningView::actionInvoked);
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 MultiUsersWarningView::~MultiUsersWarningView()
@@ -102,6 +110,7 @@ MultiUsersWarningView::~MultiUsersWarningView()
 
 void MultiUsersWarningView::setUsers(QList<std::shared_ptr<User>> users)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     m_userList->clear();
 
     m_userList->setFixedSize(UserListItemSize.width(),
@@ -114,15 +123,20 @@ void MultiUsersWarningView::setUsers(QList<std::shared_ptr<User>> users)
         QString icon = getUserIcon(user->avatarPath());
         m_userList->setItemWidget(item, new UserListItem(icon, user->name()));
     }
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 Actions MultiUsersWarningView::action() const
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
+    TRACE_ME_OUT;	//<<==--TracePoint!
     return m_action;
 }
 
 void MultiUsersWarningView::setAction(const Actions action)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     QString icon_string;
     switch (action) {
     case Actions::Shutdown:
@@ -138,10 +152,13 @@ void MultiUsersWarningView::setAction(const Actions action)
     const auto ratio = devicePixelRatioF();
     QIcon icon_pix = QIcon::fromTheme(icon_string).pixmap(m_actionBtn->iconSize() * ratio);
     m_actionBtn->setIcon(icon_pix);
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void MultiUsersWarningView::toggleButtonState()
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     if (m_actionBtn->isChecked()) {
         m_actionBtn->setChecked(false);
         m_cancelBtn->setChecked(true);
@@ -151,24 +168,36 @@ void MultiUsersWarningView::toggleButtonState()
         m_actionBtn->setChecked(true);
         m_currentBtn = m_actionBtn;
     }
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void MultiUsersWarningView::buttonClickHandle()
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     emit m_currentBtn->clicked();
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void MultiUsersWarningView::setAcceptReason(const QString &reason)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     m_actionBtn->setText(reason);
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 QString MultiUsersWarningView::getUserIcon(const QString &path)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     const QUrl url(path);
-    if (url.isLocalFile())
+    if (url.isLocalFile()) {
+        TRACE_ME_OUT;	//<<==--TracePoint!
         return url.path();
+    }
 
+    TRACE_ME_OUT;	//<<==--TracePoint!
     return path;
 }
 
@@ -177,6 +206,7 @@ UserListItem::UserListItem(const QString &icon, const QString &name) :
     m_icon(new QLabel(this)),
     m_name(new QLabel(name, this))
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     setFixedSize(UserListItemSize);
 
     m_icon->setFixedSize(UserAvatarSize);
@@ -185,10 +215,13 @@ UserListItem::UserListItem(const QString &icon, const QString &name) :
 
     m_name->setStyleSheet("color: white;");
     m_name->move(80, 20);
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 QPixmap UserListItem::getRoundPixmap(const QString &path)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     QPixmap source(path);
     QPixmap result(source.size());
     result.fill(Qt::transparent);
@@ -201,5 +234,6 @@ QPixmap UserListItem::getRoundPixmap(const QString &path)
     p.drawPixmap(result.rect(), source);
     p.end();
 
+    TRACE_ME_OUT;	//<<==--TracePoint!
     return result;
 }

@@ -1,3 +1,8 @@
+
+#include <sys/time.h>
+#define TRACE_ME_IN struct timeval tp ; gettimeofday ( &tp , nullptr ); printf("[%4ld.%4ld] In: %s\n",tp.tv_sec , tp.tv_usec,__PRETTY_FUNCTION__);
+#define TRACE_ME_OUT gettimeofday (const_cast<timeval *>(&tp) , nullptr ); printf("[%4ld.%4ld] Out: %s\n",tp.tv_sec , tp.tv_usec,__PRETTY_FUNCTION__);
+
 /*
  * Copyright (C) 2015 ~ 2018 Deepin Technology Co., Ltd.
  *
@@ -47,6 +52,7 @@ DWIDGET_USE_NAMESPACE
 
 int main(int argc, char *argv[])
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     if(DGuiApplicationHelper::isXWindowPlatform()) DApplication::loadDXcbPlugin();
     DApplication app(argc, argv);
     //解决Qt在Retina屏幕上图片模糊问题
@@ -132,6 +138,7 @@ int main(int argc, char *argv[])
         });
         lockFrame->setVisible(model->isShow());
         emit service.Visible(true);
+        TRACE_ME_OUT;	//<<==--TracePoint!
         return lockFrame;
     };
 
@@ -166,5 +173,6 @@ int main(int argc, char *argv[])
         app.exec();
     }
 
+    TRACE_ME_OUT;	//<<==--TracePoint!
     return 0;
 }

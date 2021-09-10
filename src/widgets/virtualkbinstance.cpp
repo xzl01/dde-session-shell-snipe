@@ -1,3 +1,8 @@
+
+#include <sys/time.h>
+#define TRACE_ME_IN struct timeval tp ; gettimeofday ( &tp , nullptr ); printf("[%4ld.%4ld] In: %s\n",tp.tv_sec , tp.tv_usec,__PRETTY_FUNCTION__);
+#define TRACE_ME_OUT gettimeofday (const_cast<timeval *>(&tp) , nullptr ); printf("[%4ld.%4ld] Out: %s\n",tp.tv_sec , tp.tv_usec,__PRETTY_FUNCTION__);
+
 #include "virtualkbinstance.h"
 
 #include <QProcess>
@@ -9,23 +14,32 @@
 
 VirtualKBInstance &VirtualKBInstance::Instance()
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     static VirtualKBInstance virtualKB;
+    TRACE_ME_OUT;	//<<==--TracePoint!
     return virtualKB;
 }
 
 QWidget *VirtualKBInstance::virtualKBWidget() {
+    TRACE_ME_IN;	//<<==--TracePoint!
+    TRACE_ME_OUT;	//<<==--TracePoint!
     return m_virtualKBWidget;
 }
 
 VirtualKBInstance::~VirtualKBInstance()
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     stopVirtualKBProcess();
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void VirtualKBInstance::init()
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     if (m_virtualKBWidget) {
         emit initFinished();
+        TRACE_ME_OUT;	//<<==--TracePoint!
         return;
     }
 
@@ -39,6 +53,7 @@ void VirtualKBInstance::init()
 
             if (output.isEmpty())
 {
+    TRACE_ME_OUT;	//<<==--TracePoint!
     return;
 }
 
@@ -56,24 +71,32 @@ void VirtualKBInstance::init()
 
         m_virtualKBProcess->start("onboard", QStringList() << "-e" << "--layout" << "Small" << "--size" << "60x5" << "-a");
     }
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void VirtualKBInstance::stopVirtualKBProcess()
 {
     //结束onborad进程
+    TRACE_ME_IN;	//<<==--TracePoint!
     if (m_virtualKBProcess) {
         m_virtualKBProcess->close();
         m_virtualKBWidget = nullptr;
     }
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 bool VirtualKBInstance::eventFilter(QObject *watched, QEvent *event)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     if (watched == m_virtualKBWidget && event->type() == QEvent::Resize) {
         QResizeEvent *e = static_cast<QResizeEvent*>(event);
+        TRACE_ME_OUT;	//<<==--TracePoint!
         return e->size() != QSize(600, 200);
     }
 
+    TRACE_ME_OUT;	//<<==--TracePoint!
     return QObject::eventFilter(watched, event);
 }
 
@@ -85,6 +108,9 @@ VirtualKBInstance::VirtualKBInstance(QObject *parent)
 
 void VirtualKBInstance::onVirtualKBProcessFinished(int exitCode)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     Q_UNUSED(exitCode);
     m_virtualKBProcess = nullptr;
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }

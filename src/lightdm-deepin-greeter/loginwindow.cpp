@@ -1,3 +1,8 @@
+
+#include <sys/time.h>
+#define TRACE_ME_IN struct timeval tp ; gettimeofday ( &tp , nullptr ); printf("[%4ld.%4ld] In: %s\n",tp.tv_sec , tp.tv_usec,__PRETTY_FUNCTION__);
+#define TRACE_ME_OUT gettimeofday (const_cast<timeval *>(&tp) , nullptr ); printf("[%4ld.%4ld] Out: %s\n",tp.tv_sec , tp.tv_usec,__PRETTY_FUNCTION__);
+
 /*
  * Copyright (C) 2011 ~ 2018 Deepin Technology Co., Ltd.
  *
@@ -34,6 +39,7 @@ LoginWindow::LoginWindow(SessionBaseModel *const model, QWidget *parent)
     , m_loginContent(new LoginContent(model, this))
     , m_model(model)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     QPixmap image(this->size());
     image.fill(Qt::black);
     updateBackground(image);
@@ -71,25 +77,37 @@ LoginWindow::LoginWindow(SessionBaseModel *const model, QWidget *parent)
     connect(m_loginContent, &LockContent::requestAuthUser, this, &LoginWindow::requestAuthUser);
     connect(m_loginContent, &LockContent::requestSwitchToUser, this, &LoginWindow::requestSwitchToUser);
     connect(m_loginContent, &LockContent::requestSetLayout, this, &LoginWindow::requestSetLayout);
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void LoginWindow::resizeEvent(QResizeEvent *event)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
+    TRACE_ME_OUT;	//<<==--TracePoint!
     return FullscreenBackground::resizeEvent(event);
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void LoginWindow::showEvent(QShowEvent *event)
 {
     //greeter界面显示时，需要调用虚拟键盘
+    TRACE_ME_IN;	//<<==--TracePoint!
     FullscreenBackground::showEvent(event);
 
     m_model->setHasVirtualKB(true);
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void LoginWindow::hideEvent(QHideEvent *event)
 {
     //greeter界面隐藏时，需要结束虚拟键盘
+    TRACE_ME_IN;	//<<==--TracePoint!
     FullscreenBackground::hideEvent(event);
 
     m_model->setHasVirtualKB(false);
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }

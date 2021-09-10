@@ -1,3 +1,8 @@
+
+#include <sys/time.h>
+#define TRACE_ME_IN struct timeval tp ; gettimeofday ( &tp , nullptr ); printf("[%4ld.%4ld] In: %s\n",tp.tv_sec , tp.tv_usec,__PRETTY_FUNCTION__);
+#define TRACE_ME_OUT gettimeofday (const_cast<timeval *>(&tp) , nullptr ); printf("[%4ld.%4ld] Out: %s\n",tp.tv_sec , tp.tv_usec,__PRETTY_FUNCTION__);
+
 /*
  * Copyright (C) 2015 ~ 2018 Deepin Technology Co., Ltd.
  *
@@ -54,13 +59,17 @@ ContentWidget::ContentWidget(QWidget *parent)
                                       this))
 
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     initUI();
     initData();
     initConnect();
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void ContentWidget::setModel(SessionBaseModel *const model)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     m_model = model;
 
     connect(model, &SessionBaseModel::onUserListSizeChanged, this, &ContentWidget::onUserListChanged);
@@ -71,6 +80,8 @@ void ContentWidget::setModel(SessionBaseModel *const model)
 
     connect(model, &SessionBaseModel::canSleepChanged, this, &ContentWidget::enableSleepBtn);
     enableSleepBtn(model->canSleep());
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 ContentWidget::~ContentWidget()
@@ -84,13 +95,17 @@ void ContentWidget::mouseReleaseEvent(QMouseEvent *event)
     // the other window receives the mouse release event,
     // causing the program to be started again
 
+    TRACE_ME_IN;	//<<==--TracePoint!
     onCancel();
 
     QFrame::mouseReleaseEvent(event);
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void ContentWidget::showEvent(QShowEvent *event)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     QFrame::showEvent(event);
 
     QProcess process;
@@ -130,10 +145,13 @@ void ContentWidget::showEvent(QShowEvent *event)
 
     m_currentSelectedBtn = m_lockButton;
     m_currentSelectedBtn->updateState(RoundItemButton::Checked);
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 bool ContentWidget::handleKeyPress(QKeyEvent *event)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     switch (event->key()) {
     case Qt::Key_Escape: onCancel(); break;
     case Qt::Key_Return:
@@ -143,12 +161,14 @@ bool ContentWidget::handleKeyPress(QKeyEvent *event)
             if (m_currentSelectedBtn && m_currentSelectedBtn->isChecked()) {
                 m_currentSelectedBtn->setChecked(false);
                 m_systemMonitor->setState(SystemMonitor::Enter);
+                TRACE_ME_OUT;	//<<==--TracePoint!
                 return true;
             }
 
             if (m_systemMonitor->state() == SystemMonitor::Enter) {
                 m_systemMonitor->setState(SystemMonitor::Leave);
                 m_currentSelectedBtn->setChecked(true);
+                TRACE_ME_OUT;	//<<==--TracePoint!
                 return true;
             }
         }
@@ -193,31 +213,42 @@ bool ContentWidget::handleKeyPress(QKeyEvent *event)
     default:;
     }
 
+    TRACE_ME_OUT;	//<<==--TracePoint!
     return false;
 }
 
 bool ContentWidget::event(QEvent *event)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     if (event->type() == QEvent::KeyPress) {
         QKeyEvent *key_event = static_cast<QKeyEvent *>(event);
+        TRACE_ME_OUT;	//<<==--TracePoint!
         return handleKeyPress(key_event);
     }
 
+    TRACE_ME_OUT;	//<<==--TracePoint!
     return QWidget::event(event);
 }
 
 void ContentWidget::hideEvent(QHideEvent *event)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     QFrame::hideEvent(event);
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void ContentWidget::setConfirm(const bool confirm)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     m_confirm = confirm;
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 bool ContentWidget::powerAction(const Actions action)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     switch (action) {
     case Shutdown:
     case Restart:
@@ -225,16 +256,19 @@ bool ContentWidget::powerAction(const Actions action)
     case Hibernate:
     case SwitchSystem:
     case Logout:
+        TRACE_ME_OUT;	//<<==--TracePoint!
         return beforeInvokeAction(action);
     default:
         shutDownFrameActions(action);
     }
 
+    TRACE_ME_OUT;	//<<==--TracePoint!
     return true;
 }
 
 void ContentWidget::initConnect()
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     connect(m_shutdownButton, &RoundItemButton::clicked, [this] { emit buttonClicked(Shutdown);});
     connect(m_restartButton, &RoundItemButton::clicked, [this] { emit buttonClicked(Restart);});
     connect(m_suspendButton, &RoundItemButton::clicked, [this] { emit buttonClicked(Suspend);});
@@ -251,33 +285,44 @@ void ContentWidget::initConnect()
     if(m_switchSystemBtn) {
         connect(m_switchSystemBtn, &RoundItemButton::clicked, [this] { emit buttonClicked(SwitchSystem); });
     }
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void ContentWidget::initData()
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     m_sessionInterface = new SessionManager("com.deepin.SessionManager", "/com/deepin/SessionManager",
                                                          QDBusConnection::sessionBus(), this);
+                                                         TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void ContentWidget::enterKeyPushed()
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     if (m_warningView) {
         m_warningView->buttonClickHandle();
+        TRACE_ME_OUT;	//<<==--TracePoint!
         return;
     }
 
     if (m_systemMonitor && m_systemMonitor->state() == SystemMonitor::Enter) {
         runSystemMonitor();
+        TRACE_ME_OUT;	//<<==--TracePoint!
         return;
     }
 
     if (m_warningView && m_warningView->isVisible())
 {
+    TRACE_ME_OUT;	//<<==--TracePoint!
     return;
 }
 
-    if (m_currentSelectedBtn->isDisabled())
+    if (m_currentSelectedBtn->isDisabled()) {
+        TRACE_ME_OUT;	//<<==--TracePoint!
         return;
+    }
 
     //使用信号，当操作需要确认时，在鼠标切换到其他屏幕使界面也显示提示内容
     if (m_currentSelectedBtn == m_shutdownButton)
@@ -296,10 +341,13 @@ void ContentWidget::enterKeyPushed()
         emit buttonClicked(SwitchSystem);
     else if (m_currentSelectedBtn == m_hibernateButton)
         emit buttonClicked(Hibernate);
+        TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void ContentWidget::hideBtn(const QString &btnName)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     std::map<RoundItemButton *, QString> map{
         { m_shutdownButton, "Shutdown" },    { m_restartButton, "Restart" },
         { m_suspendButton, "Suspend" },      { m_lockButton, "Lock" },
@@ -309,13 +357,19 @@ void ContentWidget::hideBtn(const QString &btnName)
 
     for (auto result : map) {
         if (!btnName.compare(result.second, Qt::CaseInsensitive)) {
-            if(result.first) { result.first->hide(); return; }
+            if(result.first) {
+                result.first->hide();
+                TRACE_ME_OUT;	//<<==--TracePoint!
+                return; }
         }
     }
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void ContentWidget::disableBtn(const QString &btnName)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     std::map<RoundItemButton *, QString> map{
         { m_shutdownButton, "Shutdown" },    { m_restartButton, "Restart" },
         { m_suspendButton, "Suspend" },      { m_lockButton, "Lock" },
@@ -325,13 +379,17 @@ void ContentWidget::disableBtn(const QString &btnName)
 
     for (auto result : map) {
         if (!btnName.compare(result.second, Qt::CaseInsensitive)) {
-            if(result.first) { result.first->hide(); return; }
+            if(result.first) { result.first->hide(); TRACE_ME_OUT;	//<<==--TracePoint!
+                                                     return; }
         }
     }
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 bool ContentWidget::beforeInvokeAction(const Actions action)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     const QList<InhibitWarnView::InhibitorData> inhibitors = listInhibitors(action);
 
     const QList<std::shared_ptr<User>> &loginUsers = m_model->logindUser();
@@ -379,6 +437,7 @@ bool ContentWidget::beforeInvokeAction(const Actions action)
                                            tr("To close the program, click Cancel, and then close the program."));
             break;
         default:
+            TRACE_ME_OUT;	//<<==--TracePoint!
             return {};
         }
 
@@ -418,6 +477,7 @@ bool ContentWidget::beforeInvokeAction(const Actions action)
             shutDownFrameActions(action);
         });
 
+        TRACE_ME_OUT;	//<<==--TracePoint!
         return false;
     }
 
@@ -452,6 +512,7 @@ bool ContentWidget::beforeInvokeAction(const Actions action)
             shutDownFrameActions(action);
         });
 
+        TRACE_ME_OUT;	//<<==--TracePoint!
         return false;
     }
 
@@ -484,27 +545,34 @@ bool ContentWidget::beforeInvokeAction(const Actions action)
             shutDownFrameActions(action);
         });
 
+        TRACE_ME_OUT;	//<<==--TracePoint!
         return false;
     }
 
     shutDownFrameActions(action);
 
+    TRACE_ME_OUT;	//<<==--TracePoint!
     return true;
 }
 
 void ContentWidget::hideToplevelWindow()
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     QWidgetList widgets = qApp->topLevelWidgets();
     for (QWidget *widget : widgets) {
         if (widget->isVisible()) {
             widget->hide();
         }
     }
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void ContentWidget::shutDownFrameActions(const Actions action)
 {
+TRACE_ME_IN;	//<<==--TracePoint!
 #ifdef QT_DEBUG
+    TRACE_ME_OUT;	//<<==--TracePoint!
     return;
 #endif // QT_DEBUG
     // if we don't force this widget to hide, hideEvent will happen after
@@ -514,6 +582,7 @@ void ContentWidget::shutDownFrameActions(const Actions action)
     //检查其他界面是否有关机操作，若存在则当前界面不再处理
     if (m_model->isCheckedPowerAction())
 {
+    TRACE_ME_OUT;	//<<==--TracePoint!
     return;
 }
     //当前界面已经处理关机操作，设置变量不允许其他界面再次处理
@@ -554,10 +623,13 @@ void ContentWidget::shutDownFrameActions(const Actions action)
     }
 
     hideToplevelWindow();
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void ContentWidget::currentWorkspaceChanged()
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     QDBusPendingCall call = m_wmInter->GetCurrentWorkspaceBackgroundForMonitor(QGuiApplication::primaryScreen()->name());
     QDBusPendingCallWatcher *watcher = new QDBusPendingCallWatcher(call, this);
     connect(watcher, &QDBusPendingCallWatcher::finished, [ = ] {
@@ -573,10 +645,13 @@ void ContentWidget::currentWorkspaceChanged()
 
         watcher->deleteLater();
     });
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void ContentWidget::updateWallpaper(const QString &path)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     const QUrl url(path);
     QString wallpaper = path;
     if (url.isLocalFile()) {
@@ -584,12 +659,16 @@ void ContentWidget::updateWallpaper(const QString &path)
     }
 
     emit requestBackground(wallpaper);
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void ContentWidget::onUserListChanged(int users_size)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     if(users_size == 0)
 {
+    TRACE_ME_OUT;	//<<==--TracePoint!
     return;
 }   // At least one user
 
@@ -604,27 +683,36 @@ void ContentWidget::onUserListChanged(int users_size)
                                           (allowShowUserSwitchButton &&
                                           (users_size > (m_model->isServerModel() ? 0 : 1)))) &&
                                           haveLogindUser);
+                                          TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void ContentWidget::enableHibernateBtn(bool enable)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     m_hibernateButton->setVisible(enable);
     if (!enable) {
         hideBtn("Hibernate");
     }
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void ContentWidget::enableSleepBtn(bool enable)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     m_suspendButton->setVisible(enable);
     if (!enable) {
         hideBtn("Suspend");
     }
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void ContentWidget::initUI()
 {
     //整理代码顺序，让子部件的构建层级先后顺序更清晰
+    TRACE_ME_IN;	//<<==--TracePoint!
     m_inhibitorBlacklists << "NetworkManager" << "ModemManager" << "com.deepin.daemon.Power";
 
     m_btnsList = new QList<RoundItemButton *>;
@@ -716,6 +804,8 @@ void ContentWidget::initUI()
     m_btnsList->append(m_switchUserBtn);
     if(m_switchSystemBtn) m_btnsList->append(m_switchSystemBtn);
     m_btnsList->append(m_logoutButton);
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 
     //// Inhibit to shutdown
     // blumia: seems this call is useless..
@@ -744,6 +834,7 @@ void ContentWidget::initUI()
 
 void ContentWidget::initBackground()
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     if (m_wmInter->isValid()) {
         currentWorkspaceChanged();
     } else {
@@ -757,10 +848,13 @@ void ContentWidget::initBackground()
             updateWallpaper(path.split(";").first());
         }
     });
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 QList<InhibitWarnView::InhibitorData> ContentWidget::listInhibitors(const Actions action)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     QList<InhibitWarnView::InhibitorData> inhibitorList;
 
     if (m_login1Inter->isValid()) {
@@ -787,6 +881,7 @@ QList<InhibitWarnView::InhibitorData> ContentWidget::listInhibitors(const Action
                 type = "sleep";
                 break;
             default:
+                TRACE_ME_OUT;	//<<==--TracePoint!
                 return {};
             }
 
@@ -849,12 +944,14 @@ QList<InhibitWarnView::InhibitorData> ContentWidget::listInhibitors(const Action
         qWarning() << "shutdown login1Manager error!";
     }
 
+    TRACE_ME_OUT;	//<<==--TracePoint!
     return inhibitorList;
 }
 
 void ContentWidget::recoveryLayout()
 {
     //直接设置切换用户按钮是否可见，而不是先设置可见，再根据用户数量设置是否可见，避免闪现切换用户按钮
+    TRACE_ME_IN;	//<<==--TracePoint!
     for (RoundItemButton *btn : *m_btnsList) {
         if (btn == m_switchUserBtn) {
             // check user switch button
@@ -878,10 +975,13 @@ void ContentWidget::recoveryLayout()
 
     m_mainLayout->setCurrentWidget(m_normalView);
     setFocusPolicy(Qt::StrongFocus);
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void ContentWidget::runSystemMonitor()
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     QProcess::startDetached("/usr/bin/deepin-system-monitor");
 
     if (m_systemMonitor) {
@@ -890,12 +990,16 @@ void ContentWidget::runSystemMonitor()
     }
 
     hideToplevelWindow();
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void ContentWidget::setPreviousChildFocus()
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     if (m_warningView && m_warningView->isVisible())
 {
+    TRACE_ME_OUT;	//<<==--TracePoint!
     return;
 }
 
@@ -912,12 +1016,16 @@ void ContentWidget::setPreviousChildFocus()
         setPreviousChildFocus();
     else
         m_currentSelectedBtn->setChecked(true);
+        TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void ContentWidget::setNextChildFocus()
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     if (m_warningView && m_warningView->isVisible())
 {
+    TRACE_ME_OUT;	//<<==--TracePoint!
     return;
 }
 
@@ -932,10 +1040,13 @@ void ContentWidget::setNextChildFocus()
         setNextChildFocus();
     else
         m_currentSelectedBtn->setChecked(true);
+        TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void ContentWidget::showTips(const QString &tips)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     if (!tips.isEmpty()) {
 //        m_tipsLabel->setText(tips);
         m_tipsWidget->show();
@@ -951,34 +1062,48 @@ void ContentWidget::showTips(const QString &tips)
         m_logoutButton->setDisabled(false);
         m_shutdownButton->updateState(RoundItemButton::Hover);
     }
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void ContentWidget::hideBtns(const QStringList &btnsName)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     for (const QString &name : btnsName)
         hideBtn(name);
+        TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void ContentWidget::disableBtns(const QStringList &btnsName)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     for (const QString &name : btnsName)
         disableBtn(name);
+        TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void ContentWidget::onCancel()
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     hideToplevelWindow();
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 
 void ContentWidget::tryGrabKeyboard()
 {
+TRACE_ME_IN;	//<<==--TracePoint!
 #ifdef QT_DEBUG
+    TRACE_ME_OUT;	//<<==--TracePoint!
     return;
 #endif
 
     if (window()->windowHandle() && isVisible() && window()->windowHandle()->setKeyboardGrabEnabled(true)) {
         m_failures = 0;
+        TRACE_ME_OUT;	//<<==--TracePoint!
         return;
     }
 
@@ -987,8 +1112,11 @@ void ContentWidget::tryGrabKeyboard()
     if (m_failures == 15) {
         qDebug() << "Trying grabkeyboard has exceeded the upper limit. dde-lock will quit.";
         qApp->quit();
+        TRACE_ME_OUT;	//<<==--TracePoint!
         return;
     }
 
     QTimer::singleShot(100, this, &ContentWidget::tryGrabKeyboard);
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }

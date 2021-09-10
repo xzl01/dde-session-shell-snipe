@@ -1,3 +1,8 @@
+
+#include <sys/time.h>
+#define TRACE_ME_IN struct timeval tp ; gettimeofday ( &tp , nullptr ); printf("[%4ld.%4ld] In: %s\n",tp.tv_sec , tp.tv_usec,__PRETTY_FUNCTION__);
+#define TRACE_ME_OUT gettimeofday (const_cast<timeval *>(&tp) , nullptr ); printf("[%4ld.%4ld] Out: %s\n",tp.tv_sec , tp.tv_usec,__PRETTY_FUNCTION__);
+
 #include "authinterface.h"
 #include "sessionbasemodel.h"
 #include "userinfo.h"
@@ -15,9 +20,11 @@ using namespace Auth;
 
 static std::pair<bool, qint64> checkIsPartitionType(const QStringList &list)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     std::pair<bool, qint64> result{ false, -1 };
 
     if (list.length() != 5) {
+        TRACE_ME_OUT;	//<<==--TracePoint!
         return result;
     }
 
@@ -27,11 +34,13 @@ static std::pair<bool, qint64> checkIsPartitionType(const QStringList &list)
     result.first  = type == "partition";
     result.second = size.toLongLong() * 1024.0f;
 
+    TRACE_ME_OUT;	//<<==--TracePoint!
     return result;
 }
 
 static qint64 get_power_image_size()
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     qint64 size{ 0 };
     QFile  file("/sys/power/image_size");
 
@@ -40,6 +49,7 @@ static qint64 get_power_image_size()
         file.close();
     }
 
+    TRACE_ME_OUT;	//<<==--TracePoint!
     return size;
 }
 
@@ -57,6 +67,7 @@ AuthInterface::AuthInterface(SessionBaseModel *const model, QObject *parent)
     , m_lastLogoutUid(0)
     , m_loginUserList(0)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     if (m_login1Inter->isValid()) {
        QString session_self = m_login1Inter->GetSessionByPID(0).value().path();
        m_login1SessionSelf = new Login1SessionSelf("org.freedesktop.login1", session_self, QDBusConnection::systemBus(), this);
@@ -68,15 +79,21 @@ AuthInterface::AuthInterface(SessionBaseModel *const model, QObject *parent)
     if (m_model->currentType() != SessionBaseModel::LightdmType && QGSettings::isSchemaInstalled("com.deepin.dde.sessionshell.control")) {
         m_gsettings = new QGSettings("com.deepin.dde.sessionshell.control", "/com/deepin/dde/sessionshell/control/", this);
     }
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void AuthInterface::setLayout(std::shared_ptr<User> user, const QString &layout)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     user->setCurrentLayout(layout);
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void AuthInterface::onUserListChanged(const QStringList &list)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     m_model->setUserListSize(list.size());
 
     QStringList tmpList;
@@ -99,17 +116,23 @@ void AuthInterface::onUserListChanged(const QStringList &list)
     }
 
     m_loginedInter->userList();
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void AuthInterface::onUserAdded(const QString &user)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     std::shared_ptr<User> user_ptr(new NativeUser(user));
     user_ptr->setisLogind(isLogined(user_ptr->uid()));
     m_model->userAdd(user_ptr);
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void AuthInterface::onUserRemove(const QString &user)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     QList<std::shared_ptr<User>> list = m_model->userList();
 
     for (auto u : list) {
@@ -118,19 +141,25 @@ void AuthInterface::onUserRemove(const QString &user)
             break;
         }
     }
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void AuthInterface::initData()
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     m_accountsInter->userList();
     m_loginedInter->lastLogoutUser();
 
     checkConfig();
     checkPowerInfo();
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void AuthInterface::initDBus()
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     m_accountsInter->setSync(false);
     m_loginedInter->setSync(false);
 
@@ -145,25 +174,32 @@ void AuthInterface::initDBus()
         auto user = m_model->findUserByName(name);
         updateLockLimit(user);
     });
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void AuthInterface::onLastLogoutUserChanged(uint uid)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     m_lastLogoutUid = uid;
 
     QList<std::shared_ptr<User>> userList = m_model->userList();
     for (auto it = userList.constBegin(); it != userList.constEnd(); ++it) {
         if ((*it)->uid() == uid) {
             m_model->setLastLogoutUser((*it));
+            TRACE_ME_OUT;	//<<==--TracePoint!
             return;
         }
     }
 
     m_model->setLastLogoutUser(std::shared_ptr<User>(nullptr));
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void AuthInterface::onLoginUserListChanged(const QString &list)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     m_loginUserList.clear();
 
     std::list<uint> availableUidList;
@@ -183,7 +219,8 @@ void AuthInterface::onLoginUserListChanged(const QString &list)
 
         auto find_it = std::find_if(
             availableUidList.begin(), availableUidList.end(),
-            [=](const uint find_addomain_uid) { return find_addomain_uid == uid; });
+            [=](const uint find_addomain_uid) { TRACE_ME_OUT;	//<<==--TracePoint!
+                                                return find_addomain_uid == uid; });
 
         if (haveDisplay && find_it == availableUidList.end()) {
             // init addoman user
@@ -210,7 +247,8 @@ void AuthInterface::onLoginUserListChanged(const QString &list)
 
         auto find_it =
             std::find_if(m_loginUserList.begin(), m_loginUserList.end(),
-                         [=](const uint find_uid) { return find_uid == user->uid(); });
+                         [=](const uint find_uid) { TRACE_ME_OUT;	//<<==--TracePoint!
+                                                    return find_uid == user->uid(); });
 
         if (find_it == m_loginUserList.end() &&
             (user->type() == User::ADDomain && user->uid() != INT_MAX)) {
@@ -225,36 +263,45 @@ void AuthInterface::onLoginUserListChanged(const QString &list)
 
     if(m_model->isServerModel())
         emit m_model->userListLoginedChanged(m_model->logindUser());
+        TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 bool AuthInterface::checkHaveDisplay(const QJsonArray &array)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     for (auto it = array.constBegin(); it != array.constEnd(); ++it) {
         const QJsonObject &obj = (*it).toObject();
 
         // If user without desktop or display, this is system service, need skip.
         if (!obj["Display"].toString().isEmpty() &&
             !obj["Desktop"].toString().isEmpty()) {
+            TRACE_ME_OUT;	//<<==--TracePoint!
             return true;
         }
     }
 
+    TRACE_ME_OUT;	//<<==--TracePoint!
     return false;
 }
 
 QVariant AuthInterface::getGSettings(const QString& node, const QString& key)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     QVariant value = valueByQSettings<QVariant>(node, key, true);
     if (m_gsettings != nullptr && m_gsettings->keys().contains(key)) {
         value = m_gsettings->get(key);
     }
+    TRACE_ME_OUT;	//<<==--TracePoint!
     return value;
 }
 
 void AuthInterface::updateLockLimit(std::shared_ptr<User> user)
 {
-    if (user == nullptr && user->name().isEmpty())
-        return;
+    TRACE_ME_IN;	//<<==--TracePoint!
+    if (user == nullptr && user->name().isEmpty()) {
+        TRACE_ME_OUT;	//<<==--TracePoint!
+        return;}
 
     QDBusPendingCall call = m_authenticateInter->GetLimits(user->name());
     QDBusPendingCallWatcher *watcher = new QDBusPendingCallWatcher(call, this);
@@ -280,35 +327,47 @@ void AuthInterface::updateLockLimit(std::shared_ptr<User> user)
 
         watcher->deleteLater();
     });
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 bool AuthInterface::isLogined(uint uid)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     auto isLogind = std::find_if(m_loginUserList.begin(), m_loginUserList.end(),
-                                 [=](uint UID) { return uid == UID; });
+                                 [=](uint UID) { TRACE_ME_OUT;	//<<==--TracePoint!
+                                                 return uid == UID; });
 
+    TRACE_ME_OUT;	//<<==--TracePoint!
     return isLogind != m_loginUserList.end();
 }
 
 bool AuthInterface::isDeepin()
 {
     // 这是临时的选项，只在Deepin下启用同步认证功能，其他发行版下禁用。
+TRACE_ME_IN;	//<<==--TracePoint!
 #ifdef QT_DEBUG
+    TRACE_ME_OUT;	//<<==--TracePoint!
     return true;
 #else
+    TRACE_ME_OUT;	//<<==--TracePoint!
     return getGSettings("","useDeepinAuth").toBool();
 #endif
 }
 
 void AuthInterface::checkConfig()
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     m_model->setAlwaysShowUserSwitchButton(getGSettings("","switchuser").toInt() == AuthInterface::Always);
     m_model->setAllowShowUserSwitchButton(getGSettings("","switchuser").toInt() == AuthInterface::Ondemand);
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void AuthInterface::checkPowerInfo()
 {
     //替换接口org.freedesktop.login1 为com.deepin.sessionManager,原接口的是否支持待机和休眠的信息不准确
+    TRACE_ME_IN;	//<<==--TracePoint!
     QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
     bool can_sleep = env.contains(POWER_CAN_SLEEP) ? QVariant(env.value(POWER_CAN_SLEEP)).toBool()
                                                    : getGSettings("Power","sleep").toBool() && m_powerManagerInter->CanSuspend();
@@ -318,10 +377,13 @@ void AuthInterface::checkPowerInfo()
                                                            : getGSettings("Power","hibernate").toBool() && m_powerManagerInter->CanHibernate();
 
     m_model->setHasSwap(can_hibernate);
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void AuthInterface::checkSwap()
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     QFile file("/proc/swaps");
     if (file.open(QIODevice::Text | QIODevice::ReadOnly)) {
         bool           hasSwap{ false };
@@ -353,4 +415,6 @@ void AuthInterface::checkSwap()
     else {
         qWarning() << "open /proc/swaps failed! please check permission!!!";
     }
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }

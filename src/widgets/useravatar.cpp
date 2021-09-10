@@ -1,3 +1,8 @@
+
+#include <sys/time.h>
+#define TRACE_ME_IN struct timeval tp ; gettimeofday ( &tp , nullptr ); printf("[%4ld.%4ld] In: %s\n",tp.tv_sec , tp.tv_usec,__PRETTY_FUNCTION__);
+#define TRACE_ME_OUT gettimeofday (const_cast<timeval *>(&tp) , nullptr ); printf("[%4ld.%4ld] Out: %s\n",tp.tv_sec , tp.tv_usec,__PRETTY_FUNCTION__);
+
 /*
  * Copyright (C) 2015 ~ 2018 Deepin Technology Co., Ltd.
  *
@@ -32,6 +37,7 @@
 UserAvatar::UserAvatar(QWidget *parent, bool deleteable) :
     QPushButton(parent), m_deleteable(deleteable)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     setCheckable(true);
 
     QVBoxLayout *mainLayout = new QVBoxLayout(this);
@@ -51,10 +57,13 @@ UserAvatar::UserAvatar(QWidget *parent, bool deleteable) :
     setStyleSheet("background-color: rgba(255, 255, 255, 0);\
                                     color: #b4b4b4;\
                                     border: none;");
+                                    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void UserAvatar::setIcon(const QString &iconPath, const QSize &size)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     QUrl url(iconPath);
 
     if (url.isLocalFile())
@@ -68,10 +77,13 @@ void UserAvatar::setIcon(const QString &iconPath, const QSize &size)
         m_iconLabel->setFixedSize(size);
 
     update();
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void UserAvatar::paintEvent(QPaintEvent *)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     int iconSize = NORMAL_ICON_SIZE;
     switch (m_avatarSize){
     case AvatarSmallSize:
@@ -114,10 +126,13 @@ void UserAvatar::paintEvent(QPaintEvent *)
         painter.drawPath(path);
         painter.end();
     }
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 QImage UserAvatar::imageToGray(const QImage &image)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     int height = image.height();
     int width = image.width();
     QImage targetImg(width, height, QImage::Format_Indexed8);
@@ -152,6 +167,7 @@ QImage UserAvatar::imageToGray(const QImage &image)
     default:
         break;
     }
+    TRACE_ME_OUT;	//<<==--TracePoint!
     return targetImg;
 }
 
@@ -166,17 +182,23 @@ void UserAvatar::initDeleteButton()
 }
 bool UserAvatar::deleteable() const
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
+    TRACE_ME_OUT;	//<<==--TracePoint!
     return m_deleteable;
 }
 
 void UserAvatar::setDeleteable(bool deleteable)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     m_deleteable = deleteable;
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 
 void UserAvatar::setAvatarSize(const AvatarSize &avatarSize)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     int tmpSize = NORMAL_ICON_SIZE;
     switch (avatarSize){
     case AvatarSmallSize:
@@ -191,50 +213,73 @@ void UserAvatar::setAvatarSize(const AvatarSize &avatarSize)
     m_iconLabel->setFixedSize(tmpSize, tmpSize);
 
     m_avatarSize = avatarSize;
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void UserAvatar::setDisabled(bool disable)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     setEnabled(!disable);
     repaint();
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void UserAvatar::setSelected(bool selected)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     m_selected = selected;
 
     repaint();
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 
 int UserAvatar::borderWidth() const
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
+    TRACE_ME_OUT;	//<<==--TracePoint!
     return m_borderWidth;
 }
 
 void UserAvatar::setBorderWidth(int borderWidth)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     m_borderWidth = borderWidth;
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 QColor UserAvatar::borderSelectedColor() const
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
+    TRACE_ME_OUT;	//<<==--TracePoint!
     return m_borderSelectedColor;
 }
 
 void UserAvatar::setBorderSelectedColor(const QColor &borderSelectedColor)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     m_borderSelectedColor = borderSelectedColor;
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 QColor UserAvatar::borderColor() const
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
+    TRACE_ME_OUT;	//<<==--TracePoint!
     return m_borderColor;
 }
 
 void UserAvatar::setBorderColor(const QColor &borderColor)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     m_borderColor = borderColor;
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 //AvatarDeleteButton::AvatarDeleteButton(QWidget *parent) : DImageButton(parent)
 //{
@@ -246,6 +291,9 @@ void UserAvatar::setBorderColor(const QColor &borderColor)
 //}
 
 void UserAvatar::setColor(QColor color) {
+    TRACE_ME_IN;	//<<==--TracePoint!
     m_palette.setColor(QPalette::WindowText, color);
     this->setPalette(m_palette);
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }

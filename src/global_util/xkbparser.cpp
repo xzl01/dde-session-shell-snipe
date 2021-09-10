@@ -1,3 +1,8 @@
+
+#include <sys/time.h>
+#define TRACE_ME_IN struct timeval tp ; gettimeofday ( &tp , nullptr ); printf("[%4ld.%4ld] In: %s\n",tp.tv_sec , tp.tv_usec,__PRETTY_FUNCTION__);
+#define TRACE_ME_OUT gettimeofday (const_cast<timeval *>(&tp) , nullptr ); printf("[%4ld.%4ld] Out: %s\n",tp.tv_sec , tp.tv_usec,__PRETTY_FUNCTION__);
+
 /*
  * Copyright (C) 2015 ~ 2018 Deepin Technology Co., Ltd.
  *
@@ -37,6 +42,7 @@ XkbParser::XkbParser(QObject *parent)
 }
 
 QStringList XkbParser::lookUpKeyboardList(QStringList keyboardList_key) {
+    TRACE_ME_IN;	//<<==--TracePoint!
     if (KeyboardLayoutList.isEmpty()) {
         parse();
     }
@@ -73,9 +79,11 @@ QStringList XkbParser::lookUpKeyboardList(QStringList keyboardList_key) {
         }
     }
 
+    TRACE_ME_OUT;	//<<==--TracePoint!
     return result;
 }
 QString XkbParser::lookUpKeyboardKey(QString keyboard_value) {
+    TRACE_ME_IN;	//<<==--TracePoint!
     if (KeyboardLayoutList.isEmpty()) {
         parse();
     }
@@ -85,21 +93,25 @@ QString XkbParser::lookUpKeyboardKey(QString keyboard_value) {
         if (KeyboardLayoutList[i].description == keyboard_value) {
             keyboard_key = QString("%1|").arg(KeyboardLayoutList[i].name);
             qDebug() << "keyboard_key:" << keyboard_key;
+            TRACE_ME_OUT;	//<<==--TracePoint!
             return keyboard_key;
         } else {
             for (int j = 0; j < KeyboardLayoutList[i].variantItemList.length(); j++) {
                 if (KeyboardLayoutList[i].variantItemList[j].description == keyboard_value) {
                     keyboard_key = QString("%1|%2").arg(KeyboardLayoutList[i].name).arg(KeyboardLayoutList[i].variantItemList[j].name);
+                    TRACE_ME_OUT;	//<<==--TracePoint!
                     return keyboard_key;
                 }
             }
         }
     }
+    TRACE_ME_OUT;	//<<==--TracePoint!
     return keyboard_key;
 }
 
 bool XkbParser::parse() {
 
+    TRACE_ME_IN;	//<<==--TracePoint!
     QFile baseFile(kBaseFile);
 
     QDomDocument document;
@@ -108,6 +120,7 @@ bool XkbParser::parse() {
         document.setContent(&baseFile);
     } else {
         qDebug() << "Failed to open base.xml";
+        TRACE_ME_OUT;	//<<==--TracePoint!
         return false;
     }
 
@@ -115,6 +128,7 @@ bool XkbParser::parse() {
 
     if (rootElement.isNull()) {
         qDebug() << "root element is null.";
+        TRACE_ME_OUT;	//<<==--TracePoint!
         return false;
     }
 
@@ -124,6 +138,7 @@ bool XkbParser::parse() {
 
     if (layoutNodes.isEmpty()) {
         qDebug() << "layout list is empty.";
+        TRACE_ME_OUT;	//<<==--TracePoint!
         return false;
     }
 
@@ -175,6 +190,7 @@ bool XkbParser::parse() {
         }
         KeyboardLayoutList.append(tmpLayoutItem);
     }
+    TRACE_ME_OUT;	//<<==--TracePoint!
     return true;
 }
 

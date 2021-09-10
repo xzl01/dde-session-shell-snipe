@@ -1,3 +1,8 @@
+
+#include <sys/time.h>
+#define TRACE_ME_IN struct timeval tp ; gettimeofday ( &tp , nullptr ); printf("[%4ld.%4ld] In: %s\n",tp.tv_sec , tp.tv_usec,__PRETTY_FUNCTION__);
+#define TRACE_ME_OUT gettimeofday (const_cast<timeval *>(&tp) , nullptr ); printf("[%4ld.%4ld] Out: %s\n",tp.tv_sec , tp.tv_usec,__PRETTY_FUNCTION__);
+
 /*
  * Copyright (C) 2011 ~ 2018 Deepin Technology Co., Ltd.
  *
@@ -49,6 +54,7 @@ FullscreenBackground::FullscreenBackground(QWidget *parent)
     , m_fadeOutAni(new QVariantAnimation(this))
     , m_imageEffectInter(new ImageEffectInter("com.deepin.daemon.ImageEffect", "/com/deepin/daemon/ImageEffect", QDBusConnection::systemBus(), this))
 {
+TRACE_ME_IN;	//<<==--TracePoint!
 #ifndef QT_DEBUG
     setWindowFlags(Qt::WindowStaysOnTopHint | Qt::X11BypassWindowManagerHint);
 #endif
@@ -61,6 +67,8 @@ FullscreenBackground::FullscreenBackground(QWidget *parent)
     installEventFilter(this);
 
     connect(m_fadeOutAni, &QVariantAnimation::valueChanged, this, static_cast<void (FullscreenBackground::*)()>(&FullscreenBackground::update));
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 FullscreenBackground::~FullscreenBackground()
@@ -69,17 +77,23 @@ FullscreenBackground::~FullscreenBackground()
 
 bool FullscreenBackground::contentVisible() const
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
+    TRACE_ME_OUT;	//<<==--TracePoint!
     return m_content && m_content->isVisible();
 }
 
 void FullscreenBackground::enableEnterEvent(bool enable)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     m_enableEnterEvent = enable;
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void FullscreenBackground::updateBackground(const QPixmap &background)
 {
     // show old background fade out
+    TRACE_ME_IN;	//<<==--TracePoint!
     m_fakeBackground = m_background;
     m_background = background;
 
@@ -90,15 +104,20 @@ void FullscreenBackground::updateBackground(const QPixmap &background)
         m_fadeOutAni->start();
     } else
         update();
+        TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 bool FullscreenBackground::isPicture(const QString &file)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
+    TRACE_ME_OUT;	//<<==--TracePoint!
     return QFile::exists (file) && QFile (file).size();
 }
 
 void FullscreenBackground::updateBackground(const QString &file)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     QString bg_path = file;
     if (!isPicture(file)) {
         QSharedMemory memory(file);
@@ -108,6 +127,7 @@ void FullscreenBackground::updateBackground(const QString &file)
             updateBackground(image);
             memory.detach();
 
+            TRACE_ME_OUT;	//<<==--TracePoint!
             return;
         }
 
@@ -119,10 +139,13 @@ void FullscreenBackground::updateBackground(const QString &file)
     }
 
     updateBlurBackground(bg_path);
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void FullscreenBackground::updateBlurBackground(const QString &file)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     QDBusPendingCall call = m_imageEffectInter->Get("", file);
     QDBusPendingCallWatcher *watcher = new QDBusPendingCallWatcher(call, this);
     connect(watcher, &QDBusPendingCallWatcher::finished, [ = ] {
@@ -142,11 +165,14 @@ void FullscreenBackground::updateBlurBackground(const QString &file)
 
         watcher->deleteLater();
     });
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 
 void FullscreenBackground::setScreen(QScreen *screen)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     QScreen *primary_screen = QGuiApplication::primaryScreen();
     if(primary_screen == screen) {
         m_content->show();
@@ -160,38 +186,51 @@ void FullscreenBackground::setScreen(QScreen *screen)
     }
 
     updateScreen(screen);
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void FullscreenBackground::setContentVisible(bool contentVisible)
 {
-    if (this->contentVisible() == contentVisible)
-        return;
+    TRACE_ME_IN;	//<<==--TracePoint!
+    if (this->contentVisible() == contentVisible) {
+        TRACE_ME_OUT;	//<<==--TracePoint!
+        return;}
 
-    if (!m_content)
-        return;
+    if (!m_content) {
+        TRACE_ME_OUT;	//<<==--TracePoint!
+        return;}
 
-    if (!isVisible() && !contentVisible)
-        return;
+    if (!isVisible() && !contentVisible) {
+        TRACE_ME_OUT;	//<<==--TracePoint!
+        return;}
 
     m_content->setVisible(contentVisible);
 
     emit contentVisibleChanged(contentVisible);
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void FullscreenBackground::setContent(QWidget *const w)
 {
     //Q_ASSERT(m_content.isNull());
 
+    TRACE_ME_IN;	//<<==--TracePoint!
     m_content = w;
     m_content->setParent(this);
     m_content->raise();
     m_content->move(0, 0);
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void FullscreenBackground::setIsBlackMode(bool is_black)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     if(m_isBlackMode == is_black)
 {
+    TRACE_ME_OUT;	//<<==--TracePoint!
     return;
 }
 
@@ -201,16 +240,22 @@ void FullscreenBackground::setIsBlackMode(bool is_black)
     emit contentVisibleChanged(!is_black);
 
     update();
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void FullscreenBackground::setIsHibernateMode(){
+    TRACE_ME_IN;	//<<==--TracePoint!
     updateGeometry();
     m_content->show();
     emit contentVisibleChanged(true);
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void FullscreenBackground::paintEvent(QPaintEvent *e)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     QWidget::paintEvent(e);
 
     QPainter painter(this);
@@ -238,41 +283,60 @@ void FullscreenBackground::paintEvent(QPaintEvent *e)
     } else {
         painter.fillRect(trueRect, Qt::black);
     }
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void FullscreenBackground::enterEvent(QEvent *event)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     if(m_primaryShowFinished && m_enableEnterEvent) {
         m_content->show();
         emit contentVisibleChanged(true);
     }
 
+    TRACE_ME_OUT;	//<<==--TracePoint!
     return QWidget::enterEvent(event);
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void FullscreenBackground::leaveEvent(QEvent *event)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
+    TRACE_ME_OUT;	//<<==--TracePoint!
     return QWidget::leaveEvent(event);
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void FullscreenBackground::resizeEvent(QResizeEvent *event)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     m_content->resize(size());
     updateBackground(m_background);
 
+    TRACE_ME_OUT;	//<<==--TracePoint!
     return QWidget::resizeEvent(event);
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void FullscreenBackground::mouseMoveEvent(QMouseEvent *event)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     m_content->show();
     emit contentVisibleChanged(true);
 
+    TRACE_ME_OUT;	//<<==--TracePoint!
     return QWidget::mouseMoveEvent(event);
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void FullscreenBackground::keyPressEvent(QKeyEvent *e)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     QWidget::keyPressEvent(e);
 
     switch (e->key()) {
@@ -281,10 +345,13 @@ void FullscreenBackground::keyPressEvent(QKeyEvent *e)
 #endif
     default:;
     }
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void FullscreenBackground::showEvent(QShowEvent *event)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     if (QWindow *w = windowHandle()) {
         if (m_screen) {
             if (w->screen() != m_screen) {
@@ -300,11 +367,15 @@ void FullscreenBackground::showEvent(QShowEvent *event)
         connect(w, &QWindow::screenChanged, this, &FullscreenBackground::updateScreen);
     }
 
+    TRACE_ME_OUT;	//<<==--TracePoint!
     return QWidget::showEvent(event);
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 const QPixmap FullscreenBackground::pixmapHandle(const QPixmap &pixmap)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     const QSize trueSize { size() *devicePixelRatioF() };
     QPixmap pix;
     if (!pixmap.isNull())
@@ -318,14 +389,17 @@ const QPixmap FullscreenBackground::pixmapHandle(const QPixmap &pixmap)
     // draw pix to widget, so pix need set pixel ratio from qwidget devicepixelratioF
     pix.setDevicePixelRatio(devicePixelRatioF());
 
+    TRACE_ME_OUT;	//<<==--TracePoint!
     return pix;
 }
 
 void FullscreenBackground::updateScreen(QScreen *screen)
 {
-    if (screen == m_screen)
+    TRACE_ME_IN;	//<<==--TracePoint!
+    if (screen == m_screen) {
+        TRACE_ME_OUT;	//<<==--TracePoint!
         return;
-
+    }
     if (m_screen) {
         disconnect(m_screen, &QScreen::geometryChanged, this, &FullscreenBackground::updateGeometry);
     }
@@ -338,11 +412,16 @@ void FullscreenBackground::updateScreen(QScreen *screen)
 
     if (m_screen)
         updateGeometry();
+        TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void FullscreenBackground::updateGeometry()
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     setGeometry(m_screen->geometry());
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 /********************************************************
@@ -352,12 +431,14 @@ void FullscreenBackground::updateGeometry()
 ********************************************************/
 bool FullscreenBackground::eventFilter(QObject *watched, QEvent *e)
 {
+TRACE_ME_IN;	//<<==--TracePoint!
 #ifndef QT_DEBUG
     if (e->type() == QEvent::WindowDeactivate) {
         if (m_content->isVisible())
             windowHandle()->requestActivate();
     }
 #endif
+    TRACE_ME_OUT;	//<<==--TracePoint!
     return QWidget::eventFilter(watched, e);
 }
 

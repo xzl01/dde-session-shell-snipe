@@ -1,3 +1,8 @@
+
+#include <sys/time.h>
+#define TRACE_ME_IN struct timeval tp ; gettimeofday ( &tp , nullptr ); printf("[%4ld.%4ld] In: %s\n",tp.tv_sec , tp.tv_usec,__PRETTY_FUNCTION__);
+#define TRACE_ME_OUT gettimeofday (const_cast<timeval *>(&tp) , nullptr ); printf("[%4ld.%4ld] Out: %s\n",tp.tv_sec , tp.tv_usec,__PRETTY_FUNCTION__);
+
 /*
  * Copyright (C) 2015 ~ 2018 Deepin Technology Co., Ltd.
  *
@@ -42,31 +47,41 @@
 
 QDBusArgument &operator<<(QDBusArgument &argument, const InputDevice &device)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     argument.beginStructure();
     argument << device.interface << device.deviceType;
     argument.endStructure();
+    TRACE_ME_OUT;	//<<==--TracePoint!
     return argument;
 }
 
 const QDBusArgument &operator>>(const QDBusArgument &argument, InputDevice &device)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     argument.beginStructure();
     argument >> device.interface >> device.deviceType;
     argument.endStructure();
+    TRACE_ME_OUT;	//<<==--TracePoint!
     return argument;
 }
 
 DBusInputDevices::DBusInputDevices(QObject *parent)
     : QDBusAbstractInterface(staticServiceName(), staticObjectPath(), staticInterfaceName(), QDBusConnection::sessionBus(), parent)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     qDBusRegisterMetaType<InputDevice>();
     qDBusRegisterMetaType<InputDeviceList>();
 
     QDBusConnection::sessionBus().connect(this->service(), this->path(), "org.freedesktop.DBus.Properties",  "PropertiesChanged","sa{sv}as", this, SLOT(__propertyChanged__(QDBusMessage)));
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 DBusInputDevices::~DBusInputDevices()
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     QDBusConnection::sessionBus().disconnect(service(), path(), "org.freedesktop.DBus.Properties",  "PropertiesChanged",  "sa{sv}as", this, SLOT(propertyChanged(QDBusMessage)));
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 

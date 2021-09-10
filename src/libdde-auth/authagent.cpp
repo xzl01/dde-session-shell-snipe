@@ -1,3 +1,8 @@
+
+#include <sys/time.h>
+#define TRACE_ME_IN struct timeval tp ; gettimeofday ( &tp , nullptr ); printf("[%4ld.%4ld] In: %s\n",tp.tv_sec , tp.tv_usec,__PRETTY_FUNCTION__);
+#define TRACE_ME_OUT gettimeofday (const_cast<timeval *>(&tp) , nullptr ); printf("[%4ld.%4ld] Out: %s\n",tp.tv_sec , tp.tv_usec,__PRETTY_FUNCTION__);
+
 #include "authagent.h"
 #include "deepinauthframework.h"
 #include "src/global_util/public_func.h"
@@ -22,9 +27,12 @@ AuthAgent::AuthAgent(DeepinAuthFramework *deepin)
     , m_isCondition(true)
     , m_isCancel(false)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     connect(this, &AuthAgent::displayErrorMsg, deepin, &DeepinAuthFramework::DisplayErrorMsg, Qt::QueuedConnection);
     connect(this, &AuthAgent::displayTextInfo, deepin, &DeepinAuthFramework::DisplayTextInfo, Qt::QueuedConnection);
     connect(this, &AuthAgent::respondResult, deepin, &DeepinAuthFramework::RespondResult, Qt::QueuedConnection);
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 AuthAgent::~AuthAgent()
@@ -33,12 +41,16 @@ AuthAgent::~AuthAgent()
 
 void AuthAgent::Responsed(const QString &password)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     m_password = password;
     m_isCondition = false;
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void AuthAgent::Authenticate(const QString& username)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     pam_handle_t* m_pamHandle = nullptr;
     pam_conv conv = { pamConversation, static_cast<void*>(this) };
     const char* serviceName = isDeepinAuth() ? PAM_SERVICE_DEEPIN_NAME : PAM_SERVICE_SYSTEM_NAME;
@@ -65,16 +77,21 @@ void AuthAgent::Authenticate(const QString& username)
 
     m_isCondition = true;
     emit respondResult(is_success ? "success" : QString());
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 int AuthAgent::GetAuthType()
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
+    TRACE_ME_OUT;	//<<==--TracePoint!
     return m_authType;
 }
 
 int AuthAgent::pamConversation(int num_msg, const struct pam_message **msg,
                                struct pam_response **resp, void *app_data)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     AuthAgent *app_ptr = static_cast<AuthAgent *>(app_data);
     struct pam_response *aresp = nullptr;
     int idx = 0;
@@ -83,14 +100,19 @@ int AuthAgent::pamConversation(int num_msg, const struct pam_message **msg,
     QPointer<AuthAgent> isThreadAlive(app_ptr);
     if (!isThreadAlive) {
         qDebug() << "pam: application is null";
+        TRACE_ME_OUT;	//<<==--TracePoint!
         return PAM_CONV_ERR;
     }
 
-    if (num_msg <= 0 || num_msg > PAM_MAX_NUM_MSG)
+    if (num_msg <= 0 || num_msg > PAM_MAX_NUM_MSG) {
+        TRACE_ME_OUT;	//<<==--TracePoint!
         return PAM_CONV_ERR;
+    }
 
-    if ((aresp = static_cast<struct pam_response*>(calloc(num_msg, sizeof(*aresp)))) == nullptr)
+    if ((aresp = static_cast<struct pam_response*>(calloc(num_msg, sizeof(*aresp)))) == nullptr) {
+        TRACE_ME_OUT;	//<<==--TracePoint!
         return PAM_BUF_ERR;
+    }
 
     for (idx = 0; idx < num_msg; ++idx) {
         switch(PAM_MSG_MEMBER(msg, idx, msg_style)) {
@@ -99,6 +121,7 @@ int AuthAgent::pamConversation(int num_msg, const struct pam_message **msg,
             while(app_ptr->m_isCondition) {
                 //取消验证时返回一般错误,退出等待输入密码的循环,然后退出验证线程
                 if (app_ptr->m_isCancel) {
+                    TRACE_ME_OUT;	//<<==--TracePoint!
                     return PAM_ABORT;
                 }
                 sleep(1);
@@ -108,6 +131,7 @@ int AuthAgent::pamConversation(int num_msg, const struct pam_message **msg,
 
             if (!QPointer<DeepinAuthFramework>(app_ptr->deepinAuth())) {
                 qDebug() << "pam: deepin auth framework is null";
+                TRACE_ME_OUT;	//<<==--TracePoint!
                 return PAM_CONV_ERR;
             }
 
@@ -149,6 +173,7 @@ int AuthAgent::pamConversation(int num_msg, const struct pam_message **msg,
     } else if (auth_type == AuthFlag::Fingerprint) {
         app_ptr->m_authType = AuthFlag::Fingerprint;
     }
+    TRACE_ME_OUT;	//<<==--TracePoint!
     return PAM_SUCCESS;
 
 fail:
@@ -156,5 +181,6 @@ fail:
         free(aresp[idx].resp);
     }
     free(aresp);
+    TRACE_ME_OUT;	//<<==--TracePoint!
     return PAM_CONV_ERR;
 }

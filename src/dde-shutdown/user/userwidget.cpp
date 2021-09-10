@@ -1,3 +1,8 @@
+
+#include <sys/time.h>
+#define TRACE_ME_IN struct timeval tp ; gettimeofday ( &tp , nullptr ); printf("[%4ld.%4ld] In: %s\n",tp.tv_sec , tp.tv_usec,__PRETTY_FUNCTION__);
+#define TRACE_ME_OUT gettimeofday ( &tp , nullptr ); printf("[%4ld.%4ld] Out: %s\n",tp.tv_sec , tp.tv_usec,__PRETTY_FUNCTION__);
+
 /*
  * Copyright (C) 2015 ~ 2018 Deepin Technology Co., Ltd.
  *
@@ -34,6 +39,7 @@ UserWidget::UserWidget(QWidget *parent)
       m_showAnimation(new QPropertyAnimation),
       m_hideAnimation(new QPropertyAnimation)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     m_Layout = new QHBoxLayout;
     m_Layout->setMargin(0);
     m_Layout->addSpacing(0);
@@ -70,11 +76,14 @@ UserWidget::UserWidget(QWidget *parent)
 
     showWidget();
     initConnect();
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 UserWidget::~UserWidget()
 {
 }
 void UserWidget::initConnect() {
+    TRACE_ME_IN;	//<<==--TracePoint!
     connect(this, SIGNAL(selectedUser(QString)),
             SLOT(loginInUser(QString)));
 
@@ -86,8 +95,11 @@ void UserWidget::initConnect() {
             [=]{
         this->update();
     });
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 void UserWidget::addUser(QString url, QString name) {
+    TRACE_ME_IN;	//<<==--TracePoint!
     ImageButton* add_user = new ImageButton(url, name);
     QLabel* add_username = new QLabel;
     add_username->setText(name);
@@ -96,9 +108,12 @@ void UserWidget::addUser(QString url, QString name) {
     m_Layout->addWidget(add_username);
     connect(add_user, SIGNAL(clicked(QString)),
             this, SIGNAL(selectedUser(QString)));
+            TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 void UserWidget::loginInUser(QString nam) {
 
+     TRACE_ME_IN;	//<<==--TracePoint!
      hideWidget();
 
      QList<ImageButton*> m_children =
@@ -111,13 +126,19 @@ void UserWidget::loginInUser(QString nam) {
              m_children[i]->setIconSize(ImageButton::AvatarBigSize);
          }
      }
+     TRACE_ME_OUT;	//<<==--TracePoint!
+
 
 }
 void UserWidget::setGeometry(const QRect &rect) {
+    TRACE_ME_IN;	//<<==--TracePoint!
     this->move(rect.x(), rect.y());
     this->setFixedSize(rect.width(), rect.height());
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 void UserWidget::showWidget() {
+    TRACE_ME_IN;	//<<==--TracePoint!
     QRect rectBegin = QRect(m_finalX, m_finalY,
                             USER_ICON_SIZE, USER_ICON_SIZE);
     m_showAnimation->setStartValue(rectBegin);
@@ -137,9 +158,12 @@ void UserWidget::showWidget() {
             m_children[i]->setIconSize(ImageButton::AvatarSmallSize);
         }
     }
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 
 }
 void UserWidget::hideWidget() {
+    TRACE_ME_IN;	//<<==--TracePoint!
     QRect rectBegin = QRect(this->x(), m_finalY,
                             this->width(), USER_ICON_SIZE);
     m_hideAnimation->setStartValue(rectBegin);
@@ -156,6 +180,8 @@ void UserWidget::hideWidget() {
             m_children[i]->setIconSize(ImageButton::AvatarBigSize);
         }
     }
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 //void UserWidget::keyPressEvent(QKeyEvent *e) {
 //    Q_UNUSED(e);

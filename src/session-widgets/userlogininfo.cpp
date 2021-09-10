@@ -1,3 +1,8 @@
+
+#include <sys/time.h>
+#define TRACE_ME_IN struct timeval tp ; gettimeofday ( &tp , nullptr ); printf("[%4ld.%4ld] In: %s\n",tp.tv_sec , tp.tv_usec,__PRETTY_FUNCTION__);
+#define TRACE_ME_OUT gettimeofday (const_cast<timeval *>(&tp) , nullptr ); printf("[%4ld.%4ld] Out: %s\n",tp.tv_sec , tp.tv_usec,__PRETTY_FUNCTION__);
+
 /*
  * Copyright (C) 2019 ~ 2019 Deepin Technology Co., Ltd.
  *
@@ -33,13 +38,17 @@ UserLoginInfo::UserLoginInfo(SessionBaseModel *model, QObject *parent)
     , m_userLoginWidget(new UserLoginWidget)
     , m_userFrameList(new UserFrameList)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     m_userLoginWidget->setWidgetWidth(DDESESSIONCC::PASSWDLINEEIDT_WIDTH);
     m_userFrameList->setModel(model);
     initConnect();
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void UserLoginInfo::setUser(std::shared_ptr<User> user)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     for (auto connect : m_currentUserConnects) {
         m_user->disconnect(connect);
     }
@@ -67,20 +76,25 @@ void UserLoginInfo::setUser(std::shared_ptr<User> user)
     user->currentKBLayout();
 
     updateLoginContent();
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void UserLoginInfo::initConnect()
 {
     //UserLoginWidget
+    TRACE_ME_IN;	//<<==--TracePoint!
     connect(m_userLoginWidget, &UserLoginWidget::requestAuthUser, this, [ = ](const QString & account, const QString & password) {
         if (!m_userLoginWidget->inputInfoCheck(m_model->isServerModel()))
 {
+    TRACE_ME_OUT;	//<<==--TracePoint!
     return;
 }
 
         //当前锁定不需要密码和当前用户不需要密码登录则直接进入系统
         if(m_model->isLockNoPassword() && m_model->currentUser()->isNoPasswdGrp()) {
             emit m_model->authFinished(true);
+            TRACE_ME_OUT;	//<<==--TracePoint!
             return;
         }
 
@@ -117,58 +131,80 @@ void UserLoginInfo::initConnect()
         if (m_model->currentModeState() == SessionBaseModel::ModeStatus::ConfirmPasswordMode)
             m_model->setAbortConfirm(false);
     });
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void UserLoginInfo::onAbortConfirmChanged(bool abort)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     if (!abort) {
         m_model->setCurrentModeState(SessionBaseModel::ModeStatus::PasswordMode);
     }
 
     abortConfirm(abort);
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void UserLoginInfo::abortConfirm(bool abort)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     if (!abort) {
         m_model->setPowerAction(SessionBaseModel::PowerAction::RequireNormal);
     }
 
     m_shutdownAbort = abort;
     m_userLoginWidget->ShutdownPrompt(m_model->powerAction());
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void UserLoginInfo::beforeUnlockAction(bool is_finish)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     if(is_finish){
         m_userLoginWidget->unlockSuccessAni();
     }else {
         m_userLoginWidget->unlockFailedAni();
     }
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 UserLoginWidget *UserLoginInfo::getUserLoginWidget()
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
+    TRACE_ME_OUT;	//<<==--TracePoint!
     return m_userLoginWidget;
 }
 
 UserFrameList *UserLoginInfo::getUserFrameList()
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
+    TRACE_ME_OUT;	//<<==--TracePoint!
     return m_userFrameList;
 }
 
 void UserLoginInfo::hideKBLayout()
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     m_userLoginWidget->hideKBLayout();
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void UserLoginInfo::userLockChanged(bool disable)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     m_userLoginWidget->disablePassword(disable, m_user->lockTime());
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void UserLoginInfo::receiveSwitchUser(std::shared_ptr<User> user)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     if (m_user != user) {
         m_userLoginWidget->clearPassWord();
 
@@ -178,11 +214,14 @@ void UserLoginInfo::receiveSwitchUser(std::shared_ptr<User> user)
     }
 
     emit requestSwitchUser(user);
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void UserLoginInfo::updateLoginContent()
 {
     //在INT_MAX的切换用户时输入用户名，其他用户直接显示用户名
+    TRACE_ME_IN;	//<<==--TracePoint!
     if (m_model->currentUser()->uid() == INT_MAX) {
         m_userLoginWidget->setWidgetShowType(UserLoginWidget::IDAndPasswordType);
     } else {
@@ -192,4 +231,6 @@ void UserLoginInfo::updateLoginContent()
             m_userLoginWidget->setWidgetShowType(UserLoginWidget::NormalType);
         }
     }
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }

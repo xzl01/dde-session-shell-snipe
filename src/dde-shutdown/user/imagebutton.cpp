@@ -1,3 +1,8 @@
+
+#include <sys/time.h>
+#define TRACE_ME_IN struct timeval tp ; gettimeofday ( &tp , nullptr ); printf("[%4ld.%4ld] In: %s\n",tp.tv_sec , tp.tv_usec,__PRETTY_FUNCTION__);
+#define TRACE_ME_OUT gettimeofday ( &tp , nullptr ); printf("[%4ld.%4ld] Out: %s\n",tp.tv_sec , tp.tv_usec,__PRETTY_FUNCTION__);
+
 /*
  * Copyright (C) 2015 ~ 2018 Deepin Technology Co., Ltd.
  *
@@ -30,10 +35,13 @@
 ImageButton::ImageButton(QString url, QString name, QWidget *parent)
     : QPushButton(parent)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     m_url = url;
     m_name = name;
     this->setObjectName(name);
     setFixedSize(120, 120);
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 
    // connect(this, SIGNAL(clicked()), this, SLOT(sendClicked()));
 }
@@ -41,18 +49,28 @@ ImageButton::~ImageButton()
 {
 }
 void ImageButton::sendClicked() {
+    TRACE_ME_IN;	//<<==--TracePoint!
     emit clicked(m_name);
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 void ImageButton::hideIn(QString name) {
+    TRACE_ME_IN;	//<<==--TracePoint!
     if (name!=this->objectName()) {
         this->hide();
     }
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void ImageButton::showOut() {
+    TRACE_ME_IN;	//<<==--TracePoint!
     this->show();
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 void ImageButton::setIconSize(const AvatarSize &avatarsize) {
+    TRACE_ME_IN;	//<<==--TracePoint!
     int tmpAvatarSize = SMALL_ICON_SIZE;
 
     if (avatarsize==AvatarBigSize) {
@@ -63,8 +81,11 @@ void ImageButton::setIconSize(const AvatarSize &avatarsize) {
 
     m_avatarsize = avatarsize;
     this->setFixedSize(tmpAvatarSize, tmpAvatarSize);
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 void ImageButton::paintEvent(QPaintEvent *) {
+    TRACE_ME_IN;	//<<==--TracePoint!
     int iconSize = SMALL_ICON_SIZE;
     if (m_avatarsize == AvatarBigSize) {
         iconSize = LARGE_ICON_SIZE;
@@ -89,4 +110,6 @@ void ImageButton::paintEvent(QPaintEvent *) {
     painter.setPen(pen);
     painter.drawPath(path);
     painter.end();
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }

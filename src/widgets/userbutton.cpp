@@ -1,3 +1,8 @@
+
+#include <sys/time.h>
+#define TRACE_ME_IN struct timeval tp ; gettimeofday ( &tp , nullptr ); printf("[%4ld.%4ld] In: %s\n",tp.tv_sec , tp.tv_usec,__PRETTY_FUNCTION__);
+#define TRACE_ME_OUT gettimeofday (const_cast<timeval *>(&tp) , nullptr ); printf("[%4ld.%4ld] Out: %s\n",tp.tv_sec , tp.tv_usec,__PRETTY_FUNCTION__);
+
 /*
  * Copyright (C) 2015 ~ 2018 Deepin Technology Co., Ltd.
  *
@@ -46,12 +51,16 @@ UserButton::UserButton(std::shared_ptr<User> user, QWidget *parent)
     , m_hideAnimation(new QPropertyAnimation(this, "opacity"))
 #endif
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     initUI();
     initConnect();
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void UserButton::initConnect()
 {
+TRACE_ME_IN;	//<<==--TracePoint!
 #ifndef DISABLE_ANIMATIONS
     connect(m_hideAnimation, &QPropertyAnimation::finished, this, &QPushButton::hide);
 #endif
@@ -63,10 +72,13 @@ void UserButton::initConnect()
     connect(m_user.get(), &User::logindChanged, m_checkedMark, &QLabel::setVisible);
 
     m_checkedMark->setVisible(m_user.get()->isLogin());
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void UserButton::initUI()
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     setFixedSize(USER_ICON_WIDTH, USER_ICON_HEIGHT);
     setFocusPolicy(Qt::NoFocus);
 
@@ -124,9 +136,12 @@ void UserButton::initUI()
     m_opacityEffect = new QGraphicsOpacityEffect;
 
     connect(this, &UserButton::opacityChanged, &UserButton::setCustomEffect);
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void UserButton::setImageSize(const AvatarSize &avatarsize) {
+    TRACE_ME_IN;	//<<==--TracePoint!
     if (avatarsize==AvatarLargerSize) {
         m_userAvatar->setAvatarSize(m_userAvatar->AvatarLargeSize);
     } else {
@@ -135,10 +150,13 @@ void UserButton::setImageSize(const AvatarSize &avatarsize) {
 
     m_avatarsize = avatarsize;
     update();
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void UserButton::show()
 {
+TRACE_ME_IN;	//<<==--TracePoint!
 #ifndef DISABLE_ANIMATIONS
     m_showAnimation->stop();
     m_showAnimation->setStartValue(0.0);
@@ -151,16 +169,22 @@ void UserButton::show()
     });
 #endif
     QPushButton::show();
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void UserButton::addTextShadowAfter()
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     m_opacityEffect->setEnabled(false);
     addTextShadow(true);
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void UserButton::hide()
 {
+TRACE_ME_IN;	//<<==--TracePoint!
 #ifndef DISABLE_ANIMATIONS
     m_hideAnimation->setStartValue(1);
     m_hideAnimation->setEndValue(0);
@@ -174,10 +198,13 @@ void UserButton::hide()
 #endif
 
     m_opacityEffect->setEnabled(true);
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void UserButton::move(const QPoint &position, bool immediately)
 {
+TRACE_ME_IN;	//<<==--TracePoint!
 #ifndef DISABLE_ANIMATIONS
     const bool play_ani = !immediately;
 
@@ -196,10 +223,13 @@ void UserButton::move(const QPoint &position, bool immediately)
    Q_UNUSED(immediately);
    QPushButton::move(position);
 #endif
+TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void UserButton::addTextShadow(bool isEffective)
 {
+TRACE_ME_IN;	//<<==--TracePoint!
 #ifndef DISABLE_TEXT_SHADOW
     QGraphicsDropShadowEffect *nameShadow = new QGraphicsDropShadowEffect;
     nameShadow->setBlurRadius(16);
@@ -208,54 +238,76 @@ void UserButton::addTextShadow(bool isEffective)
     nameShadow->setEnabled(isEffective);
     m_userNameLabel->setGraphicsEffect(nameShadow);
 #endif
+TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 bool UserButton::selected() const
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
+    TRACE_ME_OUT;	//<<==--TracePoint!
     return m_selected;
 }
 
 void UserButton::setSelected(bool selected)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     m_selected = selected;
     update();
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void UserButton::paintEvent(QPaintEvent* event)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     QPushButton::paintEvent(event);
 
-    if (!m_selected)
-        return;
+    if (!m_selected) {
+        TRACE_ME_OUT;	//<<==--TracePoint!
+        return;}
 
     QPainter painter(this);
     painter.setPen(QPen(QColor(255, 255, 255, 51), 2));
     painter.setBrush(QColor(0, 0 , 0, 76));
     painter.setRenderHint(QPainter::Antialiasing, true);
     painter.drawRoundedRect(QRect(2, 2, width() - 4, height() - 4), 10, 10, Qt::RelativeSize);
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void UserButton::stopAnimation()
 {
+TRACE_ME_IN;	//<<==--TracePoint!
 #ifndef DISABLE_ANIMATIONS
     m_moveAni->stop();
 #endif
+TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 double UserButton::opacity() {
+    TRACE_ME_IN;	//<<==--TracePoint!
+    TRACE_ME_OUT;	//<<==--TracePoint!
     return m_opacity;
 }
 
 void UserButton::setOpacity(double opa) {
+    TRACE_ME_IN;	//<<==--TracePoint!
     if (m_opacity != opa) {
         m_opacity = opa;
         emit opacityChanged();
     }
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void UserButton::setCustomEffect() {
+    TRACE_ME_IN;	//<<==--TracePoint!
     m_opacityEffect->setOpacity(m_opacity);
     setGraphicsEffect(m_opacityEffect);
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 UserButton::~UserButton()

@@ -1,3 +1,8 @@
+
+#include <sys/time.h>
+#define TRACE_ME_IN struct timeval tp ; gettimeofday ( &tp , nullptr ); printf("[%4ld.%4ld] In: %s\n",tp.tv_sec , tp.tv_usec,__PRETTY_FUNCTION__);
+#define TRACE_ME_OUT gettimeofday ( &tp , nullptr ); printf("[%4ld.%4ld] Out: %s\n",tp.tv_sec , tp.tv_usec,__PRETTY_FUNCTION__);
+
 /*
  * Copyright (C) 2015 ~ 2018 Deepin Technology Co., Ltd.
  *
@@ -28,16 +33,20 @@
 UserFrame::UserFrame(QWidget *parent)
     : QFrame(parent)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     m_Layout = new QVBoxLayout;
     m_Layout->setMargin(0);
     m_Layout->addSpacing(0);
 
     addUser(QString(":img/user/kakaxi.png"), "administrator");
     setLayout(m_Layout);
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 UserFrame::~UserFrame()
 {}
 void UserFrame::addUser(QString url, QString name) {
+    TRACE_ME_IN;	//<<==--TracePoint!
     ImageButton* add_user = new ImageButton(url, name);
     QLabel* add_userName = new QLabel;
     add_user->setText(name);
@@ -46,4 +55,6 @@ void UserFrame::addUser(QString url, QString name) {
     m_Layout->addWidget(add_userName);
     connect(add_user, SIGNAL(clicked(QString)),
             this, SIGNAL(selectedUser(QString)));
+            TRACE_ME_OUT;	//<<==--TracePoint!
+
 }

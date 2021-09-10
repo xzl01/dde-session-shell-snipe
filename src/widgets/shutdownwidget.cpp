@@ -1,3 +1,8 @@
+
+#include <sys/time.h>
+#define TRACE_ME_IN struct timeval tp ; gettimeofday ( &tp , nullptr ); printf("[%4ld.%4ld] In: %s\n",tp.tv_sec , tp.tv_usec,__PRETTY_FUNCTION__);
+#define TRACE_ME_OUT gettimeofday (const_cast<timeval *>(&tp) , nullptr ); printf("[%4ld.%4ld] Out: %s\n",tp.tv_sec , tp.tv_usec,__PRETTY_FUNCTION__);
+
 /*
  * Copyright (C) 2015 ~ 2018 Deepin Technology Co., Ltd.
  *
@@ -35,6 +40,7 @@ QT_TRANSLATE_NOOP("ShutdownWidget", "Shut down"),
                   ShutdownWidget::ShutdownWidget(QWidget *parent)
                       : QFrame(parent)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     m_frameDataBind = FrameDataBind::Instance();
     initUI();
     initConnect();
@@ -49,10 +55,13 @@ QT_TRANSLATE_NOOP("ShutdownWidget", "Shut down"),
     QTimer::singleShot(0, this, [ = ] {
         m_frameDataBind->refreshData("ShutdownWidget");
     });
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void ShutdownWidget::initConnect()
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     connect(m_requireRestartButton, &RoundItemButton::clicked, this, [ = ] {
         m_currentSelectedBtn = m_requireRestartButton;
         shutdownAction();
@@ -69,15 +78,21 @@ void ShutdownWidget::initConnect()
         m_currentSelectedBtn = m_requireHibernateButton;
         shutdownAction();
     });
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void ShutdownWidget::updateTr(RoundItemButton *widget, const QString &tr)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     m_trList << std::pair<std::function<void (QString)>, QString>(std::bind(&RoundItemButton::setText, widget, std::placeholders::_1), tr);
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void ShutdownWidget::onOtherPageChanged(const QVariant &value)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     m_index = value.toInt();
 
     for (auto it = m_btnList.constBegin(); it != m_btnList.constEnd(); ++it) {
@@ -86,10 +101,13 @@ void ShutdownWidget::onOtherPageChanged(const QVariant &value)
 
     m_currentSelectedBtn = m_btnList.at(m_index);
     m_currentSelectedBtn->updateState(RoundItemButton::Checked);
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void ShutdownWidget::initUI()
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     setFocusPolicy(Qt::StrongFocus);
     m_requireShutdownButton = new RoundItemButton(this);
     m_requireShutdownButton->setFocusPolicy(Qt::NoFocus);
@@ -144,10 +162,13 @@ void ShutdownWidget::initUI()
     for (auto it = m_trList.constBegin(); it != m_trList.constEnd(); ++it) {
         it->first(qApp->translate("ShutdownWidget", it->second.toUtf8()));
     }
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void ShutdownWidget::leftKeySwitch()
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     m_btnList.at(m_index)->updateState(RoundItemButton::Normal);
     if (m_index == 0) {
         m_index = m_btnList.length() - 1;
@@ -168,10 +189,13 @@ void ShutdownWidget::leftKeySwitch()
     m_currentSelectedBtn->updateState(RoundItemButton::Checked);
 
     m_frameDataBind->updateValue("ShutdownWidget", m_index);
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void ShutdownWidget::rightKeySwitch()
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     m_btnList.at(m_index)->updateState(RoundItemButton::Normal);
 
     if (m_index == m_btnList.size() - 1) {
@@ -193,19 +217,25 @@ void ShutdownWidget::rightKeySwitch()
     m_currentSelectedBtn->updateState(RoundItemButton::Checked);
 
     m_frameDataBind->updateValue("ShutdownWidget", m_index);
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void ShutdownWidget::shutdownAction()
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     qDebug() << "emit m_currentSelectedBtn clicked";
 
     m_model->setPowerAction(m_actionMap[m_currentSelectedBtn]);
 
     emit abortOperation();
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void ShutdownWidget::keyPressEvent(QKeyEvent *event)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     switch (event->key()) {
     case Qt::Key_Escape:
         hide();
@@ -226,10 +256,13 @@ void ShutdownWidget::keyPressEvent(QKeyEvent *event)
     }
 
     QFrame::keyReleaseEvent(event);
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 bool ShutdownWidget::event(QEvent *e)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     if (e->type() == QEvent::LanguageChange) {
         // refresh language
         for (auto it = m_trList.constBegin(); it != m_trList.constEnd(); ++it) {
@@ -246,6 +279,7 @@ bool ShutdownWidget::event(QEvent *e)
         m_btnList.at(m_index)->updateState(RoundItemButton::Checked);
     }
 
+    TRACE_ME_OUT;	//<<==--TracePoint!
     return QFrame::event(e);
 }
 
@@ -255,6 +289,7 @@ ShutdownWidget::~ShutdownWidget()
 
 void ShutdownWidget::setModel(SessionBaseModel *const model)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     m_model = model;
 
     connect(model, &SessionBaseModel::onHasSwapChanged, m_requireHibernateButton, &RoundItemButton::setVisible);
@@ -262,4 +297,6 @@ void ShutdownWidget::setModel(SessionBaseModel *const model)
 
     m_requireHibernateButton->setVisible(model->hasSwap());
     m_requireSuspendButton->setVisible(model->canSleep());
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }

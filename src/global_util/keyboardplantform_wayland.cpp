@@ -1,3 +1,8 @@
+
+#include <sys/time.h>
+#define TRACE_ME_IN struct timeval tp ; gettimeofday ( &tp , nullptr ); printf("[%4ld.%4ld] In: %s\n",tp.tv_sec , tp.tv_usec,__PRETTY_FUNCTION__);
+#define TRACE_ME_OUT gettimeofday (const_cast<timeval *>(&tp) , nullptr ); printf("[%4ld.%4ld] Out: %s\n",tp.tv_sec , tp.tv_usec,__PRETTY_FUNCTION__);
+
 /*
  * Copyright (C) 2011 ~ 2018 Deepin Technology Co., Ltd.
  *
@@ -36,17 +41,23 @@ KeyboardPlantformWayland::KeyboardPlantformWayland(QObject *parent)
 
 bool KeyboardPlantformWayland::isCapslockOn()
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
+    TRACE_ME_OUT;	//<<==--TracePoint!
     return false;
 }
 
 bool KeyboardPlantformWayland::isNumlockOn()
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
+    TRACE_ME_OUT;	//<<==--TracePoint!
     return false;
 }
 
 bool KeyboardPlantformWayland::setNumlockStatus(const bool &on)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     Q_UNUSED(on);
+    TRACE_ME_OUT;	//<<==--TracePoint!
     return false;
 }
 

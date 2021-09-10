@@ -1,3 +1,8 @@
+
+#include <sys/time.h>
+#define TRACE_ME_IN struct timeval tp ; gettimeofday ( &tp , nullptr ); printf("[%4ld.%4ld] In: %s\n",tp.tv_sec , tp.tv_usec,__PRETTY_FUNCTION__);
+#define TRACE_ME_OUT gettimeofday (const_cast<timeval *>(&tp) , nullptr ); printf("[%4ld.%4ld] Out: %s\n",tp.tv_sec , tp.tv_usec,__PRETTY_FUNCTION__);
+
 /*
  * Copyright (C) 2011 ~ 2018 Deepin Technology Co., Ltd.
  *
@@ -39,17 +44,24 @@ DWIDGET_USE_NAMESPACE
 
 ControlWidget::ControlWidget(QWidget *parent) : QWidget(parent)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     initUI();
     initConnect();
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void ControlWidget::setVirtualKBVisible(bool visible)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     m_virtualKBBtn->setVisible(visible);
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void ControlWidget::initUI()
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     setFocusPolicy(Qt::TabFocus);
 
     m_mainLayout = new QHBoxLayout;
@@ -95,17 +107,23 @@ void ControlWidget::initUI()
     m_mainLayout->addSpacing(60);
 
     setLayout(m_mainLayout);
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void ControlWidget::initConnect()
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     connect(m_switchUserBtn, &DFloatingButton::clicked, this, &ControlWidget::requestSwitchUser);
     connect(m_powerBtn, &DFloatingButton::clicked, this, &ControlWidget::requestShutdown);
     connect(m_virtualKBBtn, &DFloatingButton::clicked, this, &ControlWidget::requestSwitchVirtualKB);
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void ControlWidget::showTips()
 {
+TRACE_ME_IN;	//<<==--TracePoint!
 #ifndef SHENWEI_PLATFORM
     m_tipsAni->setStartValue(QPoint(m_tipWidget->width(), 0));
     m_tipsAni->setEndValue(QPoint());
@@ -113,10 +131,13 @@ void ControlWidget::showTips()
 #else
     m_sessionTip->move(0, 0);
 #endif
+TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void ControlWidget::hideTips()
 {
+TRACE_ME_IN;	//<<==--TracePoint!
 #ifndef SHENWEI_PLATFORM
     //在退出动画时候会出现白边，+1
     m_tipsAni->setEndValue(QPoint(m_tipWidget->width() + 1, 0));
@@ -125,10 +146,13 @@ void ControlWidget::hideTips()
 #else
     m_sessionTip->move(m_tipWidget->width() + 1, 0);
 #endif
+TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void ControlWidget::setUserSwitchEnable(const bool visible)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     m_switchUserBtn->setVisible(visible);
     if (!visible) {
         m_focusState = FocusNo;
@@ -137,12 +161,16 @@ void ControlWidget::setUserSwitchEnable(const bool visible)
     if (m_btnList.indexOf(m_switchUserBtn) == m_index) {
         m_index = 0;
     }
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void ControlWidget::setSessionSwitchEnable(const bool visible)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     if (!visible)
 {
+    TRACE_ME_OUT;	//<<==--TracePoint!
     return;
 }
 
@@ -203,15 +231,19 @@ void ControlWidget::setSessionSwitchEnable(const bool visible)
         m_tipsAni = new QPropertyAnimation(m_sessionTip, "pos", this);
     }
 #endif
+TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void ControlWidget::chooseToSession(const QString &session)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     if (m_sessionBtn && m_sessionTip) {
         qDebug() << "chosen session: " << session;
-        if (session.isEmpty())
+        if (session.isEmpty()) {
+            TRACE_ME_OUT;	//<<==--TracePoint!
             return;
-
+        }
         m_sessionTip->setText(session);
         m_sessionTip->adjustSize();
         //当session长度改变时，应该移到它的width来隐藏
@@ -237,10 +269,13 @@ void ControlWidget::chooseToSession(const QString &session)
 #endif
         }
     }
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void ControlWidget::leftKeySwitch()
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     if (m_index == 0) {
         m_index = m_btnList.length() - 1;
     } else {
@@ -257,10 +292,13 @@ void ControlWidget::leftKeySwitch()
     }
 
     m_btnList.at(m_index)->setFocus();
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void ControlWidget::rightKeySwitch()
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     if (m_index == m_btnList.size() - 1) {
         m_index = 0;
     } else {
@@ -277,10 +315,13 @@ void ControlWidget::rightKeySwitch()
     }
 
     m_btnList.at(m_index)->setFocus();
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 bool ControlWidget::eventFilter(QObject *watched, QEvent *event)
 {
+TRACE_ME_IN;	//<<==--TracePoint!
 #ifndef SHENWEI_PLATFORM
     if (watched == m_sessionBtn) {
         if (event->type() == QEvent::Enter)
@@ -314,11 +355,13 @@ bool ControlWidget::eventFilter(QObject *watched, QEvent *event)
     Q_UNUSED(watched);
     Q_UNUSED(event);
 #endif
+    TRACE_ME_OUT;	//<<==--TracePoint!
     return false;
 }
 
 void ControlWidget::focusInEvent(QFocusEvent *)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     switch (m_focusState) {
     case FocusNo: {
         m_focusState = FocusHasIn;
@@ -335,10 +378,13 @@ void ControlWidget::focusInEvent(QFocusEvent *)
     }
     break;
     }
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void ControlWidget::focusOutEvent(QFocusEvent *)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     switch (m_focusState) {
     case FocusNo: {
 
@@ -353,10 +399,13 @@ void ControlWidget::focusOutEvent(QFocusEvent *)
     }
     break;
     }
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void ControlWidget::keyReleaseEvent(QKeyEvent *event)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     switch (event->key()) {
     case Qt::Key_Left:
         leftKeySwitch();
@@ -367,4 +416,6 @@ void ControlWidget::keyReleaseEvent(QKeyEvent *event)
     default:
         break;
     }
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }

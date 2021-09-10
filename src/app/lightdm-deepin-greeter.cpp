@@ -1,3 +1,8 @@
+
+#include <sys/time.h>
+#define TRACE_ME_IN struct timeval tp ; gettimeofday ( &tp , nullptr ); printf("[%4ld.%4ld] In: %s\n",tp.tv_sec , tp.tv_usec,__PRETTY_FUNCTION__);
+#define TRACE_ME_OUT gettimeofday (const_cast<timeval *>(&tp) , nullptr ); printf("[%4ld.%4ld] Out: %s\n",tp.tv_sec , tp.tv_usec,__PRETTY_FUNCTION__);
+
 /*
  * Copyright (C) 2015 ~ 2018 Deepin Technology Co., Ltd.
  *
@@ -54,6 +59,7 @@ DWIDGET_USE_NAMESPACE
 static XcursorImages*
 xcLoadImages(const char *image, int size)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     QSettings settings(DDESESSIONCC::DEFAULT_CURSOR_THEME, QSettings::IniFormat);
     //The default cursor theme path
     qDebug() << "Theme Path:" << DDESESSIONCC::DEFAULT_CURSOR_THEME;
@@ -69,11 +75,13 @@ xcLoadImages(const char *image, int size)
 
     qDebug() << "Get defaultTheme:" << tmpCursorTheme.isNull()
              << defaultTheme;
+    TRACE_ME_OUT;	//<<==--TracePoint!
     return XcursorLibraryLoadImages(image, defaultTheme, size);
 }
 
 static unsigned long loadCursorHandle(Display *dpy, const char *name, int size)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     if (size == -1) {
         size = XcursorGetDefaultSize(dpy);
     }
@@ -85,6 +93,7 @@ static unsigned long loadCursorHandle(Display *dpy, const char *name, int size)
     if (!images) {
         images = xcLoadImages(name, size);
         if (!images) {
+            TRACE_ME_OUT;	//<<==--TracePoint!
             return 0;
         }
     }
@@ -92,13 +101,16 @@ static unsigned long loadCursorHandle(Display *dpy, const char *name, int size)
     unsigned long handle = static_cast<unsigned long>(XcursorImagesLoadCursor(dpy,images));
     XcursorImagesDestroy(images);
 
+    TRACE_ME_OUT;	//<<==--TracePoint!
     return handle;
 }
 
 static int set_rootwindow_cursor() {
+    TRACE_ME_IN;	//<<==--TracePoint!
     Display* display = XOpenDisplay(nullptr);
     if (!display) {
         qDebug() << "Open display failed";
+        TRACE_ME_OUT;	//<<==--TracePoint!
         return -1;
     }
 
@@ -120,11 +132,13 @@ static int set_rootwindow_cursor() {
     XFreeCursor(display, cursor);
     XCloseDisplay(display);
 
+    TRACE_ME_OUT;	//<<==--TracePoint!
     return 0;
 }
 // Load system cursor --end
 
 static double get_scale_ratio() {
+    TRACE_ME_IN;	//<<==--TracePoint!
     Display *display = XOpenDisplay(nullptr);
 
     XRRScreenResources *resources = XRRGetScreenResourcesCurrent(display, DefaultRootWindow(display));
@@ -160,10 +174,12 @@ static double get_scale_ratio() {
         qWarning() << "get scale radio failed, please check X11 Extension.";
     }
 
+    TRACE_ME_OUT;	//<<==--TracePoint!
     return scaleRatio;
 }
 
 static void set_auto_QT_SCALE_FACTOR() {
+    TRACE_ME_IN;	//<<==--TracePoint!
     const double ratio = get_scale_ratio();
     if (ratio > 0.0) {
         setenv("QT_SCALE_FACTOR", QByteArray::number(ratio).constData(), 1);
@@ -172,10 +188,13 @@ static void set_auto_QT_SCALE_FACTOR() {
     if (!qEnvironmentVariableIsSet("QT_SCALE_FACTOR")) {
         setenv("QT_AUTO_SCREEN_SCALE_FACTOR", "1", 1);
     }
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 int main(int argc, char* argv[])
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     DGuiApplicationHelper::setUseInactiveColorGroup(false);
     // load dpi settings
     if (!QFile::exists("/etc/lightdm/deepin/xsettingsd.conf")) {
@@ -225,6 +244,7 @@ int main(int argc, char* argv[])
 
 #ifndef QT_DEBUG
     if (!worker->isConnectSync())
+        TRACE_ME_OUT;	//<<==--TracePoint!
         return 0;
 #endif
 
@@ -253,6 +273,7 @@ int main(int argc, char* argv[])
         QObject::connect(worker, &GreeterWorkek::requestUpdateBackground, loginFrame, static_cast<void (LoginWindow::*)(const QString &)>(&LoginWindow::updateBackground));
         QObject::connect(loginFrame, &LoginWindow::destroyed, property_group, &PropertyGroup::removeObject);
         loginFrame->show();
+        TRACE_ME_OUT;	//<<==--TracePoint!
         return loginFrame;
     };
 
@@ -260,5 +281,6 @@ int main(int argc, char* argv[])
     multi_screen_manager.register_for_mutil_screen(createFrame);
     QObject::connect(model, &SessionBaseModel::visibleChanged, &multi_screen_manager, &MultiScreenManager::startRaiseContentFrame);
 
+    TRACE_ME_OUT;	//<<==--TracePoint!
     return a.exec();
 }

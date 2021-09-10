@@ -1,3 +1,8 @@
+
+#include <sys/time.h>
+#define TRACE_ME_IN struct timeval tp ; gettimeofday ( &tp , nullptr ); printf("[%4ld.%4ld] In: %s\n",tp.tv_sec , tp.tv_usec,__PRETTY_FUNCTION__);
+#define TRACE_ME_OUT gettimeofday (const_cast<timeval *>(&tp) , nullptr ); printf("[%4ld.%4ld] Out: %s\n",tp.tv_sec , tp.tv_usec,__PRETTY_FUNCTION__);
+
 #include "lockcontent.h"
 
 #include "src/widgets/controlwidget.h"
@@ -21,6 +26,7 @@ LockContent::LockContent(SessionBaseModel *const model, QWidget *parent)
     , m_translator(new QTranslator)
     , m_userLoginInfo(new UserLoginInfo(model))
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     m_controlWidget = new ControlWidget;
     m_shutdownFrame = new ShutdownWidget;
     m_logoWidget = new LogoWidget;
@@ -56,6 +62,7 @@ LockContent::LockContent(SessionBaseModel *const model, QWidget *parent)
     connect(m_controlWidget, &ControlWidget::requestSwitchUser, this, [ = ] {
         if (m_model->currentModeState() == SessionBaseModel::ModeStatus::UserMode)
 {
+    TRACE_ME_OUT;	//<<==--TracePoint!
     return;
 }
         m_model->setCurrentModeState(SessionBaseModel::ModeStatus::UserMode);
@@ -119,12 +126,16 @@ LockContent::LockContent(SessionBaseModel *const model, QWidget *parent)
         onCurrentUserChanged(model->currentUser());
         onUserListChanged(model->isServerModel() ? model->logindUser() : model->userList());
     });
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void LockContent::onCurrentUserChanged(std::shared_ptr<User> user)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     if (user.get() == nullptr)
 {
+    TRACE_ME_OUT;	//<<==--TracePoint!
     return;
 } // if dbus is async
 
@@ -178,10 +189,13 @@ void LockContent::onCurrentUserChanged(std::shared_ptr<User> user)
     });
 
     m_logoWidget->updateLocale(m_user->locale());
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void LockContent::pushPasswordFrame()
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     if (m_model->currentModeState() == SessionBaseModel::ModeStatus::ConfirmPasswordMode) {
         m_model->setAbortConfirm(false);
     } else {
@@ -191,10 +205,13 @@ void LockContent::pushPasswordFrame()
 
     // hide keyboardlayout widget
     m_userLoginInfo->hideKBLayout();
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void LockContent::pushUserFrame()
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     if(m_model->isServerModel())
         m_controlWidget->setUserSwitchEnable(false);
 
@@ -202,23 +219,32 @@ void LockContent::pushUserFrame()
     UserFrameList * userFrameList = m_userLoginInfo->getUserFrameList();
     userFrameList->setFixedSize(getCenterContentSize());
     setCenterContent(userFrameList);
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void LockContent::pushConfirmFrame()
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     setCenterContent(m_userLoginInfo->getUserLoginWidget());
     m_model->setAbortConfirm(true);
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void LockContent::pushShutdownFrame()
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     QSize size = getCenterContentSize();
     m_shutdownFrame->setFixedSize(size);
     setCenterContent(m_shutdownFrame);
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void LockContent::setMPRISEnable(const bool state)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     if (m_mediaWidget) {
         m_mediaWidget->setVisible(state);
     } else {
@@ -226,15 +252,21 @@ void LockContent::setMPRISEnable(const bool state)
         m_mediaWidget->initMediaPlayer();
         setCenterBottomWidget(m_mediaWidget);
     }
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void LockContent::beforeUnlockAction(bool is_finish)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     m_userLoginInfo->beforeUnlockAction(is_finish);
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void LockContent::onStatusChanged(SessionBaseModel::ModeStatus status)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     if(m_model->isServerModel())
         onUserListChanged(m_model->logindUser());
     switch (status) {
@@ -253,30 +285,44 @@ void LockContent::onStatusChanged(SessionBaseModel::ModeStatus status)
     default:
         break;
     }
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void LockContent::mouseReleaseEvent(QMouseEvent *event)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     pushPasswordFrame();
 
+    TRACE_ME_OUT;	//<<==--TracePoint!
     return SessionBaseWindow::mouseReleaseEvent(event);
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void LockContent::showEvent(QShowEvent *event)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     onStatusChanged(m_model->currentModeState());
 
     QFrame::showEvent(event);
-    tryGrabKeyboard(); 
+    tryGrabKeyboard();
+    TRACE_ME_OUT;	//<<==--TracePoint!
+ 
 }
 
 void LockContent::hideEvent(QHideEvent *event)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
+    TRACE_ME_OUT;	//<<==--TracePoint!
     return QFrame::hideEvent(event);
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void LockContent::resizeEvent(QResizeEvent *event)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     QTimer::singleShot(0, this, [ = ] {
         if (m_virtualKB && m_virtualKB->isVisible())
         {
@@ -284,11 +330,15 @@ void LockContent::resizeEvent(QResizeEvent *event)
         }
     });
 
+    TRACE_ME_OUT;	//<<==--TracePoint!
     return QFrame::resizeEvent(event);
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void LockContent::restoreCenterContent()
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     auto current_user = m_model->currentUser();
     if ((m_model->powerAction() == SessionBaseModel::RequireShutdown)
             || (m_model->powerAction() == SessionBaseModel::RequireRestart)) {
@@ -297,24 +347,33 @@ void LockContent::restoreCenterContent()
         restoreMode();
     }
     setCenterContent(m_userLoginInfo->getUserLoginWidget());
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void LockContent::restoreMode()
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     m_model->setCurrentModeState(SessionBaseModel::ModeStatus::PasswordMode);
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void LockContent::updateTimeFormat(bool use24)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     if (m_user != nullptr) {
         m_timeWidget->updateLocale(m_user->locale());
         m_timeWidget->set24HourFormat(use24);
         m_timeWidget->setVisible(true);
     }
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void LockContent::toggleVirtualKB()
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     if (!m_virtualKB) {
         VirtualKBInstance::Instance();
         QTimer::singleShot(500, this, [ = ] {
@@ -322,6 +381,7 @@ void LockContent::toggleVirtualKB()
             qDebug() << "init virtualKB over." << m_virtualKB;
             toggleVirtualKB();
         });
+        TRACE_ME_OUT;	//<<==--TracePoint!
         return;
     }
 
@@ -331,16 +391,22 @@ void LockContent::toggleVirtualKB()
 
     updateVirtualKBPosition();
     m_virtualKB->setVisible(!m_virtualKB->isVisible());
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void LockContent::updateVirtualKBPosition()
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     const QPoint point = mapToParent(QPoint((width() - m_virtualKB->width()) / 2, height() - m_virtualKB->height() - 50));
     m_virtualKB->move(point);
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void LockContent::onUserListChanged(QList<std::shared_ptr<User> > list)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     const bool allowShowUserSwitchButton = m_model->allowShowUserSwitchButton();
     const bool alwaysShowUserSwitchButton = m_model->alwaysShowUserSwitchButton();
     bool haveLogindUser = true;
@@ -352,16 +418,21 @@ void LockContent::onUserListChanged(QList<std::shared_ptr<User> > list)
                                           (allowShowUserSwitchButton &&
                                            (list.size() > (m_model->isServerModel() ? 0 : 1)))) &&
                                          haveLogindUser);
+                                         TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void LockContent::tryGrabKeyboard()
 {
+TRACE_ME_IN;	//<<==--TracePoint!
 #ifdef QT_DEBUG
+    TRACE_ME_OUT;	//<<==--TracePoint!
     return;
 #endif
 
     if (window()->windowHandle() && isVisible() && window()->windowHandle()->setKeyboardGrabEnabled(true)) {
         m_failures = 0;
+        TRACE_ME_OUT;	//<<==--TracePoint!
         return;
     }
 
@@ -387,14 +458,18 @@ void LockContent::tryGrabKeyboard()
                 .call();
 
         qApp->quit();
+        TRACE_ME_OUT;	//<<==--TracePoint!
         return;
     }
 
     QTimer::singleShot(100, this, &LockContent::tryGrabKeyboard);
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void LockContent::keyPressEvent(QKeyEvent *event)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     switch (event->key()) {
     case Qt::Key_Escape: {
         if (m_model->currentModeState() == SessionBaseModel::ModeStatus::ConfirmPasswordMode)
@@ -402,4 +477,6 @@ void LockContent::keyPressEvent(QKeyEvent *event)
         break;
     }
     }
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }

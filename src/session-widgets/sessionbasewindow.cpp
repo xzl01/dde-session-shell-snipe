@@ -1,3 +1,8 @@
+
+#include <sys/time.h>
+#define TRACE_ME_IN struct timeval tp ; gettimeofday ( &tp , nullptr ); printf("[%4ld.%4ld] In: %s\n",tp.tv_sec , tp.tv_usec,__PRETTY_FUNCTION__);
+#define TRACE_ME_OUT gettimeofday (const_cast<timeval *>(&tp) , nullptr ); printf("[%4ld.%4ld] Out: %s\n",tp.tv_sec , tp.tv_usec,__PRETTY_FUNCTION__);
+
 #include "sessionbasewindow.h"
 
 #include <QDebug>
@@ -21,42 +26,56 @@ SessionBaseWindow::SessionBaseWindow(QWidget *parent)
     , m_centerBottomWidget(nullptr)
     , m_rightBottomWidget(nullptr)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     initUI();
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void SessionBaseWindow::setLeftBottomWidget(QWidget * const widget)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     if (m_leftBottomWidget != nullptr) {
         m_leftBottomLayout->removeWidget(m_leftBottomWidget);
     }
 
     m_leftBottomLayout->addWidget(widget, 0, Qt::AlignBottom);
     m_leftBottomWidget = widget;
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void SessionBaseWindow::setCenterBottomWidget(QWidget *const widget)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     if (m_centerBottomWidget != nullptr) {
         m_centerBottomLayout->removeWidget(m_centerBottomWidget);
     }
     m_centerBottomLayout->addWidget(widget, 0, Qt::AlignCenter);
     m_centerBottomWidget = widget;
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void SessionBaseWindow::setRightBottomWidget(QWidget * const widget)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     if (m_rightBottomWidget != nullptr) {
         m_rightBottomLayout->removeWidget(m_rightBottomWidget);
     }
 
     m_rightBottomLayout->addWidget(widget, 0, Qt::AlignBottom);
     m_rightBottomWidget = widget;
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void SessionBaseWindow::setCenterContent(QWidget * const widget)
 {
-    if (m_centerWidget == widget)
-        return;
+    TRACE_ME_IN;	//<<==--TracePoint!
+    if (m_centerWidget == widget) {
+        TRACE_ME_OUT;	//<<==--TracePoint!
+        return;}
 
     if (m_centerWidget != nullptr) {
         m_centerLayout->removeWidget(m_centerWidget);
@@ -70,10 +89,13 @@ void SessionBaseWindow::setCenterContent(QWidget * const widget)
     m_centerLayout->addWidget(m_centerWidget, 0, Qt::AlignCenter);
     m_centerWidget->setFocus();
     m_centerWidget->show();
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void SessionBaseWindow::setCenterTopWidget(QWidget *const widget)
 {
+    TRACE_ME_IN;	//<<==--TracePoint!
     if (m_centerTopWidget != nullptr) {
         m_centerTopLayout->removeWidget(m_centerTopWidget);
     }
@@ -81,12 +103,15 @@ void SessionBaseWindow::setCenterTopWidget(QWidget *const widget)
     m_centerTopLayout->addWidget(widget, 0, Qt::AlignTop);
     m_centerTopLayout->addStretch();
     m_centerTopWidget = widget;
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 void SessionBaseWindow::initUI()
 {
     //整理代码顺序，让子部件层级清晰明了,
     //同时方便计算中间区域的大小,使用QFrame替换了QScrollArea
+    TRACE_ME_IN;	//<<==--TracePoint!
     m_centerTopLayout = new QHBoxLayout;
     m_centerTopLayout->setMargin(0);
     m_centerTopLayout->setSpacing(0);
@@ -135,13 +160,17 @@ void SessionBaseWindow::initUI()
     m_mainLayou->addWidget(m_bottomFrame);
 
     setLayout(m_mainLayou);
+    TRACE_ME_OUT;	//<<==--TracePoint!
+
 }
 
 QSize SessionBaseWindow::getCenterContentSize()
 {
     //计算中间区域的大小
+    TRACE_ME_IN;	//<<==--TracePoint!
     int w = width() - m_mainLayou->contentsMargins().left() - m_mainLayou->contentsMargins().right();
     int h = height() - m_centerTopFrame->height() - m_bottomFrame->height() - m_mainLayou->contentsMargins().top() - m_mainLayou->contentsMargins().bottom();
+    TRACE_ME_OUT;	//<<==--TracePoint!
     return QSize(w, h);
 }
 
