@@ -8,7 +8,10 @@
 QString userPwdName(__uid_t uid)
 {
     //服务器版root用户的uid为0,需要特殊处理
-    if (uid < 1000 && uid != 0) return QString();
+    if (uid < 1000 && uid != 0)
+{
+    return QString();
+}
 
     struct passwd *pw = nullptr;
     /* Fetch passwd structure (contains first group ID for user) */
@@ -101,7 +104,10 @@ bool User::operator==(const User &user) const
 
 void User::setLocale(const QString &locale)
 {
-    if (m_locale == locale) return;
+    if (m_locale == locale)
+{
+    return;
+}
 
     m_locale = locale;
 
@@ -131,7 +137,10 @@ void User::setisLogind(bool isLogind)
 
 void User::setPath(const QString &path)
 {
-    if (m_path == path) return;
+    if (m_path == path)
+{
+    return;
+}
 
     m_path = path;
 }

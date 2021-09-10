@@ -141,7 +141,10 @@ void ControlWidget::setUserSwitchEnable(const bool visible)
 
 void ControlWidget::setSessionSwitchEnable(const bool visible)
 {
-    if (!visible) return;
+    if (!visible)
+{
+    return;
+}
 
     if (!m_sessionBtn) {
         m_sessionBtn = new DFloatingButton(this);

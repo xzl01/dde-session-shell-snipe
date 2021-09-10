@@ -54,7 +54,10 @@ LockContent::LockContent(SessionBaseModel *const model, QWidget *parent)
     // init connect
     connect(model, &SessionBaseModel::currentUserChanged, this, &LockContent::onCurrentUserChanged);
     connect(m_controlWidget, &ControlWidget::requestSwitchUser, this, [ = ] {
-        if (m_model->currentModeState() == SessionBaseModel::ModeStatus::UserMode) return;
+        if (m_model->currentModeState() == SessionBaseModel::ModeStatus::UserMode)
+{
+    return;
+}
         m_model->setCurrentModeState(SessionBaseModel::ModeStatus::UserMode);
     });
     connect(m_controlWidget, &ControlWidget::requestShutdown, this, [ = ] {
@@ -120,7 +123,10 @@ LockContent::LockContent(SessionBaseModel *const model, QWidget *parent)
 
 void LockContent::onCurrentUserChanged(std::shared_ptr<User> user)
 {
-    if (user.get() == nullptr) return; // if dbus is async
+    if (user.get() == nullptr)
+{
+    return;
+} // if dbus is async
 
     // set user language
     qApp->removeTranslator(m_translator);

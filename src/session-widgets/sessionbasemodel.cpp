@@ -42,7 +42,10 @@ std::shared_ptr<User> SessionBaseModel::findUserByUid(const uint uid) const
 
 std::shared_ptr<User> SessionBaseModel::findUserByName(const QString &name) const
 {
-    if (name.isEmpty()) return std::shared_ptr<User>(nullptr);
+    if (name.isEmpty())
+{
+    return std::shared_ptr<User>(nullptr);
+}
 
     for (auto user : m_userList) {
         if (user->name() == name) {
@@ -114,7 +117,10 @@ void SessionBaseModel::userRemoved(std::shared_ptr<User> user)
 
 void SessionBaseModel::setCurrentUser(std::shared_ptr<User> user)
 {
-    if (m_currentUser == user) return;
+    if (m_currentUser == user)
+{
+    return;
+}
 
     m_currentUser = user;
 
@@ -128,7 +134,10 @@ void SessionBaseModel::setLastLogoutUser(const std::shared_ptr<User> &lastLogout
 
 void SessionBaseModel::setSessionKey(const QString &sessionKey)
 {
-    if (m_sessionKey == sessionKey) return;
+    if (m_sessionKey == sessionKey)
+{
+    return;
+}
 
     m_sessionKey = sessionKey;
 
@@ -137,7 +146,10 @@ void SessionBaseModel::setSessionKey(const QString &sessionKey)
 
 void SessionBaseModel::setPowerAction(const PowerAction &powerAction)
 {
-    if (powerAction == m_powerAction) return;
+    if (powerAction == m_powerAction)
+{
+    return;
+}
 
     m_powerAction = powerAction;
 
@@ -146,7 +158,10 @@ void SessionBaseModel::setPowerAction(const PowerAction &powerAction)
 
 void SessionBaseModel::setCurrentModeState(const ModeStatus &currentModeState)
 {
-    if (m_currentModeState == currentModeState) return;
+    if (m_currentModeState == currentModeState)
+{
+    return;
+}
 
     m_currentModeState = currentModeState;
 
@@ -155,7 +170,10 @@ void SessionBaseModel::setCurrentModeState(const ModeStatus &currentModeState)
 
 void SessionBaseModel::setUserListSize(int users_size)
 {
-    if(m_userListSize == users_size) return;
+    if(m_userListSize == users_size)
+{
+    return;
+}
 
     m_userListSize = users_size;
 
@@ -174,7 +192,10 @@ void SessionBaseModel::setHasVirtualKB(bool hasVirtualKB)
 }
 
 void SessionBaseModel::setHasSwap(bool hasSwap) {
-    if (m_hasSwap == hasSwap) return;
+    if (m_hasSwap == hasSwap)
+{
+    return;
+}
 
     m_hasSwap = hasSwap;
 
@@ -183,7 +204,10 @@ void SessionBaseModel::setHasSwap(bool hasSwap) {
 
 void SessionBaseModel::setIsShow(bool isShow)
 {
-    if (m_isShow == isShow) return;
+    if (m_isShow == isShow)
+{
+    return;
+}
 
     m_isShow = isShow;
 
@@ -221,7 +245,10 @@ void SessionBaseModel::setIsShow(bool isShow)
 
 void SessionBaseModel::setCanSleep(bool canSleep)
 {
-    if (m_canSleep == canSleep) return;
+    if (m_canSleep == canSleep)
+{
+    return;
+}
 
     m_canSleep = canSleep;
 
@@ -230,7 +257,10 @@ void SessionBaseModel::setCanSleep(bool canSleep)
 
 void SessionBaseModel::setAllowShowUserSwitchButton(bool allowShowUserSwitchButton)
 {
-    if (m_allowShowUserSwitchButton == allowShowUserSwitchButton) return;
+    if (m_allowShowUserSwitchButton == allowShowUserSwitchButton)
+{
+    return;
+}
 
     m_allowShowUserSwitchButton = allowShowUserSwitchButton;
 
@@ -244,7 +274,10 @@ void SessionBaseModel::setAlwaysShowUserSwitchButton(bool alwaysShowUserSwitchBu
 
 void SessionBaseModel::setIsServerModel(bool server_model)
 {
-    if (m_isServerModel == server_model) return;
+    if (m_isServerModel == server_model)
+{
+    return;
+}
 
     m_isServerModel = server_model;
 }
@@ -267,27 +300,39 @@ bool SessionBaseModel::isLocked()
 
 void SessionBaseModel::setIsLockNoPassword(bool LockNoPassword)
 {
-   if (m_isLockNoPassword == LockNoPassword) return;
+   if (m_isLockNoPassword == LockNoPassword)
+{
+    return;
+}
 
     m_isLockNoPassword = LockNoPassword;
 }
 
 void SessionBaseModel::setIsBlackModel(bool is_black)
 {
-    if(m_isBlackMode == is_black) return;
+    if(m_isBlackMode == is_black)
+{
+    return;
+}
 
     m_isBlackMode = is_black;
     emit blackModeChanged(is_black);
 }
 
 void SessionBaseModel::setIsHibernateModel(bool is_Hibernate){
-    if(m_isHibernateMode == is_Hibernate) return;
+    if(m_isHibernateMode == is_Hibernate)
+{
+    return;
+}
     m_isHibernateMode = is_Hibernate;
     emit HibernateModeChanged(is_Hibernate);
 }
 
 void SessionBaseModel::setIsCheckedPowerAction(bool isChecked)
 {
-    if (m_isCheckedPowerAction == isChecked) return;
+    if (m_isCheckedPowerAction == isChecked)
+{
+    return;
+}
     m_isCheckedPowerAction = isChecked;
 }

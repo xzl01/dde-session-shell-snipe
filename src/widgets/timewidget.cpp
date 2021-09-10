@@ -105,7 +105,10 @@ void TimeWidget::refreshTime()
  */
 void TimeWidget::setWeekdayFormatType(int type)
 {
-    if(type >= weekdayFormat.size() || type < 0) return;
+    if(type >= weekdayFormat.size() || type < 0)
+{
+    return;
+}
 
     m_weekdayIndex = type;
     refreshTime();
@@ -117,7 +120,10 @@ void TimeWidget::setWeekdayFormatType(int type)
  */
 void TimeWidget::setShortDateFormat(int type)
 {
-    if(type >= shortDateFormat.size() || type < 0) return;
+    if(type >= shortDateFormat.size() || type < 0)
+{
+    return;
+}
 
     m_shortDateIndex = type;
     refreshTime();
@@ -129,7 +135,10 @@ void TimeWidget::setShortDateFormat(int type)
  */
 void TimeWidget::setShortTimeFormat(int type)
 {
-    if(type >= shortTimeFormat.size() || type < 0) return;
+    if(type >= shortTimeFormat.size() || type < 0)
+{
+    return;
+}
 
     m_shortTimeIndex = type;
     refreshTime();

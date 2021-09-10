@@ -37,7 +37,10 @@ void VirtualKBInstance::init()
             //启动完成onborad进程后，获取onborad主界面，将主界面显示在锁屏界面上
             QByteArray output = m_virtualKBProcess->readAllStandardOutput();
 
-            if (output.isEmpty()) return;
+            if (output.isEmpty())
+{
+    return;
+}
 
             int xid = atoi(output.trimmed().toStdString().c_str());
             QWindow * w = QWindow::fromWinId(xid);

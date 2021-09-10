@@ -250,7 +250,10 @@ void SessionWidget::onOtherPageChanged(const QVariant &value)
 
     qDebug() << index;
 
-    if (index == m_currentSessionIndex) return;
+    if (index == m_currentSessionIndex)
+{
+    return;
+}
 
     for (RoundItemButton *button : m_sessionBtns) {
         button->setChecked(false);

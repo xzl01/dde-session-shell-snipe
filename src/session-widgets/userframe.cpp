@@ -149,7 +149,10 @@ void UserFrame::refreshPosition()
     }
 
     std::shared_ptr<User> user = m_model->currentUser();
-    if (user.get() == nullptr) return;
+    if (user.get() == nullptr)
+{
+    return;
+}
 
     for (auto it = m_userBtns.constBegin(); it != m_userBtns.constEnd(); ++it) {
         it.value()->setSelected(it.key() == user->uid());

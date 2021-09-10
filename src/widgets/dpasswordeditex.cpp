@@ -122,7 +122,10 @@ void DPasswordEditEx::setKBLayoutList(QStringList kbLayoutList)
 
 void DPasswordEditEx::receiveUserKBLayoutChanged(const QString &layout)
 {
-    if (!m_showKB)  return;
+    if (!m_showKB)
+{
+    return;
+}
 
     m_currentKBLayout = layout;
     QString layoutName = layout;

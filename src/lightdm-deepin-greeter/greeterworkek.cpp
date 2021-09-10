@@ -152,7 +152,10 @@ void GreeterWorkek::switchToUser(std::shared_ptr<User> user)
 
 void GreeterWorkek::authUser(const QString &password)
 {
-    if (m_authenticating) return;
+    if (m_authenticating)
+{
+    return;
+}
 
     m_authenticating = true;
 
@@ -384,7 +387,10 @@ void GreeterWorkek::recoveryUserKBState(std::shared_ptr<User> user)
     //    PowerInter powerInter("com.deepin.system.Power", "/com/deepin/system/Power", QDBusConnection::systemBus(), this);
     //    const BatteryPresentInfo info = powerInter.batteryIsPresent();
     //    const bool defaultValue = !info.values().first();
-    if (user.get() == nullptr) return;
+    if (user.get() == nullptr)
+{
+    return;
+}
 
     const bool enabled = UserNumlockSettings(user->name()).get(false);
 

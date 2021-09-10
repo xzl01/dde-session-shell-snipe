@@ -139,7 +139,10 @@ void UserFrameList::removeUser(const uint uid)
 void UserFrameList::onUserClicked()
 {
     UserLoginWidget *widget = static_cast<UserLoginWidget *>(sender());
-    if (!widget) return;
+    if (!widget)
+{
+    return;
+}
 
     currentSelectedUser = widget;
     for (int i = 0; i != m_loginWidgets.size(); ++i) {
@@ -348,7 +351,10 @@ void UserFrameList::calcUserListArea()
     m_centerWidget->setFixedWidth(totalWidth);
 
     std::shared_ptr<User> user = m_model->currentUser();
-    if (user.get() == nullptr) return;
+    if (user.get() == nullptr)
+{
+    return;
+}
     for (auto it = m_loginWidgets.constBegin(); it != m_loginWidgets.constEnd(); ++it) {
         auto login_widget = *it;
 

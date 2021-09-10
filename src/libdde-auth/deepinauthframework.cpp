@@ -59,7 +59,10 @@ void* DeepinAuthFramework::pamAuthWorker(void *arg)
 
 void DeepinAuthFramework::Authenticate(std::shared_ptr<User> user)
 {
-    if (user->isLock() || user->name().isEmpty()) return;
+    if (user->isLock() || user->name().isEmpty())
+{
+    return;
+}
 
     m_password.clear();
 

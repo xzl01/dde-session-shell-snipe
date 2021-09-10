@@ -271,7 +271,10 @@ void ContentWidget::enterKeyPushed()
         return;
     }
 
-    if (m_warningView && m_warningView->isVisible()) return;
+    if (m_warningView && m_warningView->isVisible())
+{
+    return;
+}
 
     if (m_currentSelectedBtn->isDisabled())
         return;
@@ -509,7 +512,10 @@ void ContentWidget::shutDownFrameActions(const Actions action)
     // take effect while dde-lock is showing.
 
     //检查其他界面是否有关机操作，若存在则当前界面不再处理
-    if (m_model->isCheckedPowerAction()) return;
+    if (m_model->isCheckedPowerAction())
+{
+    return;
+}
     //当前界面已经处理关机操作，设置变量不允许其他界面再次处理
     m_model->setIsCheckedPowerAction(true);
 
@@ -582,7 +588,10 @@ void ContentWidget::updateWallpaper(const QString &path)
 
 void ContentWidget::onUserListChanged(int users_size)
 {
-    if(users_size == 0) return;   // At least one user
+    if(users_size == 0)
+{
+    return;
+}   // At least one user
 
     const bool allowShowUserSwitchButton = m_model->allowShowUserSwitchButton();
     const bool alwaysShowUserSwitchButton = m_model->alwaysShowUserSwitchButton();
@@ -885,7 +894,10 @@ void ContentWidget::runSystemMonitor()
 
 void ContentWidget::setPreviousChildFocus()
 {
-    if (m_warningView && m_warningView->isVisible()) return;
+    if (m_warningView && m_warningView->isVisible())
+{
+    return;
+}
 
     if (!m_currentSelectedBtn->isDisabled() &&
             !m_currentSelectedBtn->isChecked())
@@ -904,7 +916,10 @@ void ContentWidget::setPreviousChildFocus()
 
 void ContentWidget::setNextChildFocus()
 {
-    if (m_warningView && m_warningView->isVisible()) return;
+    if (m_warningView && m_warningView->isVisible())
+{
+    return;
+}
 
     if (!m_currentSelectedBtn->isDisabled() &&
             !m_currentSelectedBtn->isChecked())

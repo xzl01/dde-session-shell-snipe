@@ -80,12 +80,21 @@ LockWorker::LockWorker(SessionBaseModel *const model, QObject *parent)
     });
 
     connect(model, &SessionBaseModel::visibleChanged, this, [ = ](bool isVisible) {
-        if (!isVisible || model->currentType() != SessionBaseModel::AuthType::LockType) return;
+        if (!isVisible || model->currentType() != SessionBaseModel::AuthType::LockType)
+{
+    return;
+}
 
         std::shared_ptr<User> user_ptr = model->currentUser();
-        if (!user_ptr.get()) return;
+        if (!user_ptr.get())
+{
+    return;
+}
 
-        if (user_ptr->type() == User::ADDomain && user_ptr->uid() == 0) return;
+        if (user_ptr->type() == User::ADDomain && user_ptr->uid() == 0)
+{
+    return;
+}
 
         m_authFramework->Authenticate(user_ptr);
     });
@@ -170,7 +179,10 @@ void LockWorker::switchToUser(std::shared_ptr<User> user)
 
 void LockWorker::authUser(const QString &password)
 {
-    if (m_authenticating) return;
+    if (m_authenticating)
+{
+    return;
+}
 
     m_authenticating = true;
 
@@ -247,7 +259,10 @@ void LockWorker::onUserAdded(const QString &user)
 
 void LockWorker::lockServiceEvent(quint32 eventType, quint32 pid, const QString &username, const QString &message)
 {
-    if (!m_model->currentUser()) return;
+    if (!m_model->currentUser())
+{
+    return;
+}
 
     if (username != m_model->currentUser()->name())
         return;

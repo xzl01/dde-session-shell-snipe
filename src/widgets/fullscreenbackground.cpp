@@ -190,7 +190,10 @@ void FullscreenBackground::setContent(QWidget *const w)
 
 void FullscreenBackground::setIsBlackMode(bool is_black)
 {
-    if(m_isBlackMode == is_black) return;
+    if(m_isBlackMode == is_black)
+{
+    return;
+}
 
     m_isBlackMode = is_black;
     FrameDataBind::Instance()->updateValue("PrimaryShowFinished", !is_black);
