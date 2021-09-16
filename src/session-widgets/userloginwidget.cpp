@@ -329,6 +329,7 @@ void UserLoginWidget::updateWidgetShowType(const int type)
     }
 
     updateExpiredStatus();
+    updateBlurEffectGeometry();
     updateGeometry();
 
     /**
@@ -936,8 +937,8 @@ void UserLoginWidget::updateAuthType(SessionBaseModel::AuthType type)
  */
 void UserLoginWidget::updateBlurEffectGeometry()
 {
-    QRect rect = layout()->geometry();
-    rect.setTop(rect.top() + m_userAvatar->height() / 2);
+    QRect rect(this->rect());
+    rect.setTop(this->rect().top() + m_userAvatar->height() / 2);
     if (m_widgetType == LoginType) {
         if (m_model->currentUser()->expiredStatus() && !m_expiredStatusLabel->text().isEmpty()) {
             rect.setBottom(rect.bottom() - m_lockButton->height() - m_expiredStatusLabel->height() - layout()->spacing() * 2);
@@ -947,6 +948,7 @@ void UserLoginWidget::updateBlurEffectGeometry()
     } else {
         rect.setBottom(rect.bottom() - 15);
     }
+
     m_blurEffectWidget->setGeometry(rect);
 }
 
