@@ -78,6 +78,7 @@ LockFrame::LockFrame(SessionBaseModel *const model, QWidget *parent)
         //记录待机和唤醒时间
         m_preparingSleepTime = QDateTime::currentDateTime().toMSecsSinceEpoch();
         //待机时由锁屏提供假黑屏，唤醒时显示正常界面
+        model->setVisible(true);
         model->setIsBlackModel(isSleep);
 
         if (!isSleep) {
