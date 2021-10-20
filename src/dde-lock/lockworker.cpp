@@ -213,6 +213,7 @@ void LockWorker::initConnections()
         } else {
             createAuthentication(m_model->currentUser()->name());
         }
+        setLocked(isSleep);
         emit m_model->prepareForSleep(isSleep);
     });
     /* model */
