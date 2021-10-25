@@ -176,6 +176,7 @@ void ShutdownFrontDBus::Hibernate()
 
 void ShutdownFrontDBus::SwitchUser()
 {
+    m_model->setIsCheckedPowerAction(false);
     m_parent->SwitchUser();
 }
 
