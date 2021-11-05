@@ -66,6 +66,7 @@ LockWorker::LockWorker(SessionBaseModel *const model, QObject *parent)
 
     /* com.deepin.daemon.Accounts */
     m_model->updateUserList(m_accountsInter->userList());
+    m_account = m_model->currentUser()->name();
     m_model->updateLoginedUserList(m_loginedInter->userList());
     m_model->updateLimitedInfo(m_authFramework->GetLimitedInfo(m_model->currentUser()->name()));
     /* com.deepin.daemon.Authenticate */
