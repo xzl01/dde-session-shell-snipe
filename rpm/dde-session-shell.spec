@@ -60,6 +60,7 @@ sed -i "s|VERSION 3.13.4|VERSION $cmake_version|g" CMakeLists.txt
 %{_datadir}/dbus-1/services/com.deepin.dde.shutdownFront.service
 %{_datadir}/applications/dde-lock.desktop
 %{_datadir}/glib-2.0/schemas/com.deepin.dde.session-shell.gschema.xml
+%{_datadir}/deepin-authentication/privileges/lightdm-deepin-greeter.conf
 
 %changelog
 * Thu Jun 11 2020 uoser <uoser@uniontech.com> - 5.4.20.4-1
