@@ -24,7 +24,7 @@ BuildRequires:  gsettings-qt-devel
 BuildRequires:  lightdm-qt5-devel
 BuildRequires:  pam-devel
 BuildRequires:  gtest-devel
-BuildRequires:  libssl-devel
+BuildRequires:  openssl-devel
 Requires:       lightdm
 Requires(post): sed
 Provides:       lightdm-deepin-greeter = %{version}-%{release}
