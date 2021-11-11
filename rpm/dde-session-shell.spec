@@ -7,10 +7,10 @@ URL:            http://shuttle.corp.deepin.com/cache/repos/eagle/release-candida
 Source0:        %{name}-%{version}.orig.tar.xz
 
 BuildRequires:  cmake
-BuildRequires:  dtkcore >= 5.1
+BuildRequires:  dtkcore >= 5.5
 BuildRequires:  gsettings-qt
 BuildRequires:  qt5-linguist
-BuildRequires:  dtkwidget-devel >= 5.1
+BuildRequires:  dtkwidget-devel >= 5.5
 BuildRequires:  qt5-qtx11extras-devel
 BuildRequires:  qt5-qtmultimedia-devel
 BuildRequires:  qt5-qtsvg-devel
