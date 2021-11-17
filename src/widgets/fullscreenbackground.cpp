@@ -33,7 +33,10 @@
 #include <QKeyEvent>
 #include <QPainter>
 #include <QScreen>
+#include <QTimer>
 #include <QWindow>
+
+Q_LOGGING_CATEGORY(DDE_SS, "dss.active")
 
 DGUI_USE_NAMESPACE
 
@@ -228,12 +231,36 @@ void FullscreenBackground::paintEvent(QPaintEvent *e)
     }
 }
 
+void FullscreenBackground::tryActiveWindow(int count/* = 9*/)
+{
+    if (count < 0)
+        return;
+
+    qCDebug(DDE_SS) << "try active window..." << count;
+    if (isActiveWindow()) {
+        qCDebug(DDE_SS) << "...finally activewindow is me ...";
+        return;
+    }
+
+    activateWindow();
+
+    if (m_content && !m_content->isVisible()) {
+        qCDebug(DDE_SS) << "hide..." << count;
+        return;
+    }
+    QTimer::singleShot(50 , this, std::bind(&FullscreenBackground::tryActiveWindow, this, count -1));
+}
+
 void FullscreenBackground::enterEvent(QEvent *event)
 {
     if (m_primaryShowFinished && m_enableEnterEvent && m_model->visible()) {
         m_content->show();
         emit contentVisibleChanged(true);
     }
+
+    // 不是 activewindow时 主动尝试激活
+    if (!isActiveWindow() && m_content && m_content->isVisible())
+         tryActiveWindow();
 
     return QWidget::enterEvent(event);
 }
@@ -350,13 +377,14 @@ void FullscreenBackground::updateGeometry()
  * 用户登录界面，主窗体在某时刻会被设置为WindowDeactivate，
  * 此时登录界面获取不到焦点，需要调用requestActivate激活窗体。
 ********************************************************/
-bool FullscreenBackground::eventFilter(QObject *watched, QEvent *e)
+bool FullscreenBackground::event(QEvent *e)
 {
 #ifndef QT_DEBUG
     if (e->type() == QEvent::WindowDeactivate) {
-        if (m_content->isVisible())
-            windowHandle()->requestActivate();
+        if (m_content->isVisible()) {
+            tryActiveWindow();
+        }
     }
 #endif
-    return QWidget::eventFilter(watched, e);
+    return QWidget::event(e);
 }

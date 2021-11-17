@@ -27,6 +27,8 @@
 #define FULLSCREENBACKGROUND_H
 
 #include <QWidget>
+#include <QLoggingCategory>
+Q_DECLARE_LOGGING_CATEGORY(DDE_SS)
 
 #include <com_deepin_daemon_imageeffect.h>
 
@@ -60,7 +62,7 @@ protected:
     void setContent(QWidget *const w);
     void keyPressEvent(QKeyEvent *e) Q_DECL_OVERRIDE;
     void showEvent(QShowEvent *event) override;
-    bool eventFilter(QObject *watched, QEvent *e) override;
+    bool event(QEvent *e) override;
     void resizeEvent(QResizeEvent *event) Q_DECL_OVERRIDE;
 
 private:
@@ -73,6 +75,7 @@ private:
     void updateGeometry();
     bool isPicture(const QString &file);
     QString getLocalFile(const QString &file);
+    void tryActiveWindow(int count = 9);
 
 private:
     QPixmap m_background;                 // 高清背景
