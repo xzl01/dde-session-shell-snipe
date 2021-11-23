@@ -59,7 +59,7 @@ public:
         /* com.deepin.daemon.Authenticate.Session */
         int AuthType = 0; // 账户开启的认证类型
         int PINLen = 0;   // PIN 码的最大长度
-        bool MFAFlag;     // 多因子标志位
+        bool MFAFlag = false;     // 多因子标志位;在未使用DA时，存在该值为true的情况
         bool FuzzyMFA;    // ???
         QString Prompt;   // 提示语
         QString UserName; // 账户名
