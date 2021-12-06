@@ -360,6 +360,10 @@ void LockContent::tryGrabKeyboard()
 #ifdef QT_DEBUG
     return;
 #endif
+    // 在抓取键盘前, 如果锁屏界面窗口没有激活，将其窗口激活(置顶),然后再去抓取键盘
+    if (window() && !window()->isActiveWindow()){
+        window()->activateWindow();
+    }
 
     if (window()->windowHandle() && window()->windowHandle()->setKeyboardGrabEnabled(true)) {
         m_failures = 0;
