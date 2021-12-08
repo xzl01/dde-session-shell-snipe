@@ -1521,3 +1521,12 @@ void UserLoginWidget::showEvent(QShowEvent *event)
     }
     setFocus();
 }
+
+void UserLoginWidget::hideEvent(QHideEvent *event)
+{
+    if (m_kbLayoutBorder != nullptr) {
+        m_kbLayoutBorder->hide();
+    }
+
+    QWidget::hideEvent(event);
+}
