@@ -26,6 +26,7 @@ BuildRequires:  pam-devel
 BuildRequires:  gtest-devel
 BuildRequires:  openssl-devel
 Requires:       lightdm
+Requires:       google-noto-cjk-fonts
 Requires(post): sed
 Provides:       lightdm-deepin-greeter = %{version}-%{release}
 Provides:       lightdm-greeter = 1.2
