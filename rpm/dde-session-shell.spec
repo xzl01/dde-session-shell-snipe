@@ -25,6 +25,7 @@ BuildRequires:  lightdm-qt5-devel
 BuildRequires:  pam-devel
 BuildRequires:  gtest-devel
 Requires:       lightdm
+Requires:       google-noto-cjk-fonts
 Requires(post): sed
 Provides:       lightdm-deepin-greeter = %{version}-%{release}
 Provides:       lightdm-greeter = 1.2
