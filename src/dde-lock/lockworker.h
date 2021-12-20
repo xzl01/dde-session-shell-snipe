@@ -44,7 +44,7 @@ public slots:
     void sendTokenToAuth(const QString &account, const int authType, const QString &token);
 
     void switchToUser(std::shared_ptr<User> user) override;
-    void setLocked(const bool locked);
+    void setLocked(const bool locked, const bool deplay = true);
     void restartResetSessionTimer();
 
 private:

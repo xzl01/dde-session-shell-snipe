@@ -383,7 +383,7 @@ void LockWorker::switchToUser(std::shared_ptr<User> user)
  *
  * @param locked
  */
-void LockWorker::setLocked(const bool locked)
+void LockWorker::setLocked(const bool locked, const bool deplay)
 {
 #ifndef QT_DEBUG
     if (m_model->currentModeState() != SessionBaseModel::ShutDownMode) {
@@ -396,9 +396,13 @@ void LockWorker::setLocked(const bool locked)
          * 故增加这个延时，在待机前多给锁屏一点时间去处理显示界面的信号，尽量保证执行待机时，锁屏界面显示完成。
          * 建议后端修改监听信号或前端修改这块逻辑。
          */
-        QTimer::singleShot(200, this, [=] {
+        if (deplay) {
+            QTimer::singleShot(200, this, [=] {
+                m_sessionManagerInter->SetLocked(locked);
+            });
+        } else {
             m_sessionManagerInter->SetLocked(locked);
-        });
+        }
     }
 #else
     Q_UNUSED(locked)
