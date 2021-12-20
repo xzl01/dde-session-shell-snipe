@@ -52,7 +52,7 @@ public:
     ~LockFrame() override;
 
 signals:
-    void requestSetLocked(const bool);
+    void requestSetLocked(const bool locked, const bool delay = true);
     void requestSwitchToUser(std::shared_ptr<User> user);
     void requestSetLayout(std::shared_ptr<User> user, const QString &layout);
     void requestEnableHotzone(bool disable);
