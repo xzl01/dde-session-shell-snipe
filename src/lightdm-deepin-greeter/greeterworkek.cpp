@@ -7,6 +7,7 @@
 #include <libintl.h>
 #include <DSysInfo>
 
+#include <QDomDocument>
 #include <QGSettings>
 
 #include <com_deepin_system_systempower.h>
@@ -367,6 +368,31 @@ void GreeterWorkek::setCurrentUser(const std::shared_ptr<User> user)
     m_lockInter->SwitchToUser(QString(QJsonDocument(json).toJson(QJsonDocument::Compact))).waitForFinished();
 }
 
+static void quitAuthSession(const QString& username)
+{
+    qDebug() <<"quit all auth session of" << username;
+    auto conn = QDBusConnection::systemBus();
+    QDBusInterface obj{"com.deepin.daemon.Authenticate", "/com/deepin/daemon/Authenticate/Session", "org.freedesktop.DBus.Introspectable", conn};
+    auto nodes = obj.call("Introspect").arguments().at(0);
+    if (nodes.isNull())
+        return;
+
+    QDomDocument doc;
+    doc.setContent(nodes.toString());
+    QDomElement root = doc.documentElement();
+    for (auto node = root.firstChild(); !node.isNull(); node = node.nextSibling()) {
+        auto path = "/com/deepin/daemon/Authenticate/Session/" + node.toElement().attribute("name");
+        AuthControllerInter* session = new AuthControllerInter("com.deepin.daemon.Authenticate", path, QDBusConnection::systemBus(), nullptr);
+        if (session->username() == username) {
+            qDebug() << "quit" << path;
+            session->End(AuthTypeAll);
+            session->Quit();
+        } else {
+            qDebug() << "skip" << path << session->username();
+        }
+        delete session;
+    }
+}
 void GreeterWorkek::switchToUser(std::shared_ptr<User> user)
 {
     if (user->name() == m_account) {
@@ -375,6 +401,7 @@ void GreeterWorkek::switchToUser(std::shared_ptr<User> user)
     qInfo() << "switch user from" << m_account << " to " << user->name() << user->uid() << user->isLogin();
     endAuthentication(m_account, AuthTypeAll);
     destoryAuthentication(m_account);
+    quitAuthSession(m_account);
 
     if (user->uid() == INT_MAX) {
         m_greeter->authenticate();
