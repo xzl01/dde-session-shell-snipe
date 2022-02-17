@@ -86,7 +86,8 @@ enum AuthStatus {
     StatusCodeEnded,       // 认证已结束，调用 End 之后，每种成功关闭的都会发送此信号，当某种认证类型被锁定时，也会触发此信号
     StatusCodeLocked,      // 认证已锁定，当认证类型锁定时，触发此信号。该信号不会给出锁定等待时间信息
     StatusCodeRecover,     // 设备恢复，需要调用 Start 重新开启认证，对应 StatusCodeException
-    StatusCodeUnlocked     // 认证解锁，对应 StatusCodeLocked
+    StatusCodeUnlocked,    // 认证解锁，对应 StatusCodeLocked
+    StatusCodeInfo         // 认证Info消息
 };
 
 } // namespace AuthCommon

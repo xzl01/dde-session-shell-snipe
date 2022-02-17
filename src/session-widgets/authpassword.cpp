@@ -19,23 +19,24 @@
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "authsingle.h"
-
 #include "authcommon.h"
+#include "authpassword.h"
 #include "dlineeditex.h"
 
 #include <DHiDPIHelper>
+#include <DLabel>
 
+#include <QHBoxLayout>
 #include <QKeyEvent>
 #include <QTimer>
 
 using namespace AuthCommon;
 
-AuthSingle::AuthSingle(QWidget *parent)
+AuthPassword::AuthPassword(QWidget *parent)
     : AuthModule(parent)
     , m_capsStatus(new DLabel(this))
     , m_lineEdit(new DLineEditEx(this))
-    , m_keyboardButton(new DPushButton(this))
+    , m_keyboardButton(new QPushButton(this))
 {
     initUI();
     initConnections();
@@ -47,13 +48,12 @@ AuthSingle::AuthSingle(QWidget *parent)
 /**
  * @brief 初始化界面
  */
-void AuthSingle::initUI()
+void AuthPassword::initUI()
 {
     QHBoxLayout *mainLayout = new QHBoxLayout(this);
     mainLayout->setSpacing(0);
     mainLayout->setContentsMargins(0, 0, 0, 0);
 
-    m_lineEdit->setAccessibleName("LineEdit");
     m_lineEdit->setClearButtonEnabled(false);
     m_lineEdit->setEchoMode(QLineEdit::Password);
     m_lineEdit->setContextMenuPolicy(Qt::NoContextMenu);
@@ -63,7 +63,6 @@ void AuthSingle::initUI()
     passwordLayout->setContentsMargins(0, 0, 10, 0);
     passwordLayout->setSpacing(5);
     /* 键盘布局按钮 */
-    m_keyboardButton->setAccessibleName("KeyboardButton");
     m_keyboardButton->setContentsMargins(0, 0, 0, 0);
     m_keyboardButton->setFocusPolicy(Qt::NoFocus);
     m_keyboardButton->setCursor(Qt::ArrowCursor);
@@ -72,9 +71,11 @@ void AuthSingle::initUI()
     /* 大小写状态 */
     QPixmap pixmap = DHiDPIHelper::loadNxPixmap(":/misc/images/caps_lock.svg");
     pixmap.setDevicePixelRatio(devicePixelRatioF());
-    m_capsStatus->setAccessibleName("CapsStatusLabel");
     m_capsStatus->setPixmap(pixmap);
     passwordLayout->addWidget(m_capsStatus, 1, Qt::AlignRight | Qt::AlignVCenter);
+    /* 认证状态 */
+    m_authStatus = new DLabel(this);
+    passwordLayout->addWidget(m_authStatus, 0, Qt::AlignRight | Qt::AlignVCenter);
 
     mainLayout->addWidget(m_lineEdit);
 }
@@ -82,36 +83,29 @@ void AuthSingle::initUI()
 /**
  * @brief 初始化信号连接
  */
-void AuthSingle::initConnections()
+void AuthPassword::initConnections()
 {
     /* 键盘布局按钮 */
-    connect(m_keyboardButton, &QPushButton::clicked, this, &AuthSingle::requestShowKeyboardList);
-    /* 输入框 */
-    connect(m_lineEdit, &DLineEditEx::lineEditTextHasFocus, this, &AuthSingle::focusChanged);
-    connect(m_lineEdit, &DLineEditEx::textChanged, this, [this](const QString &text) {
-        m_lineEdit->setAlert(false);
-        emit lineEditTextChanged(text);
+    connect(m_keyboardButton, &QPushButton::clicked, this, &AuthPassword::requestShowKeyboardList);
+    /* 密码输入框 */
+    connect(m_lineEdit, &DLineEditEx::lineEditTextHasFocus, this, [this](const bool focus) {
+        if (focus) {
+            m_authStatus->hide();
+        } else {
+            m_authStatus->show();
+        }
+        emit focusChanged(focus);
     });
+    connect(m_lineEdit, &DLineEditEx::textChanged, this, &AuthPassword::lineEditTextChanged);
     connect(m_lineEdit, &DLineEditEx::returnPressed, this, [this] {
         if (!m_lineEdit->text().isEmpty()) {
             setAnimationState(true);
             m_lineEdit->clearFocus();
             m_lineEdit->setFocusPolicy(Qt::NoFocus);
-            m_lineEdit->lineEdit()->setReadOnly(true);
             emit requestAuthenticate();
         }
     });
     /* 认证解锁时间 */
-    connect(m_unlockTimerTmp, &QTimer::timeout, this, [this] {
-        m_integerMinutes--;
-        if (m_integerMinutes < 1) {
-            m_integerMinutes = 0;
-            m_unlockTimer->start(0);
-        } else {
-            updateUnlockPrompt();
-            m_unlockTimer->start(60 * 1000);
-        }
-    });
     connect(m_unlockTimer, &QTimer::timeout, this, [this] {
         if (m_integerMinutes > 0) {
             m_integerMinutes--;
@@ -129,72 +123,70 @@ void AuthSingle::initConnections()
  * @param status
  * @param result
  */
-void AuthSingle::setAuthResult(const int status, const QString &result)
+void AuthPassword::setAuthResult(const int status, const QString &result)
 {
+    if (status == m_status) {
+        return;
+    }
     m_status = status;
 
     switch (status) {
     case StatusCodeSuccess:
         setAnimationState(false);
+        setAuthStatus(":/misc/images/login_check.svg");
         m_lineEdit->clear();
         m_lineEdit->setFocusPolicy(Qt::NoFocus);
         m_lineEdit->clearFocus();
-        m_lineEdit->setAlert(false);
-        m_lineEdit->lineEdit()->setReadOnly(true);
-        setLineEditInfo(result, PlaceHolderText);
-        emit authFinished(StatusCodeSuccess);
-        m_retryAuth = false;
+        setLineEditInfo(tr("Verification successful"), PlaceHolderText);
+        m_showPrompt = true;
+        emit requestChangeFocus();
         break;
     case StatusCodeFailure: {
         setAnimationState(false);
-        if (m_limitsInfo->locked) {
-            m_lineEdit->clear();
-            m_lineEdit->setFocusPolicy(Qt::NoFocus);
-            m_lineEdit->clearFocus();
-            m_lineEdit->setAlert(false);
-            m_lineEdit->lineEdit()->setReadOnly(true);
-            if (m_integerMinutes == 1) {
-                setLineEditInfo(tr("Please try again 1 minute later"), PlaceHolderText);
-            } else {
-                setLineEditInfo(tr("Please try again %n minutes later", "", static_cast<int>(m_integerMinutes)), PlaceHolderText);
-            }
-        } else {
-            m_lineEdit->clear();
-            m_lineEdit->setFocusPolicy(Qt::StrongFocus);
-            m_lineEdit->setFocus();
-            m_lineEdit->lineEdit()->setReadOnly(false);
-            setLineEditInfo(result, AlertText);
+        setAuthStatus(":/misc/images/login_wait.svg");
+        m_lineEdit->clear();
+        m_lineEdit->setFocusPolicy(Qt::StrongFocus);
+        m_lineEdit->setFocus();
+        const int leftTimes = static_cast<int>(m_limitsInfo->maxTries - m_limitsInfo->numFailures);
+        if (leftTimes > 1) {
+            setLineEditInfo(tr("Verification failed, %n chances left", "", leftTimes), PlaceHolderText);
+        } else if (leftTimes == 1) {
+            setLineEditInfo(tr("Verification failed, only one chance left"), PlaceHolderText);
         }
+        setLineEditInfo(tr("Wrong Password"), AlertText);
+        m_showPrompt = false;
+        emit activeAuth();
         break;
     }
     case StatusCodeCancel:
         setAnimationState(false);
-        m_lineEdit->setAlert(false);
-        m_lineEdit->hideAlertMessage();
+        setAuthStatus(":/misc/images/login_wait.svg");
         break;
     case StatusCodeTimeout:
         setAnimationState(false);
+        setAuthStatus(":/misc/images/login_wait.svg");
         setLineEditInfo(result, AlertText);
         break;
     case StatusCodeError:
         setAnimationState(false);
+        setAuthStatus(":/misc/images/login_wait.svg");
         setLineEditInfo(result, AlertText);
         break;
     case StatusCodeVerify:
         setAnimationState(true);
+        setAuthStatus(":/misc/images/login_spinner.svg");
         break;
     case StatusCodeException:
         setAnimationState(false);
+        setAuthStatus(":/misc/images/login_wait.svg");
         setLineEditInfo(result, AlertText);
         break;
     case StatusCodePrompt:
         setAnimationState(false);
-        m_lineEdit->clear();
-        m_lineEdit->setFocusPolicy(Qt::StrongFocus);
-        m_lineEdit->setFocus();
-        m_lineEdit->lineEdit()->setReadOnly(false);
-        setLineEditInfo(result, PlaceHolderText);
-        m_retryAuth = true;
+        setAuthStatus(":/misc/images/login_wait.svg");
+        if (m_showPrompt) {
+            setLineEditInfo(tr("Password"), PlaceHolderText);
+        }
         break;
     case StatusCodeStarted:
         break;
@@ -202,18 +194,30 @@ void AuthSingle::setAuthResult(const int status, const QString &result)
         break;
     case StatusCodeLocked:
         setAnimationState(false);
+        setAuthStatus(":/misc/images/login_lock.svg");
+        m_lineEdit->clear();
+        m_lineEdit->setFocusPolicy(Qt::NoFocus);
+        m_lineEdit->clearFocus();
         break;
     case StatusCodeRecover:
         setAnimationState(false);
+        setAuthStatus(":/misc/images/login_wait.svg");
         break;
     case StatusCodeUnlocked:
+        setAuthStatus(":/misc/images/login_wait.svg");
+        m_lineEdit->setFocusPolicy(Qt::StrongFocus);
+        m_lineEdit->setFocus();
         break;
     case StatusCodeInfo:
         setAnimationState(false);
+        setAuthStatus(":/misc/images/login_wait.svg");
         setLineEditInfo(result, AlertText);
         break;
     default:
         setAnimationState(false);
+        setAuthStatus(":/misc/images/login_wait.svg");
+        m_lineEdit->setFocusPolicy(Qt::StrongFocus);
+        m_lineEdit->setFocus();
         setLineEditInfo(result, AlertText);
         qWarning() << "Error! The status of Password Auth is wrong!" << status << result;
         break;
@@ -226,7 +230,7 @@ void AuthSingle::setAuthResult(const int status, const QString &result)
  *
  * @param start
  */
-void AuthSingle::setAnimationState(const bool start)
+void AuthPassword::setAnimationState(const bool start)
 {
     if (start) {
         m_lineEdit->startAnimation();
@@ -240,7 +244,7 @@ void AuthSingle::setAnimationState(const bool start)
  *
  * @param isCapsOn
  */
-void AuthSingle::setCapsStatus(const bool isCapsOn)
+void AuthPassword::setCapsStatus(const bool isCapsOn)
 {
     if (isCapsOn) {
         m_capsStatus->show();
@@ -254,14 +258,17 @@ void AuthSingle::setCapsStatus(const bool isCapsOn)
  *
  * @param info
  */
-void AuthSingle::setLimitsInfo(const LimitsInfo &info)
+void AuthPassword::setLimitsInfo(const LimitsInfo &info)
 {
-    m_limitsInfo->unlockTime = info.unlockTime;
-    m_limitsInfo->locked = info.locked;
+    if (info.locked && info.locked != m_limitsInfo->locked && info.unlockTime != m_limitsInfo->unlockTime) {
+        m_limitsInfo->locked = info.locked;
+        m_limitsInfo->unlockTime = info.unlockTime;
+        setAuthResult(StatusCodeLocked, QString(""));
+        updateUnlockTime();
+    }
     m_limitsInfo->maxTries = info.maxTries;
     m_limitsInfo->numFailures = info.numFailures;
     m_limitsInfo->unlockSecs = info.unlockSecs;
-    updateUnlockTime();
 }
 
 /**
@@ -270,10 +277,11 @@ void AuthSingle::setLimitsInfo(const LimitsInfo &info)
  * @param text
  * @param type
  */
-void AuthSingle::setLineEditInfo(const QString &text, const TextType type)
+void AuthPassword::setLineEditInfo(const QString &text, const TextType type)
 {
     switch (type) {
     case AlertText:
+        // m_lineEdit->clear();
         m_lineEdit->showAlertMessage(text, this, 3000);
         m_lineEdit->setAlert(true);
         break;
@@ -290,11 +298,11 @@ void AuthSingle::setLineEditInfo(const QString &text, const TextType type)
 }
 
 /**
- * @brief 设置数字键盘状态
+ * @brief 设置数字键盘锁定状态
  *
  * @param path
  */
-void AuthSingle::setNumLockStatus(const QString &path)
+void AuthPassword::setNumLockState(const QString &path)
 {
     QPixmap pixmap = DHiDPIHelper::loadNxPixmap(path);
     pixmap.setDevicePixelRatio(devicePixelRatioF());
@@ -302,17 +310,15 @@ void AuthSingle::setNumLockStatus(const QString &path)
 }
 
 /**
- * @brief 设置键盘布局按钮显示的文案
+ * @brief 设置键盘布局按钮显示文案
  *
  * @param text
  */
-void AuthSingle::setKeyboardButtonInfo(const QString &text)
+void AuthPassword::setKeyboardButtonInfo(const QString &text)
 {
-    static QString currentText;
-    if (currentText == text)
+    if (!m_keyboardButton->isVisible()) {
         return;
-
-    currentText = text;
+    }
     QString tmpText = text;
     tmpText = tmpText.split(";").first();
     /* special mark in Japanese */
@@ -341,11 +347,11 @@ void AuthSingle::setKeyboardButtonInfo(const QString &text)
 }
 
 /**
- * @brief 设置键盘布局按钮的显示状态
+ * @brief 设置键盘布局按钮显示状态
  *
  * @param visible
  */
-void AuthSingle::setKeyboardButtonVisible(const bool visible)
+void AuthPassword::setKeyboardButtonVisible(const bool visible)
 {
     m_keyboardButton->setVisible(visible);
 }
@@ -355,7 +361,7 @@ void AuthSingle::setKeyboardButtonVisible(const bool visible)
  *
  * @return QString
  */
-QString AuthSingle::lineEditText() const
+QString AuthPassword::lineEditText() const
 {
     return m_lineEdit->text();
 }
@@ -363,12 +369,10 @@ QString AuthSingle::lineEditText() const
 /**
  * @brief 更新认证锁定时的文案
  */
-void AuthSingle::updateUnlockPrompt()
+void AuthPassword::updateUnlockPrompt()
 {
-    if (m_integerMinutes == 1) {
-        m_lineEdit->setPlaceholderText(tr("Please try again 1 minute later"));
-    } else if (m_integerMinutes > 1) {
-        m_lineEdit->setPlaceholderText(tr("Please try again %n minutes later", "", static_cast<int>(m_integerMinutes)));
+    if (m_integerMinutes > 0) {
+        m_lineEdit->setPlaceholderText(tr("Please try again %n minute(s) later", "", static_cast<int>(m_integerMinutes)));
     } else {
         QTimer::singleShot(1000, this, [this] {
             emit activeAuth();
@@ -378,7 +382,7 @@ void AuthSingle::updateUnlockPrompt()
     update();
 }
 
-bool AuthSingle::eventFilter(QObject *watched, QEvent *event)
+bool AuthPassword::eventFilter(QObject *watched, QEvent *event)
 {
     if (qobject_cast<DLineEditEx *>(watched) == m_lineEdit && event->type() == QEvent::KeyPress) {
         QKeyEvent *keyEvent = static_cast<QKeyEvent *>(event);
