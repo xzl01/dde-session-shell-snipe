@@ -688,7 +688,7 @@ void GreeterWorkek::showMessage(const QString &text, const QLightDM::Greeter::Me
     qDebug() << "GreeterWorkek::showMessage:" << text << type;
     switch (type) {
     case QLightDM::Greeter::MessageTypeInfo:
-        m_model->updateAuthStatus(AuthTypeSingle, StatusCodeSuccess, text);
+        m_model->updateAuthStatus(AuthTypeSingle, StatusCodeInfo, text);
         break;
     case QLightDM::Greeter::MessageTypeError:
         if (m_retryAuth && m_model->getAuthProperty().MFAFlag) {

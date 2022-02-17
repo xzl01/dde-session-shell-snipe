@@ -208,6 +208,11 @@ void AuthPassword::setAuthResult(const int status, const QString &result)
         m_lineEdit->setFocusPolicy(Qt::StrongFocus);
         m_lineEdit->setFocus();
         break;
+    case StatusCodeInfo:
+        setAnimationState(false);
+        setAuthStatus(":/misc/images/login_wait.svg");
+        setLineEditInfo(result, AlertText);
+        break;
     default:
         setAnimationState(false);
         setAuthStatus(":/misc/images/login_wait.svg");

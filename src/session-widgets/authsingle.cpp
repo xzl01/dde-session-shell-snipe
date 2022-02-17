@@ -208,6 +208,10 @@ void AuthSingle::setAuthResult(const int status, const QString &result)
         break;
     case StatusCodeUnlocked:
         break;
+    case StatusCodeInfo:
+        setAnimationState(false);
+        setLineEditInfo(result, AlertText);
+        break;
     default:
         setAnimationState(false);
         setLineEditInfo(result, AlertText);
