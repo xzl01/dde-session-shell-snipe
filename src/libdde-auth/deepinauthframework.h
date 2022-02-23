@@ -96,7 +96,6 @@ private:
     AuthInter *m_authenticateInter;
     pthread_t m_PAMAuthThread;
     QString m_account;
-    QString m_message;
     QString m_token;
     int m_encryptType;
     QString m_publicKey;
