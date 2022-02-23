@@ -120,9 +120,10 @@ void DeepinAuthFramework::PAMAuthentication(const QString &account)
     }
 
     int rc = pam_authenticate(m_pamHandle, 0);
+    QString errorMsg = "";
     if (rc != PAM_SUCCESS) {
-        qWarning() << "PAM authenticate failed:" << pam_strerror(m_pamHandle, rc) << rc;
-        if (m_message.isEmpty()) m_message = pam_strerror(m_pamHandle, rc);
+        errorMsg = pam_strerror(m_pamHandle, rc);
+        qWarning() << "PAM authenticate failed:" << errorMsg << rc;
     } else {
         qDebug() << "PAM authenticate finished.";
     }
@@ -135,9 +136,9 @@ void DeepinAuthFramework::PAMAuthentication(const QString &account)
     }
 
     if (rc == 0) {
-        UpdateAuthStatus(StatusCodeSuccess, m_message);
+        UpdateAuthStatus(StatusCodeSuccess, "");
     } else {
-        UpdateAuthStatus(StatusCodeFailure, m_message);
+        UpdateAuthStatus(StatusCodeFailure, errorMsg);
     }
 
     m_PAMAuthThread = 0;
@@ -208,15 +209,13 @@ int DeepinAuthFramework::PAMConversation(int num_msg, const pam_message **msg, p
         }
         case PAM_ERROR_MSG: {
             qDebug() << "pam auth error: " << message;
-            app_ptr->m_message = message;
             app_ptr->UpdateAuthStatus(StatusCodeFailure, message);
             aresp[idx].resp_retcode = PAM_SUCCESS;
             break;
         }
         case PAM_TEXT_INFO: {
             qDebug() << "pam auth info: " << message;
-            app_ptr->m_message = message;
-            app_ptr->UpdateAuthStatus(StatusCodePrompt, message);
+            app_ptr->UpdateAuthStatus(StatusCodeInfo, message);
             aresp[idx].resp_retcode = PAM_SUCCESS;
             break;
         }
