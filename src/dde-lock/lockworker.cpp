@@ -200,6 +200,10 @@ void LockWorker::initConnections()
     connect(m_login1SessionSelf, &Login1SessionSelf::ActiveChanged, this, [=](bool active) {
         qDebug() << "DBusLockService::ActiveChanged:" << active;
         if (active) {
+            // 当前session重新激活时，将界面切换到锁定状态
+            if (m_model->currentModeState() != SessionBaseModel::ModeStatus::PasswordMode) {
+                m_model->setCurrentModeState(SessionBaseModel::ModeStatus::PasswordMode);
+            }
             createAuthentication(m_model->currentUser()->name());
         } else {
             endAuthentication(m_account, AuthTypeAll);
