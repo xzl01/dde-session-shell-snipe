@@ -403,6 +403,15 @@ void DeepinAuthFramework::DestoryAuthController(const QString &account)
     authControllerInter->End(AuthTypeAll);
     authControllerInter->Quit();
     m_authenticateControllers->remove(account);
+
+    // 断开信号，不再处理已经退出的session的信号
+    disconnect(authControllerInter, &AuthControllerInter::FactorsInfoChanged, this, &DeepinAuthFramework::FactorsInfoChanged);
+    disconnect(authControllerInter, &AuthControllerInter::IsFuzzyMFAChanged, this, &DeepinAuthFramework::FuzzyMFAChanged);
+    disconnect(authControllerInter, &AuthControllerInter::IsMFAChanged, this, &DeepinAuthFramework::MFAFlagChanged);
+    disconnect(authControllerInter, &AuthControllerInter::PINLenChanged, this, &DeepinAuthFramework::PINLenChanged);
+    disconnect(authControllerInter, &AuthControllerInter::PromptChanged, this, &DeepinAuthFramework::PromptChanged);
+    disconnect(authControllerInter, &AuthControllerInter::Status, this, &DeepinAuthFramework::AuthStatusChanged);
+
     authControllerInter->deleteLater();
 
     m_F_RSA_free(m_RSA);
