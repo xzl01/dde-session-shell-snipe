@@ -218,6 +218,11 @@ void GreeterWorkek::initConnections()
         }
         emit m_model->switchUserFinished();
     });
+    connect(m_lockInter, &DBusLockService::AuthenticateRquest, this, [=](const QString &username) {
+        qWarning() << "lock service reset authenticate username: " << username;
+        if (m_greeter != nullptr)
+            m_greeter->authenticate(username);
+    });
     /* model */
     connect(m_model, &SessionBaseModel::authTypeChanged, this, [=](const int type) {
         if (type > 0 && !m_model->currentUser()->limitsInfo()->value(type).locked) {

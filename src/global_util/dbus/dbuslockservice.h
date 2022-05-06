@@ -80,8 +80,16 @@ public Q_SLOTS: // METHODS
         return asyncCallWithArgumentList(QStringLiteral("AuthenticateUser"), argumentList);
     }
 
+    inline QDBusPendingReply<> ResetAuthenticate(const QString &username)
+    {
+        QList<QVariant> argumentList;
+        argumentList << QVariant::fromValue(username);
+        return asyncCallWithArgumentList(QStringLiteral("ResetAuthenticate"), argumentList);
+    }
+
 Q_SIGNALS: // SIGNALS
     void UserChanged(const QString &user);
+    void AuthenticateRquest(const QString &user);
     void Event(quint32 eventType, quint32 pid, const QString &username, const QString &message);
 };
 
