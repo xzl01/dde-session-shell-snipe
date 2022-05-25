@@ -44,7 +44,7 @@ QPixmap loadPixmap(const QString &file);
  */
 QString readSharedImage(uid_t uid, int purpose);
 
-template <typename T>
+template<typename T>
 T findValueByQSettings(const QStringList &configFiles,
                        const QString &group,
                        const QString &key,
@@ -56,7 +56,7 @@ T findValueByQSettings(const QStringList &configFiles,
             settings.beginGroup(group);
         }
 
-        const QVariant& v = settings.value(key);
+        const QVariant &v = settings.value(key);
         if (v.isValid()) {
             T t = v.value<T>();
             return t;
@@ -66,4 +66,5 @@ T findValueByQSettings(const QStringList &configFiles,
     return failback.value<T>();
 }
 
+QByteArray readAll(const QString &fileName);
 #endif // PUBLIC_FUNC_H

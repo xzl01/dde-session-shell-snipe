@@ -97,11 +97,15 @@ public:
     void ShutdownPrompt(SessionBaseModel::PowerAction action);
     bool inputInfoCheck(bool is_server = false);
 
+    QPixmap round(const QPixmap &img_in, int radius);
+    QString getAccountEditText();
+
 signals:
     void requestAuthUser(const QString &account, const QString &password);
     void clicked();
     void requestUserKBLayoutChanged(const QString &layout);
     void unlockActionFinish();
+    void requestGetVerificationCode();
 
 public slots:
     void updateAuthType(SessionBaseModel::AuthType type);
@@ -110,6 +114,10 @@ public slots:
     void hidePasswordEditMessage();
     void unlockSuccessAni();
     void unlockFailedAni();
+    void setVerificationCode(const QString &verification);
+    void setVerificationVisible(bool visible);
+    bool isVerificationVisible();
+    void onServerConnectedStateChanged(bool connected);
 
 protected:
     void resizeEvent(QResizeEvent *event) override;
@@ -134,26 +142,31 @@ private:
     void updateClipPath();
 
 private:
-    DBlurEffectWidget *m_blurEffectWidget;         //阴影窗体
-    UserAvatar *m_userAvatar;                      //用户头像
-    QLabel *m_nameLbl;                             //用户名
-    DPasswordEditEx *m_passwordEdit;               //密码输入框
-    LockPasswordWidget *m_lockPasswordWidget;      //密码锁定后,错误信息提示框
-    SessionBaseModel::AuthType m_authType;         //认证类型
+    DBlurEffectWidget *m_blurEffectWidget; //阴影窗体
+    UserAvatar *m_userAvatar; //用户头像
+    QLabel *m_nameLbl; //用户名
+    DPasswordEditEx *m_passwordEdit; //密码输入框
+    DLineEditEx *m_verificationCodeEdit; //验证码输入框
+    QLabel *m_verificationCodeImage; //显示验证码图片
+    LockPasswordWidget *m_lockPasswordWidget; //密码锁定后,错误信息提示框
+    SessionBaseModel::AuthType m_authType; //认证类型
     DLineEditEx *m_accountEdit;
-    DFloatingButton *m_lockButton;                 //解锁按钮
-    DArrowRectangle *m_kbLayoutBorder;             //键盘布局异性框类
-    DClipEffectWidget* m_kbLayoutClip=nullptr;     //键盘布局裁减类
-    KbLayoutWidget *m_kbLayoutWidget;              //键盘布局窗体
-    WidgetShowType m_showType;                     //窗体显示模式,分为无密码登录模式\正常模式\ID和密码登录模式
-    QVBoxLayout *m_userLayout;                     //用户输入框布局
-    QVBoxLayout *m_lockLayout;                     //解锁按钮布局
-    bool m_isLock;                                 //解锁功能是否被锁定(连续5次密码输入错误锁定)
-    bool m_isLogin;                                //是否登录（UserFrame中使用）
-    bool m_isServerUser;                           //是否为服务器登录账户
-    bool m_isServerMode = false;                   //系统是否为服务器模式
+    DFloatingButton *m_lockButton; //解锁按钮
+    DArrowRectangle *m_kbLayoutBorder; //键盘布局异性框类
+    DClipEffectWidget *m_kbLayoutClip = nullptr; //键盘布局裁减类
+    KbLayoutWidget *m_kbLayoutWidget; //键盘布局窗体
+    WidgetShowType m_showType; //窗体显示模式,分为无密码登录模式\正常模式\ID和密码登录模式
+    QVBoxLayout *m_userLayout; //用户输入框布局
+    QVBoxLayout *m_lockLayout; //解锁按钮布局
+    QHBoxLayout *m_verificationCodeLayout;
+    bool m_isLock; //解锁功能是否被锁定(连续5次密码输入错误锁定)
+    bool m_isLogin; //是否登录（UserFrame中使用）
+    bool m_isServerUser; //是否为服务器登录账户
+    bool m_isServerMode = false; //系统是否为服务器模式
     bool m_isSelected;
     bool m_isLockNoPassword;
+    bool m_serverConnected; // 服务器连接状态
+    bool m_isValidVerificationCode; // 是否显示有效验证码
     QStringList m_KBLayoutList;
     QLabel *m_loginLabel;
     KeyboardMonitor *m_capslockMonitor;
@@ -167,6 +180,7 @@ private:
     int m_timerIndex = 0;
     int m_action;                                   //重启或关机行为记录
     Appearance *m_dbusAppearance;
+    QTimer *m_reqVerificationTimer; //请求验证码间隔时间
 };
 
 #endif // USERLOGINWIDGET_H

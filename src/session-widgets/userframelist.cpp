@@ -157,7 +157,7 @@ void UserFrameList::showEvent(QShowEvent *event)
     if (user.get() == nullptr) return;
     for (auto it = m_loginWidgets.constBegin(); it != m_loginWidgets.constEnd(); ++it) {
         auto login_widget = *it;
-
+        login_widget->setVerificationVisible(false);
         if (login_widget->uid() == user->uid()) {
             currentSelectedUser = login_widget;
             currentSelectedUser->setSelected(true);

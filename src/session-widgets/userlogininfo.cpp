@@ -26,7 +26,17 @@
 #include "sessionbasemodel.h"
 #include "userframelist.h"
 #include "src/global_util/constants.h"
+#include "src/global_util/public_func.h"
+
 #include <QKeyEvent>
+#include <QNetworkRequest>
+#include <QSslKey>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QNetworkAccessManager>
+#include <QNetworkReply>
+
+const static QString URL = "https://udcp.uos.icbc/iam/v1/app/auth/verify_code";
 
 UserLoginInfo::UserLoginInfo(SessionBaseModel *model, QObject *parent)
     : QObject(parent)
@@ -34,10 +44,44 @@ UserLoginInfo::UserLoginInfo(SessionBaseModel *model, QObject *parent)
     , m_userLoginWidget(new UserLoginWidget)
     , m_userExpiredWidget(new UserExpiredWidget)
     , m_userFrameList(new UserFrameList)
+    , m_manager(new QNetworkAccessManager(parent))
 {
     m_userLoginWidget->setWidgetWidth(DDESESSIONCC::PASSWDLINEEIDT_WIDTH);
     m_userExpiredWidget->setFixedWidth(DDESESSIONCC::PASSWDLINEEIDT_WIDTH);
     m_userFrameList->setModel(model);
+
+    m_request = new QNetworkRequest(QUrl(URL));
+    m_request->setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
+    if (QFile::exists("/etc/udcp/clientapi_ca.crt")) {
+        QSslConfiguration config;
+        QList<QSslCertificate> certs = QSslCertificate::fromPath("/etc/udcp/clientapi_ca.crt");
+        config.setCaCertificates(certs);
+
+        QByteArray localKey = readAll("/etc/udcp/UOS_Udcp.pem");
+        if (!localKey.isEmpty()) {
+            QSslCertificate localCert(localKey);
+            config.setLocalCertificate(localCert); //证书设置
+        } else {
+            qDebug() << "get local certificate is empty";
+        }
+
+        QByteArray strData = readAll("/etc/udcp/.UOS_Udcp.key");
+        if (!strData.isEmpty()) {
+            QSslKey privateKey(strData, QSsl::Rsa);
+            config.setPrivateKey(privateKey); // 将连接的私钥设置为密钥
+        } else {
+            qDebug() << "get privateKey data is empty";
+        }
+
+        m_request->setSslConfiguration(config);
+    } else {
+        qDebug() << "set client apt certs is not found";
+    }
+
+    if (m_manager->networkAccessible() == QNetworkAccessManager::NotAccessible) {
+        m_manager->setNetworkAccessible(QNetworkAccessManager::Accessible);
+    }
+
     initConnect();
 }
 
@@ -66,6 +110,8 @@ void UserLoginInfo::setUser(std::shared_ptr<User> user)
     m_userLoginWidget->disablePassword(user.get()->isLock(), user->lockTime());
     m_userLoginWidget->setKBLayoutList(user->kbLayoutList());
     m_userLoginWidget->setDefaultKBLayout(user->currentKBLayout());
+    m_userLoginWidget->setUid(user->uid());
+    //m_userLoginWidget->setUid(11111);
 
     m_userExpiredWidget->setDisplayName(user->displayName());
     m_userExpiredWidget->setUserName(user->name());
@@ -77,11 +123,12 @@ void UserLoginInfo::setUser(std::shared_ptr<User> user)
 void UserLoginInfo::initConnect()
 {
     //UserLoginWidget
-    connect(m_userLoginWidget, &UserLoginWidget::requestAuthUser, this, [ = ](const QString & account, const QString & password) {
-        if (!m_userLoginWidget->inputInfoCheck(m_model->isServerModel())) return;
+    connect(m_userLoginWidget, &UserLoginWidget::requestAuthUser, this, [=](const QString &account, const QString &password) {
+        if (!m_userLoginWidget->inputInfoCheck(m_model->isServerModel()))
+            return;
 
         //当前锁定不需要密码和当前用户不需要密码登录则直接进入系统
-        if(m_model->isLockNoPassword() && m_model->currentUser()->isNoPasswdGrp()) {
+        if (m_model->isLockNoPassword() && m_model->currentUser()->isNoPasswdGrp()) {
             emit m_model->authFinished(true);
             return;
         }
@@ -104,12 +151,31 @@ void UserLoginInfo::initConnect()
         }
         emit requestAuthUser(password);
     });
+
+    connect(m_userLoginWidget, &UserLoginWidget::requestGetVerificationCode, this, [=]() {
+        if (m_user) {
+            QJsonObject obj;
+            obj.insert("username", m_user->name());
+            if (m_user->name() == "") {
+                obj.insert("username", m_userLoginWidget->getAccountEditText());
+            }
+            obj.insert("verify_type", "1"); //1:条形验证码 2：//短信验证码
+            if (obj.value("username").toString() == "") {
+                qWarning() << "requestGetVerificationCode username is empty";
+                return;
+            }
+            m_manager->post(*m_request, QJsonDocument(obj).toJson());
+            qDebug() << "requestGetVerificationCode post json:" << QJsonDocument(obj).toJson();
+        } else {
+            qWarning() << "requestGetVerificationCode user is null";
+        }
+    });
     connect(m_model, &SessionBaseModel::authFaildMessage, m_userLoginWidget, &UserLoginWidget::setFaildMessage);
     connect(m_model, &SessionBaseModel::authFaildTipsMessage, m_userLoginWidget, &UserLoginWidget::setFaildTipMessage);
-    connect(m_userLoginWidget, &UserLoginWidget::requestUserKBLayoutChanged, this, [ = ](const QString & value) {
+    connect(m_userLoginWidget, &UserLoginWidget::requestUserKBLayoutChanged, this, [=](const QString &value) {
         emit requestSetLayout(m_user, value);
     });
-    connect(m_userLoginWidget, &UserLoginWidget::unlockActionFinish, this, [&]{
+    connect(m_userLoginWidget, &UserLoginWidget::unlockActionFinish, this, [&] {
         if (!m_userLoginWidget.isNull()) {
             //由于添加锁跳动会冲掉"验证完成"。这里只能临时关闭清理输入框
             m_userLoginWidget->resetAllState();
@@ -122,7 +188,7 @@ void UserLoginInfo::initConnect()
     connect(m_userFrameList, &UserFrameList::clicked, this, &UserLoginInfo::hideUserFrameList);
     connect(m_userFrameList, &UserFrameList::requestSwitchUser, this, &UserLoginInfo::receiveSwitchUser);
     connect(m_model, &SessionBaseModel::abortConfirmChanged, this, &UserLoginInfo::onAbortConfirmChanged);
-
+    connect(m_manager, &QNetworkAccessManager::finished, this, &UserLoginInfo::serverReplyFinished);
 }
 
 void UserLoginInfo::onAbortConfirmChanged(bool abort)
@@ -146,9 +212,9 @@ void UserLoginInfo::abortConfirm(bool abort)
 
 void UserLoginInfo::beforeUnlockAction(bool is_finish)
 {
-    if(is_finish){
+    if (is_finish) {
         m_userLoginWidget->unlockSuccessAni();
-    }else {
+    } else {
         m_userLoginWidget->unlockFailedAni();
     }
 }
@@ -205,4 +271,42 @@ void UserLoginInfo::updateLoginContent()
             m_userLoginWidget->setWidgetShowType(UserLoginWidget::NormalType);
         }
     }
+}
+
+void UserLoginInfo::serverReplyFinished(QNetworkReply *reply)
+{
+    if (!reply->url().url().contains(URL)) {
+        return;
+    }
+
+    QString verificationCodeData;
+    do {
+        const int statusCode = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+        QString msg = QString::fromUtf8(reply->readAll());
+        qDebug() << "ReplyFinished verificationCodeData:" << msg;
+        if (statusCode != 200) {
+            qWarning() << "ERROR, http status code:" << statusCode;
+            break;
+        }
+
+        QJsonParseError err;
+
+        const QJsonObject &obj = QJsonDocument::fromJson(msg.toUtf8(), &err).object();
+        if (err.error != QJsonParseError::NoError || obj.isEmpty()) {
+            qWarning() << "ERROR, parse json failed: " << err.errorString();
+            break;
+        }
+
+        if (!obj.contains("data")) {
+            qWarning() << "ERROR, json object not exist 'data' key";
+            break;
+        }
+        const QJsonObject &value = obj.value("data").toObject();
+
+        if (value.contains("code_base64")) {
+            verificationCodeData = value.value("code_base64").toString();
+        }
+    } while (false);
+
+    m_userLoginWidget->setVerificationCode(verificationCodeData);
 }

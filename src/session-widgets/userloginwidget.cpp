@@ -25,11 +25,12 @@
 #include "userinfo.h"
 #include "src/widgets/useravatar.h"
 #include "src/widgets/loginbutton.h"
-#include "src/global_util/constants.h"
 #include "src/widgets/kblayoutwidget.h"
-#include "src/session-widgets/framedatabind.h"
-#include "src/global_util/keyboardmonitor.h"
 #include "src/widgets/dpasswordeditex.h"
+#include "src/global_util/constants.h"
+#include "src/global_util/keyboardmonitor.h"
+#include "src/global_util/network_manager.h"
+#include "src/session-widgets/framedatabind.h"
 
 #include <DFontSizeManager>
 #include <DPalette>
@@ -39,10 +40,14 @@
 #include <QAction>
 #include <QImage>
 #include <QPropertyAnimation>
+#include <QBitmap>
 
 static const int BlurRectRadius = 15;
 static const int WidgetsSpacing = 10;
 static const int Margins = 16;
+
+const qint32 kMaxLocalAccountUID = 10000; // 本地用户的最大uid值，域用户的最小uid值
+const QString kVeificationCodeFile = "/tmp/verificationCode";
 
 UserLoginWidget::UserLoginWidget(QWidget *parent)
     : QWidget(parent)
@@ -50,6 +55,8 @@ UserLoginWidget::UserLoginWidget(QWidget *parent)
     , m_userAvatar(new UserAvatar(this))
     , m_nameLbl(new QLabel(this))
     , m_passwordEdit(new DPasswordEditEx(this))
+    , m_verificationCodeEdit(new DLineEditEx(this))
+    , m_verificationCodeImage(new QLabel(this))
     , m_lockPasswordWidget(new LockPasswordWidget)
     , m_accountEdit(new DLineEditEx(this))
     , m_lockButton(new DFloatingButton(DStyle::SP_LockElement))
@@ -60,13 +67,17 @@ UserLoginWidget::UserLoginWidget(QWidget *parent)
     , m_isLogin(false)
     , m_isSelected(false)
     , m_isLockNoPassword(false)
+    , m_serverConnected(NetworkManager::instance()->connected())
+    , m_isValidVerificationCode(false)
     , m_capslockMonitor(KeyboardMonitor::instance())
+    , m_uid(0)
     , m_isAlertMessageShow(false)
     , m_aniTimer(new QTimer(this))
     , m_dbusAppearance(new Appearance("com.deepin.daemon.Appearance",
-                                       "/com/deepin/daemon/Appearance",
-                                       QDBusConnection::sessionBus(),
-                                       this))
+                                      "/com/deepin/daemon/Appearance",
+                                      QDBusConnection::sessionBus(),
+                                      this))
+    , m_reqVerificationTimer(new QTimer(this))
 {
     initUI();
     initConnect();
@@ -85,6 +96,8 @@ void UserLoginWidget::resetAllState()
     m_passwordEdit->lineEdit()->setPlaceholderText(QString());
     m_accountEdit->lineEdit()->clear();
     m_accountEdit->lineEdit()->setEnabled(true);
+    m_verificationCodeEdit->clear();
+    m_verificationCodeEdit->setEnabled(true);
     if (m_authType == SessionBaseModel::LightdmType) {
         m_lockButton->setIcon(DStyle::SP_ArrowNext);
     } else {
@@ -120,11 +133,13 @@ void UserLoginWidget::setFaildTipMessage(const QString &message, SessionBaseMode
     Q_UNUSED(type);
 
     m_accountEdit->lineEdit()->setEnabled(true);
+    m_verificationCodeEdit->setEnabled(true);
     if (m_isLock && !message.isEmpty()) {
         m_passwordEdit->hideAlertMessage();
         return;
     }
     m_passwordEdit->lineEdit()->clear();
+    m_verificationCodeEdit->clear();
     m_passwordEdit->hideLoadSlider();
     m_passwordEdit->showAlertMessage(message, 3000);
     m_passwordEdit->raise();
@@ -137,20 +152,19 @@ void UserLoginWidget::setWidgetShowType(UserLoginWidget::WidgetShowType showType
     updateUI();
     if (m_showType == NormalType || m_showType == IDAndPasswordType) {
         QMap<QString, int> registerFunctionIndexs;
-        std::function<void (QVariant)> accountChanged = std::bind(&UserLoginWidget::onOtherPageAccountChanged, this, std::placeholders::_1);
+        std::function<void(QVariant)> accountChanged = std::bind(&UserLoginWidget::onOtherPageAccountChanged, this, std::placeholders::_1);
         registerFunctionIndexs["UserLoginAccount"] = FrameDataBind::Instance()->registerFunction("UserLoginAccount", accountChanged);
-        std::function<void (QVariant)> passwordChanged = std::bind(&UserLoginWidget::onOtherPagePasswordChanged, this, std::placeholders::_1);
+        std::function<void(QVariant)> passwordChanged = std::bind(&UserLoginWidget::onOtherPagePasswordChanged, this, std::placeholders::_1);
         registerFunctionIndexs["UserLoginPassword"] = FrameDataBind::Instance()->registerFunction("UserLoginPassword", passwordChanged);
-        std::function<void (QVariant)> kblayoutChanged = std::bind(&UserLoginWidget::onOtherPageKBLayoutChanged, this, std::placeholders::_1);
+        std::function<void(QVariant)> kblayoutChanged = std::bind(&UserLoginWidget::onOtherPageKBLayoutChanged, this, std::placeholders::_1);
         registerFunctionIndexs["UserLoginKBLayout"] = FrameDataBind::Instance()->registerFunction("UserLoginKBLayout", kblayoutChanged);
-        connect(this, &UserLoginWidget::destroyed, this, [ = ] {
-            for (auto it = registerFunctionIndexs.constBegin(); it != registerFunctionIndexs.constEnd(); ++it)
-            {
+        connect(this, &UserLoginWidget::destroyed, this, [=] {
+            for (auto it = registerFunctionIndexs.constBegin(); it != registerFunctionIndexs.constEnd(); ++it) {
                 FrameDataBind::Instance()->unRegisterFunction(it.key(), it.value());
             }
         });
 
-        QTimer::singleShot(0, this, [ = ] {
+        QTimer::singleShot(0, this, [=] {
             FrameDataBind::Instance()->refreshData("UserLoginAccount");
             FrameDataBind::Instance()->refreshData("UserLoginPassword");
             FrameDataBind::Instance()->refreshData("UserLoginKBLayout");
@@ -173,7 +187,7 @@ void UserLoginWidget::updateUI()
         } else {
             m_lockButton->setFocus();
         }
-        m_passwordEdit->setVisible(!isNopassword && !m_isLock&& !m_isLockNoPassword);
+        m_passwordEdit->setVisible(!isNopassword && !m_isLock && !m_isLockNoPassword);
         m_lockPasswordWidget->setVisible(m_isLock);
 
         m_lockButton->show();
@@ -203,7 +217,13 @@ void UserLoginWidget::updateUI()
         m_lockButton->show();
 
         setTabOrder(m_accountEdit->lineEdit(), m_passwordEdit->lineEdit());
-        setTabOrder(m_passwordEdit->lineEdit(), m_lockButton);
+        // tab焦点添加验证码输入框
+        if (m_verificationCodeEdit->isVisible()) {
+            setTabOrder(m_passwordEdit->lineEdit(), m_verificationCodeEdit->lineEdit());
+            setTabOrder(m_verificationCodeEdit->lineEdit(), m_lockButton);
+        } else {
+            setTabOrder(m_passwordEdit->lineEdit(), m_lockButton);
+        }
         break;
     }
     case UserFrameType: {
@@ -227,6 +247,7 @@ void UserLoginWidget::updateUI()
     } else if (m_passwordEdit->isVisible())
         setFocusProxy(m_passwordEdit->lineEdit());
 
+    QFile::remove(kVeificationCodeFile);
 }
 
 void UserLoginWidget::ShutdownPrompt(SessionBaseModel::PowerAction action)
@@ -246,7 +267,8 @@ bool UserLoginWidget::inputInfoCheck(bool is_server)
 
     if (m_passwordEdit->isVisible() && m_passwordEdit->lineEdit()->text().isEmpty()) {
         m_passwordEdit->hideLoadSlider();
-        if (is_server) setFaildTipMessage(tr("Please enter the password"));
+        if (is_server)
+            setFaildTipMessage(tr("Please enter the password"));
         return false;
     }
 
@@ -260,14 +282,14 @@ bool UserLoginWidget::inputInfoCheck(bool is_server)
 
 void UserLoginWidget::onOtherPageAccountChanged(const QVariant &value)
 {
-    int cursorIndex =  m_accountEdit->lineEdit()->cursorPosition();
+    int cursorIndex = m_accountEdit->lineEdit()->cursorPosition();
     m_accountEdit->setText(value.toString());
     m_accountEdit->lineEdit()->setCursorPosition(cursorIndex);
 }
 
 void UserLoginWidget::onOtherPagePasswordChanged(const QVariant &value)
 {
-    int cursorIndex =  m_passwordEdit->lineEdit()->cursorPosition();
+    int cursorIndex = m_passwordEdit->lineEdit()->cursorPosition();
     m_passwordEdit->setText(value.toString());
     m_passwordEdit->lineEdit()->setCursorPosition(cursorIndex);
 }
@@ -329,7 +351,7 @@ void UserLoginWidget::disablePassword(bool disable, uint lockTime)
         setFaildMessage(tr("Please try again %n minute(s) later", "", lockTime));
     }
 
-    if ( false == disable && true == m_isServerMode){
+    if (false == disable && true == m_isServerMode) {
         m_accountEdit->lineEdit()->setEnabled(true);
     }
 }
@@ -376,9 +398,15 @@ void UserLoginWidget::showEvent(QShowEvent *event)
     updateUI();
 
     m_lockPasswordWidget->setFixedSize(QSize(m_passwordEdit->width(), m_passwordEdit->height()));
-
     updateNameLabel();
     adjustSize();
+
+    // 域账户且连接上服务器
+    if (m_uid > kMaxLocalAccountUID && m_serverConnected) {
+        setVerificationVisible(true);
+    } else {
+        setVerificationVisible(false);
+    }
     return QWidget::showEvent(event);
 }
 
@@ -415,9 +443,14 @@ bool UserLoginWidget::eventFilter(QObject *watched, QEvent *event)
     if (event->type() == QEvent::KeyPress) {
         QKeyEvent *key_event = static_cast<QKeyEvent *>(event);
         if (key_event->modifiers() & (Qt::ControlModifier | Qt::AltModifier | Qt::MetaModifier)) {
-            if ((key_event->modifiers() & Qt::ControlModifier) && key_event->key() == Qt::Key_A) return false;
+            if ((key_event->modifiers() & Qt::ControlModifier) && key_event->key() == Qt::Key_A)
+                return false;
             return true;
         }
+    }
+    // 点击验证码图片则更新验证码
+    if (watched == m_verificationCodeImage && event->type() == QEvent::MouseButtonPress && !m_reqVerificationTimer->isActive()) {
+        Q_EMIT requestGetVerificationCode();
     }
 
     return QObject::eventFilter(watched, event);
@@ -449,7 +482,7 @@ void UserLoginWidget::initUI()
     m_passwordEdit->lineEdit()->installEventFilter(this);
 
     m_kbLayoutBorder->hide();
-    m_kbLayoutBorder->setBackgroundColor(QColor(102, 102, 102));    //255*0.2
+    m_kbLayoutBorder->setBackgroundColor(QColor(102, 102, 102)); //255*0.2
     m_kbLayoutBorder->setBorderColor(QColor(0, 0, 0, 0));
     m_kbLayoutBorder->setBorderWidth(0);
     m_kbLayoutBorder->setMargin(0);
@@ -457,7 +490,7 @@ void UserLoginWidget::initUI()
     m_kbLayoutBorder->setFixedWidth(DDESESSIONCC::PASSWDLINEEIDT_WIDTH);
     m_kbLayoutWidget->setFixedWidth(DDESESSIONCC::PASSWDLINEEIDT_WIDTH);
 
-    m_kbLayoutClip=new Dtk::Widget::DClipEffectWidget(m_kbLayoutBorder);
+    m_kbLayoutClip = new Dtk::Widget::DClipEffectWidget(m_kbLayoutBorder);
     updateClipPath();
 
     m_lockPasswordWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
@@ -470,6 +503,33 @@ void UserLoginWidget::initUI()
     m_accountEdit->lineEdit()->installEventFilter(this);
 
     m_passwordEdit->setVisible(true);
+
+    m_verificationCodeEdit->lineEdit()->setContextMenuPolicy(Qt::NoContextMenu);
+    m_verificationCodeEdit->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+    m_verificationCodeEdit->setFixedHeight(DDESESSIONCC::PASSWDLINEEDIT_HEIGHT);
+    m_verificationCodeEdit->setFixedWidth(120);
+    m_verificationCodeEdit->lineEdit()->setAlignment(Qt::AlignCenter);
+    m_verificationCodeEdit->lineEdit()->setFocusPolicy(Qt::StrongFocus);
+    m_verificationCodeEdit->clear();
+    m_verificationCodeEdit->lineEdit()->setPlaceholderText("请输入验证码");
+    m_verificationCodeEdit->lineEdit()->installEventFilter(this);
+
+    m_reqVerificationTimer->setInterval(3000); //验证码3秒请求一次
+    m_reqVerificationTimer->setSingleShot(true);
+
+    m_verificationCodeImage->setFixedWidth(120);
+    m_verificationCodeImage->setFixedHeight(40);
+    auto image = DHiDPIHelper::loadNxPixmap(":/img/unkownVerificationCode.png");
+    image.setDevicePixelRatio(devicePixelRatioF());
+    m_verificationCodeImage->setPixmap(round(image, 10));
+    m_verificationCodeImage->installEventFilter(this);
+
+    m_verificationCodeLayout = new QHBoxLayout;
+    m_verificationCodeLayout->addWidget(m_verificationCodeEdit);
+    m_verificationCodeLayout->addWidget(m_verificationCodeImage);
+
+    m_verificationCodeEdit->setVisible(false);
+    m_verificationCodeImage->setVisible(false);
 
     m_userLayout = new QVBoxLayout;
     m_userLayout->setMargin(WidgetsSpacing);
@@ -495,6 +555,7 @@ void UserLoginWidget::initUI()
     m_userLayout->addWidget(m_accountEdit);
     m_userLayout->addWidget(m_passwordEdit);
     m_userLayout->addWidget(m_lockPasswordWidget);
+    m_userLayout->addLayout(m_verificationCodeLayout);
     m_lockPasswordWidget->hide();
 
     m_blurEffectWidget->setMaskColor(DBlurEffectWidget::LightColor);
@@ -522,31 +583,122 @@ void UserLoginWidget::initUI()
     setLayout(mainLayout);
 }
 
+/**
+ * @brief UserLoginWidget::round 验证码设置圆角，样式统一
+ * @param img_in
+ * @param radius
+ * @return
+ */
+QPixmap UserLoginWidget::round(const QPixmap &img_in, int radius)
+{
+    if (img_in.isNull()) {
+        return QPixmap();
+    }
+    QSize size(img_in.size());
+    QBitmap mask(size);
+    QPainter painter(&mask);
+    painter.setRenderHint(QPainter::Antialiasing);
+    painter.setRenderHint(QPainter::SmoothPixmapTransform);
+    painter.fillRect(mask.rect(), Qt::white);
+    painter.setBrush(QColor(0, 0, 0));
+    painter.drawRoundedRect(mask.rect(), radius, radius);
+    QPixmap image = img_in;
+    image.setMask(mask);
+    return image;
+}
+
+QString UserLoginWidget::getAccountEditText()
+{
+    if (!m_accountEdit->isVisible()) {
+        return QString();
+    }
+    return m_accountEdit->lineEdit()->text();
+}
+
 //初始化槽函数连接
 void UserLoginWidget::initConnect()
 {
-    connect(m_passwordEdit->lineEdit(), &QLineEdit::textChanged, this, [ = ](const QString & value) {
+    connect(m_passwordEdit->lineEdit(), &QLineEdit::textChanged, this, [=](const QString &value) {
         FrameDataBind::Instance()->updateValue("UserLoginPassword", value);
     });
-    connect(m_passwordEdit, &DPasswordEditEx::returnPressed, this, [ = ] {
+
+    connect(m_accountEdit->lineEdit(), &QLineEdit::editingFinished, this, [=]() {
+        // 输入完账号自动发起验证码请求
+        emit requestGetVerificationCode();
+    });
+
+    connect(m_passwordEdit, &DPasswordEditEx::returnPressed, this, [=] {
         const QString account = m_accountEdit->text();
         const QString passwd = m_passwordEdit->text();
-
+        const QString verificationCode = m_verificationCodeEdit->text();
+        if (verificationCode.isEmpty() && m_verificationCodeImage->isVisible()) {
+            m_verificationCodeEdit->showAlertMessage("请输入验证码");
+            m_passwordEdit->hideLoadSlider();
+            return;
+        }
+        m_passwordEdit->showLoadSlider();
         m_accountEdit->lineEdit()->setEnabled(false);
+        m_verificationCodeEdit->setEnabled(false);
+
+        if (!verificationCode.isEmpty()) {
+            QFile file(kVeificationCodeFile);
+            if (file.open(QIODevice::Truncate | QIODevice::WriteOnly)) {
+                file.write(verificationCode.toLatin1());
+                file.close();
+            }
+        }
+
         emit requestAuthUser(account, passwd);
     });
 
-    connect(m_lockButton, &QPushButton::clicked, this, [ = ] {
+    connect(m_verificationCodeEdit, &DLineEdit::returnPressed, this, [=] {
+        const QString account = m_accountEdit->text();
+        const QString passwd = m_passwordEdit->text();
+        const QString verificationCode = m_verificationCodeEdit->text();
+        if (verificationCode.isEmpty() && m_verificationCodeImage->isVisible()) {
+            m_verificationCodeEdit->showAlertMessage("请输入验证码");
+            m_passwordEdit->hideLoadSlider();
+            return;
+        }
+        m_passwordEdit->showLoadSlider();
+        m_accountEdit->lineEdit()->setEnabled(false);
+        m_verificationCodeEdit->setEnabled(false);
+
+        if (!verificationCode.isEmpty()) {
+            QFile file(kVeificationCodeFile);
+            if (file.open(QIODevice::Truncate | QIODevice::WriteOnly)) {
+                file.write(verificationCode.toLatin1());
+                file.close();
+            }
+        }
+
+        emit requestAuthUser(account, passwd);
+    });
+
+    connect(m_lockButton, &QPushButton::clicked, this, [=] {
         const QString account = m_accountEdit->text();
         const QString password = m_passwordEdit->text();
-
-        if (m_passwordEdit->isVisible())
-        {
+        const QString verificationCode = m_verificationCodeEdit->text();
+        if (m_verificationCodeImage->isVisible() && verificationCode.isEmpty()) {
+            m_verificationCodeEdit->showAlertMessage("请输入验证码");
+            return;
+        }
+        if (m_passwordEdit->isVisible()) {
             m_passwordEdit->lineEdit()->setFocus();
         }
 
         m_passwordEdit->showLoadSlider();
         m_accountEdit->lineEdit()->setEnabled(false);
+        m_verificationCodeEdit->setEnabled(false);
+
+        if (!verificationCode.isEmpty()) {
+            QFile file(kVeificationCodeFile);
+            if (file.open(QIODevice::Truncate | QIODevice::WriteOnly)) {
+                file.write(verificationCode.toLatin1());
+                file.close();
+            }
+        }
+
         emit requestAuthUser(m_accountEdit->text(), password);
     });
     connect(m_userAvatar, &UserAvatar::clicked, this, &UserLoginWidget::clicked);
@@ -558,20 +710,21 @@ void UserLoginWidget::initConnect()
     connect(m_capslockMonitor, &KeyboardMonitor::capslockStatusChanged, m_passwordEdit, &DPasswordEditEx::capslockStatusChanged);
     connect(m_passwordEdit, &DPasswordEditEx::toggleKBLayoutWidget, this, &UserLoginWidget::toggleKBLayoutWidget);
     connect(m_passwordEdit, &DPasswordEditEx::selectionChanged, this, &UserLoginWidget::hidePasswordEditMessage);
-
     //窗体活动颜色改变
-    connect(m_dbusAppearance, &Appearance::QtActiveColorChanged , [this](const QString& Color) {
+    connect(m_dbusAppearance, &Appearance::QtActiveColorChanged, [this](const QString &Color) {
         QPalette passwdPalatte = m_passwordEdit->palette();
         QPalette lockPalatte = m_lockButton->palette();
 
-        if (passwdPalatte.color(QPalette::Highlight).name() == Color || lockPalatte.color(QPalette::Highlight).name() == Color )
+        if (passwdPalatte.color(QPalette::Highlight).name() == Color || lockPalatte.color(QPalette::Highlight).name() == Color)
             return;
 
-        lockPalatte.setColor(QPalette::Highlight,Color);
-        passwdPalatte.setColor(QPalette::Highlight,Color);
+        lockPalatte.setColor(QPalette::Highlight, Color);
+        passwdPalatte.setColor(QPalette::Highlight, Color);
         m_passwordEdit->setPalette(passwdPalatte);
         m_lockButton->setPalette(lockPalatte);
     });
+
+    connect(NetworkManager::instance(), &NetworkManager::serverConnectedStateChanged, this, &UserLoginWidget::onServerConnectedStateChanged);
 }
 
 //设置用户名
@@ -620,12 +773,12 @@ void UserLoginWidget::setIsLogin(bool isLogin)
 
 bool UserLoginWidget::getIsLogin()
 {
-    return  m_isLogin;
+    return m_isLogin;
 }
 
 bool UserLoginWidget::getSelected()
 {
-    return  m_isSelected;
+    return m_isSelected;
 }
 
 void UserLoginWidget::setIsServer(bool isServer)
@@ -686,6 +839,7 @@ void UserLoginWidget::setPassWordEditFocus()
 void UserLoginWidget::setUid(uint uid)
 {
     m_uid = uid;
+    setVerificationVisible(uid > kMaxLocalAccountUID);
 }
 
 uint UserLoginWidget::uid()
@@ -699,24 +853,24 @@ void UserLoginWidget::setSelected(bool isSelected)
     update();
 }
 
-void UserLoginWidget::updateClipPath() 
+void UserLoginWidget::updateClipPath()
 {
     if (!m_kbLayoutClip)
         return;
-    QRectF rc (0, 0, DDESESSIONCC::PASSWDLINEEIDT_WIDTH, m_kbLayoutBorder->height());
+    QRectF rc(0, 0, DDESESSIONCC::PASSWDLINEEIDT_WIDTH, m_kbLayoutBorder->height());
     qInfo() << "m_kbLayoutBorder->arrowHeight()-->" << rc.height();
     int iRadius = 20;
     QPainterPath path;
-    path.lineTo (0, 0);
-    path.lineTo (rc.width(), 0);
-    path.lineTo (rc.width(), rc.height() - iRadius);
-    path.arcTo (rc.width() - iRadius, rc.height() - iRadius, iRadius, iRadius, 0, -90);
-    path.lineTo (rc.width() - iRadius, rc.height());
-    path.lineTo (iRadius, rc.height());
-    path.arcTo (0, rc.height() - iRadius, iRadius, iRadius, -90, -90);
-    path.lineTo (0, rc.height() - iRadius);
-    path.lineTo (0, 0);
-    m_kbLayoutClip->setClipPath (path);
+    path.lineTo(0, 0);
+    path.lineTo(rc.width(), 0);
+    path.lineTo(rc.width(), rc.height() - iRadius);
+    path.arcTo(rc.width() - iRadius, rc.height() - iRadius, iRadius, iRadius, 0, -90);
+    path.lineTo(rc.width() - iRadius, rc.height());
+    path.lineTo(iRadius, rc.height());
+    path.arcTo(0, rc.height() - iRadius, iRadius, iRadius, -90, -90);
+    path.lineTo(0, rc.height() - iRadius);
+    path.lineTo(0, 0);
+    m_kbLayoutClip->setClipPath(path);
 }
 
 void UserLoginWidget::hidePasswordEditMessage()
@@ -757,13 +911,15 @@ void UserLoginWidget::unlockSuccessAni()
     m_lockButton->setIcon(DStyle::SP_LockElement);
 
     disconnect(m_connection);
-    m_connection = connect(m_aniTimer, &QTimer::timeout, [ & ]() {
+    m_connection = connect(m_aniTimer, &QTimer::timeout, [&]() {
         if (m_timerIndex <= 11) {
             m_lockButton->setIcon(QIcon(QString(":/img/unlockTrue/unlock_%1.svg").arg(m_timerIndex)));
         } else {
             m_aniTimer->stop();
             emit unlockActionFinish();
             m_lockButton->setIcon(DStyle::SP_LockElement);
+            // 解锁完成后删除验证码内容
+            setVerificationCode("");
         }
 
         m_timerIndex++;
@@ -781,10 +937,10 @@ void UserLoginWidget::unlockFailedAni()
     m_lockButton->setIcon(DStyle::SP_LockElement);
 
     disconnect(m_connection);
-    m_connection = connect(m_aniTimer, &QTimer::timeout, [ & ](){
-        if(m_timerIndex <= 15){
+    m_connection = connect(m_aniTimer, &QTimer::timeout, [&]() {
+        if (m_timerIndex <= 15) {
             m_lockButton->setIcon(QIcon(QString(":/img/unlockFalse/unlock_error_%1.svg").arg(m_timerIndex)));
-        }  else {
+        } else {
             m_aniTimer->stop();
             resetPowerIcon(true);
         }
@@ -793,4 +949,83 @@ void UserLoginWidget::unlockFailedAni()
     });
 
     m_aniTimer->start(15);
+}
+
+/**
+ * @brief UserLoginWidget::setVerificationCode 设置验证码图片，并显示
+ * @param verification
+ */
+void UserLoginWidget::setVerificationCode(const QString &verification)
+{
+    QPixmap image;
+    image.loadFromData(QByteArray::fromBase64(verification.section(",", 1).toLocal8Bit()));
+    if (image.isNull()) {
+        m_verificationCodeImage->setFixedWidth(120);
+        m_verificationCodeImage->setFixedHeight(40);
+        image = DHiDPIHelper::loadNxPixmap(":/img/unkownVerificationCode.png");
+        image.setDevicePixelRatio(devicePixelRatioF());
+        m_isValidVerificationCode = false;
+    } else {
+        m_isValidVerificationCode = true;
+        m_reqVerificationTimer->start();
+    }
+    m_verificationCodeImage->setPixmap(round(image, 10));
+}
+
+/**
+ * @brief UserLoginWidget::setVerificationVisible 设置验证码是否可见
+ * @param visible
+ */
+void UserLoginWidget::setVerificationVisible(bool visible)
+{
+    if (m_isValidVerificationCode) {
+        return;
+    }
+
+    if (m_uid < kMaxLocalAccountUID) {
+        m_verificationCodeEdit->setVisible(false);
+        m_verificationCodeImage->setVisible(false);
+        return;
+    }
+
+    if (!m_serverConnected) {
+        m_verificationCodeEdit->setVisible(false);
+        m_verificationCodeImage->setVisible(false);
+        return;
+    }
+
+    if (visible) {
+        Q_EMIT requestGetVerificationCode();
+
+    } else {
+        // 重置验证码
+        setVerificationCode("");
+    }
+
+    m_verificationCodeEdit->setVisible(visible);
+    m_verificationCodeImage->setVisible(visible);
+    adjustSize();
+}
+
+/**
+ * @brief UserLoginWidget::isVerificationVisible 验证码是否可见
+ * @return
+ */
+bool UserLoginWidget::isVerificationVisible()
+{
+    return m_verificationCodeEdit->isVisible();
+}
+
+/**
+ * @brief UserLoginWidget::onServerConnectedStateChanged 是否连接到服务器
+ * @param isConnect
+ */
+void UserLoginWidget::onServerConnectedStateChanged(bool connected)
+{
+    if (m_serverConnected == connected)
+        return;
+
+    m_serverConnected = connected;
+
+    setVerificationVisible(connected);
 }

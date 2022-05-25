@@ -28,6 +28,7 @@ find_package(DtkCMake REQUIRED)
 find_package(Qt5 COMPONENTS
     Core
     Widgets
+    Network
     Concurrent
     X11Extras
     DBus
@@ -45,6 +46,7 @@ set(Qt_LIBS
     Qt5::Gui
     Qt5::DBus
     Qt5::Widgets
+    Qt5::Network
     Qt5::X11Extras
     Qt5::Xml
     Qt5::Svg
@@ -142,6 +144,8 @@ set(GLOBAL_UTILS_SRCS
     ./src/global_util/keyboardmonitor.cpp
     ./src/global_util/keyboardplantform_x11.cpp
     ./src/global_util/keyboardplantform_wayland.cpp
+    ./src/global_util/network_manager.cpp
+    ./src/global_util/network_manager.h
 )
 
 set(WIDGETS_SRCS

@@ -34,9 +34,8 @@
 
 QPixmap loadPixmap(const QString &file)
 {
-
-    if(!QFile::exists(file)){
-        return QPixmap(DDESESSIONCC::LAYOUTBUTTON_HEIGHT,DDESESSIONCC::LAYOUTBUTTON_HEIGHT);
+    if (!QFile::exists(file)) {
+        return QPixmap(DDESESSIONCC::LAYOUTBUTTON_HEIGHT, DDESESSIONCC::LAYOUTBUTTON_HEIGHT);
     }
 
     qreal ratio = 1.0;
@@ -85,4 +84,16 @@ QString readSharedImage(uid_t uid, int purpose)
     qInfo() << __FILE__ << ", " << Q_FUNC_INFO << " user: " << uid << ", purpose: " << purpose << " share memory key: " << shareKey;
 #endif
     return shareKey;
+}
+
+QByteArray readAll(const QString &fileName)
+{
+    QFile file(fileName);
+    if (!file.open(QIODevice::ReadOnly)) {
+        qWarning() << "Error: read file failed, file:" << fileName << ", exist:" << file.exists();
+        return QByteArray();
+    }
+    const QByteArray &data = file.readAll();
+    file.close();
+    return data;
 }

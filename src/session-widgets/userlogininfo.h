@@ -32,6 +32,9 @@ class UserLoginWidget;
 class UserExpiredWidget;
 class SessionBaseModel;
 class UserFrameList;
+class QNetworkAccessManager;
+class QNetworkReply;
+class QNetworkRequest;
 
 class UserLoginInfo : public QObject
 {
@@ -48,6 +51,7 @@ public:
     void onAbortConfirmChanged(bool abort = true);
     void beforeUnlockAction(bool is_finish);
     void updateLoginContent();
+    void serverReplyFinished(QNetworkReply *reply);
 
 signals:
     void requestAuthUser(const QString &password);
@@ -70,6 +74,8 @@ private:
     QPointer<UserExpiredWidget> m_userExpiredWidget;
     UserFrameList *m_userFrameList;
     QList<QMetaObject::Connection> m_currentUserConnects;
+    QNetworkAccessManager *m_manager;
+    QNetworkRequest *m_request;
 };
 
 #endif // USERLOGININFO_H
