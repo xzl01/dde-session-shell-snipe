@@ -978,10 +978,6 @@ void UserLoginWidget::setVerificationCode(const QString &verification)
  */
 void UserLoginWidget::setVerificationVisible(bool visible)
 {
-    if (m_isValidVerificationCode) {
-        return;
-    }
-
     if (m_uid < kMaxLocalAccountUID) {
         m_verificationCodeEdit->setVisible(false);
         m_verificationCodeImage->setVisible(false);
@@ -991,6 +987,10 @@ void UserLoginWidget::setVerificationVisible(bool visible)
     if (!m_serverConnected) {
         m_verificationCodeEdit->setVisible(false);
         m_verificationCodeImage->setVisible(false);
+        return;
+    }
+
+    if (m_isValidVerificationCode) {
         return;
     }
 

@@ -186,11 +186,7 @@ void NetworkManager::updateDeviceInfoList(const QJsonArray &array, DeviceType ty
             // 前后状态发送变更时，才会发送网络连接状态变更信号
             if ((!m_wiredConnected && laseWireConnected) || (!m_wirelessConnected && laseWirelessConnected)) {
                 qDebug() << "network [DOWN], interface: " << interface << ", type:" << type;
-                if (getDeviceNetworkConnectedState()) {
-                    m_connectivity->startCheck();
-                } else {
-                    m_connectivity->stop();
-                }
+                m_connectivity->startCheck();
             }
         }
 
