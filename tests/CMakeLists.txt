@@ -11,5 +11,5 @@ if (CMAKE_BUILD_TYPE STREQUAL "Debug")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -fsanitize=address -O2")
 endif()
 
-add_subdirectory(dde-lock)
-add_subdirectory(lightdm-deepin-greeter)
+#add_subdirectory(dde-lock)
+#add_subdirectory(lightdm-deepin-greeter)
