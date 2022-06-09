@@ -143,6 +143,9 @@ void UserLoginWidget::setFaildTipMessage(const QString &message, SessionBaseMode
     m_passwordEdit->hideLoadSlider();
     m_passwordEdit->showAlertMessage(message, 3000);
     m_passwordEdit->raise();
+
+    // 密码错误则重新刷新验证码
+    Q_EMIT requestGetVerificationCode();
 }
 
 //设置窗体显示模式
