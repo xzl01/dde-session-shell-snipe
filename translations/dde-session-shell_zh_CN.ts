@@ -188,8 +188,78 @@
         <translation><numerusform>密码将于%n天后过期，请及时修改密码</numerusform></translation>
     </message>
     <message>
-        <source>Password expired, please change</source>
+        <source>Your password has expired. Please contact the administrator to change it.</source>
+        <translation>您的密码已过期，请联系管理员修改密码</translation>
+    </message>
+    <message>
+        <source>Your password has expired. Please change it.</source>
         <translation>密码已过期，请修改</translation>
+    </message>
+</context>
+<context>
+    <name>ChangePasswordWidget</name>
+    <message>
+        <source>Your password has expired. Please change it and log in again.</source>
+        <translation>您的密码已过期，请修改密码后重新登录</translation>
+    </message>
+    <message>
+        <source>Save</source>
+        <translation>保 存</translation>
+    </message>
+    <message>
+        <source>Old password</source>
+        <translation>旧密码</translation>
+    </message>
+    <message>
+        <source>New password</source>
+        <translation>新密码</translation>
+    </message>
+    <message>
+        <source>Repeat new password</source>
+        <translation>重复新密码</translation>
+    </message>
+    <message>
+        <source>Password hint (Optional)</source>
+        <translation>密码提示（选填）</translation>
+    </message>
+    <message>
+        <source>Passwords do not match</source>
+        <translation>密码不一致</translation>
+    </message>
+    <message>
+        <source>The hint is visible to all users. Do not include the password here.</source>
+        <translation>密码提示对所有人可见，切勿包含具体密码信息</translation>
+    </message>
+    <message>
+        <source>New password should differ from the current one</source>
+        <translation>新密码和旧密码不能相同</translation>
+    </message>
+    <message>
+        <source>Password changed</source>
+        <translation>密码修改成功</translation>
+    </message>
+    <message>
+        <source>Wrong password</source>
+        <translation>密码错误</translation>
+    </message>
+</context>
+<context>
+    <name>ControlWidget</name>
+    <message>
+        <source>Desktop Environment and Display Protocol</source>
+        <translation>桌面环境与显示协议</translation>
+    </message>
+    <message>
+        <source>Keyboard Layout</source>
+        <translation>键盘布局</translation>
+    </message>
+    <message>
+        <source>Switch User</source>
+        <translation>切换用户</translation>
+    </message>
+    <message>
+        <source>Power</source>
+        <translation>电源</translation>
     </message>
 </context>
 <context>
@@ -248,10 +318,69 @@
     </message>
 </context>
 <context>
-    <name>SessionWidget</name>
+    <name>PasswordLevelWidget</name>
     <message>
-        <source>You have enabled the high system security level, thus cannot switch to the Wayland mode, please disable the high security level in Security Center and try again.</source>
-        <translation>您已开启高级别等级保护，无法切换Wayland模式，请于“安全中心”关闭高级别等级保护后再试</translation>
+        <source>Weak</source>
+        <translation>强度低</translation>
+    </message>
+    <message>
+        <source>Medium</source>
+        <translation>强度中</translation>
+    </message>
+    <message>
+        <source>Strong</source>
+        <translation>强度高</translation>
+    </message>
+</context>
+<context>
+    <name>PwqualityManager</name>
+    <message>
+        <source>Password cannot be empty</source>
+        <translation>密码不能为空</translation>
+    </message>
+    <message>
+        <source>Password must have at least %1 characters</source>
+        <translation>密码长度不能少于%1个字符</translation>
+    </message>
+    <message>
+        <source>Password must be no more than %1 characters</source>
+        <translation>密码长度不能超过%1个字符</translation>
+    </message>
+    <message>
+        <source>Password can only contain English letters (case-sensitive), numbers or special symbols (~`!@#$%^&amp;*()-_+=|\{}[]:&quot;&apos;&lt;&gt;,.?/)</source>
+        <translation>密码只能由英文（区分大小写）、数字或特殊符号（~`!@#$%^&amp;*()-_+=|\{}[]:&quot;&apos;&lt;&gt;,.?/）组成</translation>
+    </message>
+    <message>
+        <source>No more than %1 palindrome characters please</source>
+        <translation>回文字符长度不超过%1位</translation>
+    </message>
+    <message>
+        <source>No more than %1 monotonic characters please</source>
+        <translation>单调性字符不超过%1位</translation>
+    </message>
+    <message>
+        <source>No more than %1 repeating characters please</source>
+        <translation>重复字符不超过%1位</translation>
+    </message>
+    <message>
+        <source>Password must contain uppercase letters, lowercase letters, numbers and symbols (~`!@#$%^&amp;*()-_+=|\{}[]:&quot;&apos;&lt;&gt;,.?/)</source>
+        <translation>密码必须由大写字母、小写字母、数字、符号（~`!@#$%^&amp;*()-_+=|\{}[]:&quot;&apos;&lt;&gt;,.?/）三种类型组成</translation>
+    </message>
+    <message>
+        <source>Password must not contain more than 4 palindrome characters</source>
+        <translation>密码不得含有连续4个以上的回文字符</translation>
+    </message>
+    <message>
+        <source>Do not use common words and combinations as password</source>
+        <translation>密码不能是常见单词及组合</translation>
+    </message>
+    <message>
+        <source>Create a strong password please</source>
+        <translation>密码过于简单，请增加密码复杂度</translation>
+    </message>
+    <message>
+        <source>It does not meet password rules</source>
+        <translation>密码不符合安全要求</translation>
     </message>
 </context>
 <context>
@@ -281,12 +410,12 @@
         <translation>注销</translation>
     </message>
     <message>
-        <source>Switch user</source>
-        <translation>切换用户</translation>
-    </message>
-    <message>
         <source>Switch system</source>
         <translation>切换系统</translation>
+    </message>
+    <message>
+        <source>Switch user</source>
+        <translation>切换用户</translation>
     </message>
 </context>
 <context>
@@ -294,6 +423,28 @@
     <message>
         <source>Start system monitor</source>
         <translation>启动系统监视器</translation>
+    </message>
+</context>
+<context>
+    <name>UserListPopupWidget</name>
+    <message>
+        <source>Standard User</source>
+        <translation>标准用户</translation>
+    </message>
+    <message>
+        <source>Administrator</source>
+        <translation>管理员</translation>
+    </message>
+    <message>
+        <source>Other Users</source>
+        <translation>其他用户</translation>
+    </message>
+</context>
+<context>
+    <name>VirtualKeyboardModule</name>
+    <message>
+        <source>Onboard</source>
+        <translation>屏幕键盘</translation>
     </message>
 </context>
 <context>

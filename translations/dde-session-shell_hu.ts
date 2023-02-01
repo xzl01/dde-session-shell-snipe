@@ -188,8 +188,78 @@
         <translation type="unfinished"><numerusform></numerusform><numerusform></numerusform></translation>
     </message>
     <message>
-        <source>Password expired, please change</source>
-        <translation>Jelszava lejárt, kérjük változtassa meg</translation>
+        <source>Your password has expired. Please contact the administrator to change it.</source>
+        <translation>A jelszava lejárt. A módosításhoz kérjük forduljon a Rendszergazdához.</translation>
+    </message>
+    <message>
+        <source>Your password has expired. Please change it.</source>
+        <translation>A jelszava lejárt, kérjük változtassa meg.</translation>
+    </message>
+</context>
+<context>
+    <name>ChangePasswordWidget</name>
+    <message>
+        <source>Your password has expired. Please change it and log in again.</source>
+        <translation>A jelszava lejárt, kérjük változtassa meg és jelentkezzen be újra.</translation>
+    </message>
+    <message>
+        <source>Save</source>
+        <translation>Mentés</translation>
+    </message>
+    <message>
+        <source>Old password</source>
+        <translation>Régi jelszó</translation>
+    </message>
+    <message>
+        <source>New password</source>
+        <translation>Új jelszó</translation>
+    </message>
+    <message>
+        <source>Repeat new password</source>
+        <translation>Ismételje meg az új jelszót</translation>
+    </message>
+    <message>
+        <source>Password hint (Optional)</source>
+        <translation>Jelszó emlékeztető (Opcionális)</translation>
+    </message>
+    <message>
+        <source>Passwords do not match</source>
+        <translation>A jelszavak nem egyeznek</translation>
+    </message>
+    <message>
+        <source>The hint is visible to all users. Do not include the password here.</source>
+        <translation>Az emlékeztető minden felhasználó számára látható. Ne adja meg itt a jelszavát</translation>
+    </message>
+    <message>
+        <source>New password should differ from the current one</source>
+        <translation>Az új jelszónak különböznie kell a jelenlegitől </translation>
+    </message>
+    <message>
+        <source>Password changed</source>
+        <translation>A jelszó megváltoztatva</translation>
+    </message>
+    <message>
+        <source>Wrong password</source>
+        <translation>Helytelen jelszó</translation>
+    </message>
+</context>
+<context>
+    <name>ControlWidget</name>
+    <message>
+        <source>Desktop Environment and Display Protocol</source>
+        <translation>Asztali környezet és megjelenítési protokoll</translation>
+    </message>
+    <message>
+        <source>Keyboard Layout</source>
+        <translation>Billentyűzetkiosztás</translation>
+    </message>
+    <message>
+        <source>Switch User</source>
+        <translation>Felhasználóváltás</translation>
+    </message>
+    <message>
+        <source>Power</source>
+        <translation>Kikapcsolás</translation>
     </message>
 </context>
 <context>
@@ -225,11 +295,11 @@
     <name>LockWorker</name>
     <message>
         <source>Fingerprint verification timed out, please enter your password manually</source>
-        <translation>Ujjlenyomat azonosítás időtúllépése, kérjük adja meg a jelszót kézzel</translation>
+        <translation>Az ujjlenyomat azonosítás időtúllépése, kérjük adja meg a jelszavát kézzel</translation>
     </message>
     <message>
         <source>Failed to match fingerprint</source>
-        <translation>Ujjlenyomatok nem egyeznek</translation>
+        <translation>Az ujjlenyomatok nem egyeznek</translation>
     </message>
 </context>
 <context>
@@ -248,10 +318,69 @@
     </message>
 </context>
 <context>
-    <name>SessionWidget</name>
+    <name>PasswordLevelWidget</name>
     <message>
-        <source>You have enabled the high system security level, thus cannot switch to the Wayland mode, please disable the high security level in Security Center and try again.</source>
-        <translation>Engedélyezte a magas rendszer biztonsági szintet, így nem tud Wayland módra váltani. Kérjük tiltsa le a magas biztonsági szintet a Biztonsági Központban, és próbálkozzon újra.</translation>
+        <source>Weak</source>
+        <translation>Gyenge</translation>
+    </message>
+    <message>
+        <source>Medium</source>
+        <translation>Közepes</translation>
+    </message>
+    <message>
+        <source>Strong</source>
+        <translation>Erős</translation>
+    </message>
+</context>
+<context>
+    <name>PwqualityManager</name>
+    <message>
+        <source>Password cannot be empty</source>
+        <translation>A jelszó nem lehet üres</translation>
+    </message>
+    <message>
+        <source>Password must have at least %1 characters</source>
+        <translation>A jelszónak legalább %1 karakterből kell állnia</translation>
+    </message>
+    <message>
+        <source>Password must be no more than %1 characters</source>
+        <translation>A jelszó nem lehet hosszabb %1 karakternél</translation>
+    </message>
+    <message>
+        <source>Password can only contain English letters (case-sensitive), numbers or special symbols (~`!@#$%^&amp;*()-_+=|\{}[]:&quot;&apos;&lt;&gt;,.?/)</source>
+        <translation>A jelszó csak angol betűket (kis- és nagybetűk érzékeny), számokat vagy speciális szimbólumokat tartalmazhat (~`!@#$%^&amp;*()-_+=|\{}[]:&quot;&apos;&lt;&gt;,.?/)</translation>
+    </message>
+    <message>
+        <source>No more than %1 palindrome characters please</source>
+        <translation>Kérjük ne legyen több, mint %1 palindrom karakter</translation>
+    </message>
+    <message>
+        <source>No more than %1 monotonic characters please</source>
+        <translation>Kérjük ne legyen több, mint %1 monoton karakter</translation>
+    </message>
+    <message>
+        <source>No more than %1 repeating characters please</source>
+        <translation>Kérjük ne legyen több, mint %1 ismételt karakter</translation>
+    </message>
+    <message>
+        <source>Password must contain uppercase letters, lowercase letters, numbers and symbols (~`!@#$%^&amp;*()-_+=|\{}[]:&quot;&apos;&lt;&gt;,.?/)</source>
+        <translation>A jelszónak tartalmaznia kell nagybetűket, kisbetűket, számokat és szimbólumokat (~`!@#$%^&amp;*()-_+=|\{}[]:&quot;&apos;&lt;&gt;,.?/)</translation>
+    </message>
+    <message>
+        <source>Password must not contain more than 4 palindrome characters</source>
+        <translation>A jelszó legfeljebb 4 palindróm karaktert tartalmazhat</translation>
+    </message>
+    <message>
+        <source>Do not use common words and combinations as password</source>
+        <translation>Ne használjon jelszóként gyakori szavakat és kombinációkat</translation>
+    </message>
+    <message>
+        <source>Create a strong password please</source>
+        <translation>Kérjük hozzon létre egy erős jelszót</translation>
+    </message>
+    <message>
+        <source>It does not meet password rules</source>
+        <translation>Nem felel meg a jelszavakra vonatkozó szabályoknak</translation>
     </message>
 </context>
 <context>
@@ -281,12 +410,12 @@
         <translation>Kijelentkezés</translation>
     </message>
     <message>
-        <source>Switch user</source>
-        <translation>Felhasználóváltás</translation>
-    </message>
-    <message>
         <source>Switch system</source>
         <translation>Rendszer váltása</translation>
+    </message>
+    <message>
+        <source>Switch user</source>
+        <translation>Felhasználóváltás</translation>
     </message>
 </context>
 <context>
@@ -294,6 +423,28 @@
     <message>
         <source>Start system monitor</source>
         <translation>Rendszermonitor indítása</translation>
+    </message>
+</context>
+<context>
+    <name>UserListPopupWidget</name>
+    <message>
+        <source>Standard User</source>
+        <translation>Általános felhasználó</translation>
+    </message>
+    <message>
+        <source>Administrator</source>
+        <translation>Rendszergazda</translation>
+    </message>
+    <message>
+        <source>Other Users</source>
+        <translation>További Felhasználók</translation>
+    </message>
+</context>
+<context>
+    <name>VirtualKeyboardModule</name>
+    <message>
+        <source>Onboard</source>
+        <translation>Képernyő billentyűzet</translation>
     </message>
 </context>
 <context>

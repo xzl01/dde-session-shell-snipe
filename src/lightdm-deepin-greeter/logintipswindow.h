@@ -5,15 +5,7 @@
 #ifndef LOGINTIPSWINDOW_H
 #define LOGINTIPSWINDOW_H
 
-#include "fullscreenbackground.h"
-#include "public_func.h"
-
 #include <QWidget>
-
-class QLabel;
-class QPushButton;
-class QHBoxLayout;
-class QPalette;
 
 class LoginTipsWindow : public QWidget
 {
@@ -23,20 +15,15 @@ public:
     explicit LoginTipsWindow(QWidget *parent = 0);
     bool isValid();
 
-signals:
-    void requestClosed();
+Q_SIGNALS:
+    void closed();
 
 private:
     void initUI();
 
 private:
-    QHBoxLayout *m_mainLayout;
-    QLabel *m_tipLabel;
-    QLabel *m_content;
-    QPushButton *m_btn;
-    QString m_tipString;
-    QString m_contentString;
-
+    QString m_tips;
+    QString m_content;
 };
 
 #endif // LOGINTIPSWINDOW_H

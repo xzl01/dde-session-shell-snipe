@@ -13,7 +13,7 @@
             "visibility": "private"
         },
         "allowSwitchingToWayland": {
-            "value": false,
+            "value": true,
             "serial": 0,
             "flags": ["global"],
             "name": "AllowSwitchingToWayland",

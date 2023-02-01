@@ -15,13 +15,16 @@
 #include "sessionbasemodel.h"
 #include "framedatabind.h"
 #include "dbuslogin1manager.h"
-#include "switchos_interface.h"
 #include "systemmonitor.h"
 #include "public_func.h"
+
+#include "huaweiswitchos_interface.h"
 
 DCORE_BEGIN_NAMESPACE
 class DConfig;
 DCORE_END_NAMESPACE
+
+using HuaWeiSwitchOSInterface = com::huawei::switchos;
 
 class ShutdownWidget: public QFrame
 {

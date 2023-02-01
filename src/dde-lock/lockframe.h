@@ -15,11 +15,11 @@
 
 #include <memory>
 
-const QString DBUS_LOCK_PATH = "/com/deepin/dde/lockFront";
-const QString DBUS_LOCK_NAME = "com.deepin.dde.lockFront";
+const QString DBUS_LOCK_PATH = "/org/deepin/dde/LockFront1";
+const QString DBUS_LOCK_NAME = "org.deepin.dde.LockFront1";
 
-const QString DBUS_SHUTDOWN_PATH = "/com/deepin/dde/shutdownFront";
-const QString DBUS_SHUTDOWN_NAME = "com.deepin.dde.shutdownFront";
+const QString DBUS_SHUTDOWN_PATH = "/org/deepin/dde/ShutdownFront1";
+const QString DBUS_SHUTDOWN_NAME = "org.deepin.dde.ShutdownFront1";
 
 class DBusLockService;
 class LockContent;
@@ -33,7 +33,7 @@ public:
 
 signals:
     void requestSwitchToUser(std::shared_ptr<User> user);
-    void requestSetLayout(std::shared_ptr<User> user, const QString &layout);
+    void requestSetKeyboardLayout(std::shared_ptr<User> user, const QString &layout);
     void requestEnableHotzone(bool disable);
     void sendKeyValue(QString keyValue);
 

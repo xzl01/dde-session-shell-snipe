@@ -2,7 +2,6 @@ find_package(QT NAMES Qt6 Qt5 COMPONENTS Widgets WebEngineWidgets REQUIRED)
 find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Widgets WebEngineWidgets REQUIRED)
 
 include_directories(
-    ${DFrameworkDBus_INCLUDE_DIRS}
     global
 )
 

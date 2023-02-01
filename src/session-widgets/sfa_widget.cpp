@@ -25,6 +25,8 @@
 
 #include <QSpacerItem>
 
+using namespace dss::module;
+
 const QSize AuthButtonSize(60, 36);
 const QSize AuthButtonIconSize(24, 24);
 const int MAIN_LAYOUT_SPACING = 10;
@@ -48,13 +50,7 @@ SFAWidget::SFAWidget(QWidget *parent)
 
     setGeometry(0, 0, 280, 176);
     setMinimumSize(280, 176);
-
-    SFAWidgetObjs.append(this);
-}
-
-SFAWidget::~SFAWidget()
-{
-    SFAWidgetObjs.removeAll(this);
+    setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
 }
 
 void SFAWidget::initUI()
@@ -86,6 +82,7 @@ void SFAWidget::initUI()
     m_mainLayout->addItem(m_bioBottomSpacingHolder);
     m_mainLayout->addWidget(m_chooseAuthButtonBox, 0, Qt::AlignCenter);
     m_mainLayout->addItem(m_authTypeBottomSpacingHolder);
+
     m_mainLayout->addWidget(m_userAvatar);
     m_mainLayout->addWidget(m_userNameWidget, 0, Qt::AlignVCenter);
     m_mainLayout->addWidget(m_accountEdit, 0, Qt::AlignVCenter);
@@ -238,14 +235,15 @@ void SFAWidget::setAuthType(const int type)
         m_frameDataBind->clearValue("SFSingleAuthState");
         m_frameDataBind->clearValue("SFSingleAuthMsg");
     }
-
-    m_chooseAuthButtonBox->setEnabled(true);
-    if (AppType::Login == m_model->appType() && m_passwordAuth) {
-        m_chooseAuthButtonBox->setEnabled(!m_passwordAuth->isLocked());
-        if (m_passwordAuth->isLocked()) {
-            m_user->setLastAuthType(AT_Password);
-            m_currentAuthType = AT_Password;
-        }
+    if (ModulesLoader::instance().findModulesByType(BaseModuleInterface::LoginType).size() > 0) {
+        initCustomAuth();
+    } else if (m_customAuth) {
+        delete m_customAuth;
+        m_customAuth = nullptr;
+        m_authButtons.value(AT_Custom)->deleteLater();
+        m_authButtons.remove(AT_Custom);
+        m_frameDataBind->clearValue("SFCustomAuthStatus");
+        m_frameDataBind->clearValue("SFCustomAuthMsg");
     }
 
     const int count = m_authButtons.values().size();
@@ -605,7 +603,7 @@ void SFAWidget::initUKeyAuth()
     connect(m_ukeyAuth, &AuthUKey::authFinished, this, [this](const int authState) {
         checkAuthResult(AT_Ukey, authState);
     });
-    connect(m_ukeyAuth, &AuthUKey::requestAuthenticate, this, [=] {
+    connect(m_ukeyAuth, &AuthUKey::requestAuthenticate, this, [ = ] {
         const QString &text = m_ukeyAuth->lineEditText();
         if (text.isEmpty()) {
             return;
@@ -657,6 +655,7 @@ void SFAWidget::initUKeyAuth()
 void SFAWidget::initFaceAuth()
 {
     if (m_faceAuth) {
+        m_chooseAuthButtonBox->setEnabled(true);
         m_faceAuth->reset();
         return;
     }
@@ -781,10 +780,9 @@ void SFAWidget::initCustomAuth()
 
     m_customAuth = new AuthCustom(this);
 
-    LoginPlugin *plugin = PluginManager::instance()->getLoginPlugin();
-    m_customAuth->setModule(plugin);
-    m_customAuth->setModel(m_model);
-    m_customAuth->initUi();
+    LoginModuleInterface *module = dynamic_cast<LoginModuleInterface *>(ModulesLoader::instance().findModulesByType(BaseModuleInterface::ModuleType::LoginType).values().first());
+    module->init();
+    m_customAuth->setModule(module);
     m_customAuth->hide();
 
     connect(m_customAuth, &AuthCustom::requestSendToken, this, [this] (const QString &token) {
@@ -881,10 +879,13 @@ void SFAWidget::checkAuthResult(const int type, const int state)
         m_lockButton->setEnabled(true);
         m_lockButton->setFocus();
 
-        if (type == AT_Face || type == AT_Iris) {
+        if (type == AT_Face) {
             // 禁止切换其他认证方式
             m_chooseAuthButtonBox->setEnabled(false);
         }
+    } else if (type == AT_Face && state == AS_Failure) {
+        // 获取焦点后，可响应键盘enter/return事件，重新人脸认证
+        m_retryButton->setFocus();
     }
 }
 
@@ -941,7 +942,11 @@ void SFAWidget::replaceWidget(AuthModule *authModule)
 
 void SFAWidget::onRetryButtonVisibleChanged(bool visible)
 {
-    m_lockButton->setVisible(!visible && !(m_customAuth && AT_Custom == m_currentAuthType && !m_customAuth->pluginConfig().showLockButton));
+    if (!visible && m_retryButton->hasFocus()) {
+        // 人脸认证失败后，retryButton获取焦点，enter事件后隐藏btn造成焦点跳转到其他btn上
+        m_retryButton->clearFocus();
+    }
+
     m_retryButton->setVisible(visible);
 }
 
@@ -981,7 +986,8 @@ int SFAWidget::getTopSpacing() const
     // 需要额外增加的顶部间隔高度 = 屏幕高度*0.35 - 时间控件高度 - 布局间隔 - 生物认证按钮底部间隔
     // - 生物认证切换按钮底部间隔 - 生物认证图标高度(如果有生物认证因子) - 切换验证类型按钮高度（如果认证因子数量大于1)
     int deltaY = topHeight - calcCurrentHeight(LOCK_CONTENT_CENTER_LAYOUT_MARGIN)
-            - m_bioBottomSpacingHolder->geometry().height()
+            - calcCurrentHeight(LOCK_CONTENT_TOPBOTTOM_WIDGET_HEIGHT)
+            - m_bioBottomSpacingHolder->sizeHint().height()
             - m_authTypeBottomSpacingHolder->sizeHint().height()
             - ((m_faceAuth || m_fingerprintAuth || m_irisAuth) ? BIO_AUTH_STATE_PLACE_HOLDER_HEIGHT : 0)
             - (m_authButtons.size() > 1 ? calcCurrentHeight(CHOOSE_AUTH_TYPE_BUTTON_BOTTOM_SPACING) : 0);

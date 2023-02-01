@@ -42,7 +42,7 @@
     </message>
     <message numerus="yes">
         <source>Verification failed, %n chances left</source>
-        <translation><numerusform>Doğrulama başarısız, %n şansınız kaldı</numerusform><numerusform>Doğrulama başarısız, %n şansınız kaldı</numerusform></translation>
+        <translation type="unfinished"><numerusform></numerusform><numerusform></numerusform></translation>
     </message>
     <message>
         <source>Verification failed, only one chance left</source>
@@ -88,7 +88,7 @@
     </message>
     <message numerus="yes">
         <source>Verification failed, %n chances left</source>
-        <translation><numerusform>Doğrulama başarısız, %n şansınız kaldı</numerusform><numerusform>Doğrulama başarısız, %n şansınız kaldı</numerusform></translation>
+        <translation type="unfinished"><numerusform></numerusform><numerusform></numerusform></translation>
     </message>
     <message>
         <source>Verification failed, only one chance left</source>
@@ -127,7 +127,7 @@
     </message>
     <message numerus="yes">
         <source>Please try again %n minutes later</source>
-        <translation><numerusform>Lütfen %n dakika sonra tekrar deneyin</numerusform><numerusform>Lütfen %n dakika sonra tekrar deneyin</numerusform></translation>
+        <translation type="unfinished"><numerusform></numerusform><numerusform></numerusform></translation>
     </message>
     <message>
         <source>Reset Password</source>
@@ -146,7 +146,7 @@
     </message>
     <message numerus="yes">
         <source>Verification failed, %n chances left</source>
-        <translation><numerusform>Doğrulama başarısız, %n şansınız kaldı</numerusform><numerusform>Doğrulama başarısız, %n şansınız kaldı</numerusform></translation>
+        <translation type="unfinished"><numerusform></numerusform><numerusform></numerusform></translation>
     </message>
     <message>
         <source>Verification failed, only one chance left</source>
@@ -166,7 +166,7 @@
     </message>
     <message numerus="yes">
         <source>Please try again %n minute(s) later</source>
-        <translation><numerusform>Lütfen %n dakika(s) sonra tekrar deneyin</numerusform><numerusform>Lütfen %n dakika(s) sonra tekrar deneyin</numerusform></translation>
+        <translation type="unfinished"><numerusform></numerusform><numerusform></numerusform></translation>
     </message>
     <message>
         <source>Please try again 1 minute later</source>
@@ -188,8 +188,78 @@
         <translation type="unfinished"><numerusform></numerusform><numerusform></numerusform></translation>
     </message>
     <message>
-        <source>Password expired, please change</source>
-        <translation>Parolanın süresi doldu, lütfen değiştir</translation>
+        <source>Your password has expired. Please contact the administrator to change it.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <source>Your password has expired. Please change it.</source>
+        <translation type="unfinished"/>
+    </message>
+</context>
+<context>
+    <name>ChangePasswordWidget</name>
+    <message>
+        <source>Your password has expired. Please change it and log in again.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <source>Save</source>
+        <translation>Kaydet</translation>
+    </message>
+    <message>
+        <source>Old password</source>
+        <translation>Eski parola</translation>
+    </message>
+    <message>
+        <source>New password</source>
+        <translation>Yeni parola</translation>
+    </message>
+    <message>
+        <source>Repeat new password</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <source>Password hint (Optional)</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <source>Passwords do not match</source>
+        <translation>Parolalar eşleşmiyor</translation>
+    </message>
+    <message>
+        <source>The hint is visible to all users. Do not include the password here.</source>
+        <translation>İpucu tüm kullanıcılar tarafından görülebilir. Parolayı buraya dahil etmeyin.</translation>
+    </message>
+    <message>
+        <source>New password should differ from the current one</source>
+        <translation>Yeni parola mevcut paroladan farklı olmalıdır</translation>
+    </message>
+    <message>
+        <source>Password changed</source>
+        <translation>Parola değişti</translation>
+    </message>
+    <message>
+        <source>Wrong password</source>
+        <translation>Yanlış parola</translation>
+    </message>
+</context>
+<context>
+    <name>ControlWidget</name>
+    <message>
+        <source>Desktop Environment and Display Protocol</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <source>Keyboard Layout</source>
+        <translation>Klavye Düzeni</translation>
+    </message>
+    <message>
+        <source>Switch User</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <source>Power</source>
+        <translation>Güç</translation>
     </message>
 </context>
 <context>
@@ -248,10 +318,69 @@
     </message>
 </context>
 <context>
-    <name>SessionWidget</name>
+    <name>PasswordLevelWidget</name>
     <message>
-        <source>You have enabled the high system security level, thus cannot switch to the Wayland mode, please disable the high security level in Security Center and try again.</source>
-        <translation>Yüksek sistem güvenlik seviyesini etkinleştirdiniz, bu nedenle Wayland kipine geçemezsiniz, lütfen Güvenlik Merkezi&apos;nde yüksek güvenlik seviyesini devre dışı bırakın ve tekrar deneyin.</translation>
+        <source>Weak</source>
+        <translation>Zayıf</translation>
+    </message>
+    <message>
+        <source>Medium</source>
+        <translation>Orta</translation>
+    </message>
+    <message>
+        <source>Strong</source>
+        <translation>Güçlü</translation>
+    </message>
+</context>
+<context>
+    <name>PwqualityManager</name>
+    <message>
+        <source>Password cannot be empty</source>
+        <translation>Parola boş olamaz</translation>
+    </message>
+    <message>
+        <source>Password must have at least %1 characters</source>
+        <translation>Parola en az %1 karakter olmalıdır</translation>
+    </message>
+    <message>
+        <source>Password must be no more than %1 characters</source>
+        <translation>Parola %1 karakterden fazla olmamalıdır</translation>
+    </message>
+    <message>
+        <source>Password can only contain English letters (case-sensitive), numbers or special symbols (~`!@#$%^&amp;*()-_+=|\{}[]:&quot;&apos;&lt;&gt;,.?/)</source>
+        <translation>Parola yalnızca İngilizce harfler (büyük/küçük harfe duyarlı), sayılar veya özel simgeler içerebilir (~`!@#$%^&amp;*()-_+=|\{}[]:&quot;&apos;&lt;&gt;,.?/)</translation>
+    </message>
+    <message>
+        <source>No more than %1 palindrome characters please</source>
+        <translation>En fazla %1 palindrom karakter lütfen</translation>
+    </message>
+    <message>
+        <source>No more than %1 monotonic characters please</source>
+        <translation>%1&apos;den fazla monoton karakter yok lütfen</translation>
+    </message>
+    <message>
+        <source>No more than %1 repeating characters please</source>
+        <translation>Lütfen %1&apos;den fazla yinelenen karakter yok</translation>
+    </message>
+    <message>
+        <source>Password must contain uppercase letters, lowercase letters, numbers and symbols (~`!@#$%^&amp;*()-_+=|\{}[]:&quot;&apos;&lt;&gt;,.?/)</source>
+        <translation>Parola büyük harfler, küçük harfler, sayılar ve semboller içermeli (~`!@#$%^&amp;*()-_+=|\{}[]:&quot;&apos;&lt;&gt;,.?/)</translation>
+    </message>
+    <message>
+        <source>Password must not contain more than 4 palindrome characters</source>
+        <translation>Parola 4&apos;ten fazla tersten okunduğunda aynı olan karakter içermemelidir</translation>
+    </message>
+    <message>
+        <source>Do not use common words and combinations as password</source>
+        <translation>Parola olarak bilinen kelime ve kombinasyonlarını kullanmayın</translation>
+    </message>
+    <message>
+        <source>Create a strong password please</source>
+        <translation>Lütfen güçlü bir parola oluşturun</translation>
+    </message>
+    <message>
+        <source>It does not meet password rules</source>
+        <translation>Parola kurallarına uymuyor</translation>
     </message>
 </context>
 <context>
@@ -281,12 +410,12 @@
         <translation>Oturumu kapat</translation>
     </message>
     <message>
-        <source>Switch user</source>
-        <translation>Kullanıcı değiştir</translation>
-    </message>
-    <message>
         <source>Switch system</source>
         <translation>Sistem değiştir</translation>
+    </message>
+    <message>
+        <source>Switch user</source>
+        <translation>Kullanıcı değiştir</translation>
     </message>
 </context>
 <context>
@@ -294,6 +423,28 @@
     <message>
         <source>Start system monitor</source>
         <translation>Sistem izleyiciyi başlat</translation>
+    </message>
+</context>
+<context>
+    <name>UserListPopupWidget</name>
+    <message>
+        <source>Standard User</source>
+        <translation>Standart Kullanıcı</translation>
+    </message>
+    <message>
+        <source>Administrator</source>
+        <translation>Yönetici</translation>
+    </message>
+    <message>
+        <source>Other Users</source>
+        <translation type="unfinished"/>
+    </message>
+</context>
+<context>
+    <name>VirtualKeyboardModule</name>
+    <message>
+        <source>Onboard</source>
+        <translation>Ekran Klavyesi</translation>
     </message>
 </context>
 <context>

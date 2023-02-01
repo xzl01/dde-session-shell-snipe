@@ -33,6 +33,7 @@ public:
     virtual QWidget *itemTipsWidget() const override;
     virtual const QString itemContextMenu() const override;
     virtual void invokedMenuItem(const QString &menuId, const bool checked) const override;
+    virtual bool isNeedInitPlugin() const { return true; }
 
 private:
     void initUI();

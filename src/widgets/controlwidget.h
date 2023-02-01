@@ -26,10 +26,6 @@ class BaseModuleInterface;
 
 DWIDGET_USE_NAMESPACE
 
-DWIDGET_BEGIN_NAMESPACE
-class DArrowRectangle;
-DWIDGET_END_NAMESPACE
-
 DCORE_BEGIN_NAMESPACE
 class DConfig;
 DCORE_END_NAMESPACE
@@ -42,6 +38,10 @@ class QMenu;
 class SessionBaseModel;
 class KBLayoutListView;
 class TipsWidget;
+class TipContentWidget;
+class SessionPopupWidget;
+class UserListPopupWidget;
+class RoundPopupWidget;
 
 const int BlurRadius = 15;
 const int BlurTransparency = 70;
@@ -76,8 +76,12 @@ public:
         installEventFilter(this);
     }
 
-private:
-    IconState m_State = Normal;
+    void setTipText(const QString &tipText) {
+        m_tipText = tipText;
+    }
+    QString tipText() const {
+        return m_tipText;
+    }
 
 Q_SIGNALS:
     void requestShowMenu();
@@ -86,7 +90,9 @@ Q_SIGNALS:
 
 protected:
     bool eventFilter(QObject *watch, QEvent *event) override;
-    void paintEvent(QPaintEvent *event) override;
+
+private:
+    QString m_tipText;
 };
 class ControlWidget : public QWidget
 {
@@ -100,68 +106,63 @@ public:
     void initKeyboardLayoutList();
 
 signals:
-    void requestSwitchUser();
+    void requestSwitchUser(std::shared_ptr<User> user);
     void requestShutdown();
-    void requestSwitchSession();
-    void requestSwitchVirtualKB();
-    void requestKeyboardLayout(const QPoint &pos);
+    void requestSwitchSession(const QString &session);
     void requestShowModule(const QString &name);
     void notifyKeyboardLayoutHidden();
 
 public slots:
-    void addModule(TrayPlugin *module);
-    void removeModule(TrayPlugin *module);
-    void setVirtualKBVisible(bool visible);
+    void addModule(dss::module::BaseModuleInterface *module);
     void setUserSwitchEnable(const bool visible);
     void setSessionSwitchEnable(const bool visible);
     void chooseToSession(const QString &session);
-    void leftKeySwitch();
-    void rightKeySwitch();
     void setKBLayoutVisible();
     void setKeyboardType(const QString& str);
     void setKeyboardList(const QStringList& str);
     void onItemClicked(const QString& str);
-    void updateModuleVisible();
+    void showSessionPopup();
+    void showUserListPopupWidget();
 
 protected:
-    bool eventFilter(QObject *watched, QEvent *event) Q_DECL_OVERRIDE;
     void keyReleaseEvent(QKeyEvent *event) Q_DECL_OVERRIDE;
+    void showEvent(QShowEvent *event) Q_DECL_OVERRIDE;
 
 private:
     void initUI();
     void initConnect();
-    void showTips();
-    void hideTips();
     void updateLayout();
     void updateTapOrder();
+    int focusedBtnIndex();
+    void showPopupWidget(const FlotingButton *clickedBtn);
+
+private slots:
+    void showInfoTips();
+    void hideInfoTips();
 
 private:
-    int m_index = 0;
-    QList<DFloatingButton *> m_btnList;
+    QList<FlotingButton *> m_showedBtnList;
 
-    QHBoxLayout *m_mainLayout = nullptr;
-    FloatingButton *m_virtualKBBtn = nullptr;
-    FloatingButton *m_switchUserBtn = nullptr;
-    FloatingButton *m_powerBtn = nullptr;
-    FloatingButton *m_sessionBtn = nullptr;
-    QLabel *m_sessionTip = nullptr;
-    QWidget *m_tipWidget = nullptr;
-#ifndef SHENWEI_PLATFORM
-    QPropertyAnimation *m_tipsAni = nullptr;
-#endif
-    QMap<QString, QWidget *> m_modules;
-    QMenu *m_contextMenu;
-    TipsWidget *m_tipsWidget;
-    const SessionBaseModel *m_model;
+    QHBoxLayout *m_mainLayout;
+    FlotingButton *m_switchUserBtn;
+    FlotingButton *m_powerBtn;
+    FlotingButton *m_sessionBtn;
+    FlotingButton *m_keyboardBtn;         // 键盘布局按钮
 
-    DArrowRectangle *m_arrowRectWidget;
-    KBLayoutListView *m_kbLayoutListView;   // 键盘布局列表
-    DFloatingButton *m_keyboardBtn;         // 键盘布局按钮
     std::shared_ptr<User> m_curUser;
+    const SessionBaseModel *m_model;
     QList<QMetaObject::Connection> m_connectionList;
-    bool m_onboardBtnVisible;
-    DTK_CORE_NAMESPACE::DConfig *m_dconfig;
-    bool m_doGrabKeyboard;
+
+    QMenu *m_contextMenu;
+    QMap<QString, QWidget *> m_modules;
+
+    TipContentWidget *m_tipContentWidget;       // 显示按钮文字tip
+    TipsWidget *m_tipsWidget;                   // 显示插件提供widget tip
+
+    RoundPopupWidget *m_roundPopupWidget;       // 圆角弹窗
+    KBLayoutListView *m_kbLayoutListView;       // 键盘布局列表
+    SessionPopupWidget *m_sessionPopupWidget;   // session 列表
+    UserListPopupWidget *m_userListPopupWidget; // 用户列表
 };
 
 #endif // CONTROLWIDGET_H

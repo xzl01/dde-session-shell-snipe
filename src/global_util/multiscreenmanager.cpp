@@ -16,7 +16,7 @@ MultiScreenManager::MultiScreenManager(QObject *parent)
     : QObject(parent)
     , m_registerFunction(nullptr)
     , m_raiseContentFrameTimer(new QTimer(this))
-    , m_systemDisplay(new SystemDisplayInter("com.deepin.system.Display", "/com/deepin/system/Display", QDBusConnection::systemBus(), this))
+    , m_systemDisplay(new SystemDisplayInter("org.deepin.dde.Display1", "/org/deepin/dde/Display1", QDBusConnection::systemBus(), this))
     , m_isCopyMode(false)
 {
     connect(qApp, &QGuiApplication::screenAdded, this, &MultiScreenManager::onScreenAdded, Qt::DirectConnection);
@@ -80,6 +80,20 @@ bool MultiScreenManager::eventFilter(QObject *watched, QEvent *event)
     return QObject::eventFilter(watched, event);
 }
 
+bool MultiScreenManager::eventFilter(QObject *watched, QEvent *event)
+{
+    // 捕获lockframe窗口显示事件
+    if (event->type() == QEvent::Show) {
+        QWidget *widget = qobject_cast<QWidget *>(watched);
+        if (widget && m_frames.values().contains(widget)) {
+            // 显示的时候获取窗口位置信息（调试）
+            QMetaObject::invokeMethod(this, &MultiScreenManager::checkLockFrameLocation, Qt::QueuedConnection);
+        }
+    }
+
+    return QObject::eventFilter(watched, event);
+}
+
 void MultiScreenManager::onScreenAdded(QPointer<QScreen> screen)
 {
     qInfo() << Q_FUNC_INFO << ", is copy mode: " << m_isCopyMode << ", screen: " << screen;
@@ -107,10 +121,7 @@ void MultiScreenManager::onScreenAdded(QPointer<QScreen> screen)
     // 如果指针为空，则不加入Map中，并析构创建的全屏窗口。
     if (w && !screen.isNull()) {
         m_frames[screen] = w;
-        // wayland下没有屏幕时，容易导致qt崩溃
-        if (!QGuiApplication::platformName().startsWith("wayland", Qt::CaseInsensitive)) {
-            w->installEventFilter(this);
-        }
+        w->installEventFilter(this);
     } else if (w) {
         w->deleteLater();
     }

@@ -57,7 +57,6 @@ find_package(Qt5 COMPONENTS
 REQUIRED)
 
 pkg_check_modules(XCB_EWMH REQUIRED xcb-ewmh x11 xi xcursor xfixes xrandr xext xtst)
-pkg_check_modules(DFrameworkDBus REQUIRED dframeworkdbus)
 pkg_check_modules(QGSettings REQUIRED gsettings-qt)
 pkg_check_modules(Greeter REQUIRED liblightdm-qt5-3)
 pkg_check_modules(SSL REQUIRED IMPORTED_TARGET libcrypto libssl openssl)
@@ -72,69 +71,101 @@ set(Qt_LIBS
     Qt5::Svg
 )
 
-try_compile(USE_DEEPIN_WAYLAND
-              ${CMAKE_CURRENT_BINARY_DIR}/try_compile
-            SOURCES
-              ${CMAKE_CURRENT_SOURCE_DIR}/tests/wayland_test.cc
-            LINK_LIBRARIES
-              ${Qt_LIBS}
-              ${Qt5Widgets_LIBRARIES}
-              KF5::WaylandClient
-)
+set(XML2CPP_DIR ${PROJECT_SOURCE_DIR}/src/global_util/dbus)
 
-message(STATUS "USE_DEEPIN_WAYLAND ${USE_DEEPIN_WAYLAND}")
-
-if(USE_DEEPIN_WAYLAND)
-  add_definitions(-DUSE_DEEPIN_WAYLAND)
-endif()
-
-
-try_compile(USE_GM
-              ${CMAKE_CURRENT_BINARY_DIR}/try_compile
-            SOURCES
-              ${CMAKE_CURRENT_SOURCE_DIR}/tests/test_gm.cc
-            LINK_LIBRARIES
-	      PkgConfig::SSL
-	    OUTPUT_VARIABLE
-	      GM_MESSAGE
-)
-
-message(STATUS "check GM: ${USE_GM}")
-
-if (${CMAKE_BUILD_TYPE} MATCHES "Debug")
-    message(${GM_MESSAGE})
-endif()
-
-if(USE_GM)
-  # 优先使用国密
-  add_definitions(-DPREFER_USING_GM)
-endif()
-
-function(generation_dbus_interface xml class_name class_file option)
-    execute_process(COMMAND qdbusxml2cpp ${option} -p ${class_file} -c ${class_name} ${xml}
-    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+function(generation_dbus_interface xml class_name class_file)
+    execute_process(COMMAND qdbusxml2cpp-fix -c ${class_name} -p ${class_file} ${xml}
+        WORKING_DIRECTORY ${XML2CPP_DIR})
 endfunction(generation_dbus_interface)
 
 generation_dbus_interface(
-    ${CMAKE_SOURCE_DIR}/xml/com.deepin.daemon.Authenticate.xml
-    AuthenticateInterface
-    ${CMAKE_CURRENT_BINARY_DIR}/authenticate_interface
-    -N
-)
-set(authority_DBUS_SCRS
-    ${CMAKE_CURRENT_BINARY_DIR}/authenticate_interface.h
-    ${CMAKE_CURRENT_BINARY_DIR}/authenticate_interface.cpp
+    ${CMAKE_SOURCE_DIR}/xml/org.deepin.dde.Authenticate1.xml
+    Authenticate
+    ${XML2CPP_DIR}/authenticate_interface
 )
 
 generation_dbus_interface(
     ${CMAKE_SOURCE_DIR}/xml/com.huawei.switchos.xml
-    HuaWeiSwitchOSInterface
-    ${CMAKE_CURRENT_BINARY_DIR}/switchos_interface
-    -N
+    HuaWeiSwitchOS
+    ${XML2CPP_DIR}/huaweiswitchos_interface
 )
-set(haweiswitchos_DBUS_SCRS
-    ${CMAKE_CURRENT_BINARY_DIR}/switchos_interface.h
-    ${CMAKE_CURRENT_BINARY_DIR}/switchos_interface.cpp
+
+generation_dbus_interface(
+    ${CMAKE_SOURCE_DIR}/xml/org.deepin.dde.Accounts1.xml
+    Accounts
+    ${XML2CPP_DIR}/accounts_interface
+)
+
+generation_dbus_interface(
+    ${CMAKE_SOURCE_DIR}/xml/org.deepin.dde.Accounts1.User.xml
+    AccountsUser
+    ${XML2CPP_DIR}/accountsuser_interface
+)
+
+generation_dbus_interface(
+    ${CMAKE_SOURCE_DIR}/xml/org.deepin.dde.ImageEffect1.xml
+    ImageEffect
+    ${XML2CPP_DIR}/imageeffect_interface
+)
+
+generation_dbus_interface(
+    ${CMAKE_SOURCE_DIR}/xml/org.deepin.dde.Logined1.xml
+    Logined
+    ${XML2CPP_DIR}/logined_interface
+)
+
+generation_dbus_interface(
+    ${CMAKE_SOURCE_DIR}/xml/org.deepin.dde.PowerManager1.xml
+    PowerManager
+    ${XML2CPP_DIR}/powermanager_interface
+)
+
+generation_dbus_interface(
+    ${CMAKE_SOURCE_DIR}/xml/org.deepin.dde.SystemPower1.xml
+    SystemPower
+    ${XML2CPP_DIR}/systempower_interface
+)
+
+generation_dbus_interface(
+    ${CMAKE_SOURCE_DIR}/xml/com.deepin.wm.xml
+    wm
+    ${XML2CPP_DIR}/wm_interface
+)
+
+generation_dbus_interface(
+    ${CMAKE_SOURCE_DIR}/xml/org.deepin.dde.Authenticate1.Session2.xml
+    AuthenticateSession2
+    ${XML2CPP_DIR}/authenticatesession2_interface
+)
+
+generation_dbus_interface(
+    ${CMAKE_SOURCE_DIR}/xml/org.deepin.dde.SessionManager1.xml
+    SessionManager
+    ${XML2CPP_DIR}/sessionmanager_interface
+)
+
+generation_dbus_interface(
+    ${CMAKE_SOURCE_DIR}/xml/org.deepin.dde.SoundThemePlayer1.xml
+    SoundThemePlayer
+    ${XML2CPP_DIR}/soundthemeplayer_interface
+)
+
+generation_dbus_interface(
+    ${CMAKE_SOURCE_DIR}/xml/org.deepin.dde.SystemDisplay1.xml
+    SystemDisplay
+    ${XML2CPP_DIR}/systemdisplay_interface
+)
+
+generation_dbus_interface(
+    ${CMAKE_SOURCE_DIR}/xml/org.freedesktop.DBus.xml
+    FreedesktopDBus
+    ${XML2CPP_DIR}/freedesktopdbus_interface
+)
+
+generation_dbus_interface(
+    ${CMAKE_SOURCE_DIR}/xml/org.freedesktop.login1.session.self.xml
+    Login1SessionSelf
+    ${XML2CPP_DIR}/login1sessionself_interface
 )
 
 include_directories(${PROJECT_SOURCE_DIR}/src/global_util)
@@ -145,6 +176,8 @@ include_directories(${PROJECT_SOURCE_DIR}/src/widgets)
 include_directories(${PROJECT_SOURCE_DIR}/src/session-widgets)
 include_directories(${PROJECT_SOURCE_DIR}/src/libdde-auth)
 include_directories(${PROJECT_SOURCE_DIR}/interface)
+include_directories(${PROJECT_SOURCE_DIR}/src/global_util/dbus/types)
+include_directories(${DTKCORE_INCLUDE_DIRS})
 
 aux_source_directory(${PROJECT_SOURCE_DIR}/src/global_util GLOBAL_UTILS)
 aux_source_directory(${PROJECT_SOURCE_DIR}/src/global_util/dbus GLOBAL_UTILS_DBUS)
@@ -153,7 +186,7 @@ aux_source_directory(${PROJECT_SOURCE_DIR}/src/session-widgets SESSION_WIDGETS)
 aux_source_directory(${PROJECT_SOURCE_DIR}/src/libdde-auth AUTHENTICATE)
 aux_source_directory(${PROJECT_SOURCE_DIR}/src/global_util/keyboardmonitor GLOBAL_UTILS_KEYBOARDMONITOR)
 aux_source_directory(${PROJECT_SOURCE_DIR}/interface INTERFACE)
-aux_source_directory(${PROJECT_SOURCE_DIR}/src/global_util/plugin_manager PLUGIN_MANAGER)
+aux_source_directory(${PROJECT_SOURCE_DIR}/src/global_util/dbus/types DBUS_DATA_TYPES)
 
 set(QRCS
     ${CMAKE_CURRENT_SOURCE_DIR}/resources.qrc
@@ -162,17 +195,16 @@ set(QRCS
 )
 
 set(LOCK_SRCS
-    ${authority_DBUS_SCRS}
     ${transaction_DBUS_SCRS}
     ${GLOBAL_UTILS}
     ${GLOBAL_UTILS_DBUS}
     ${GLOBAL_UTILS_KEYBOARDMONITOR}
     ${WIDGETS}
     ${SESSION_WIDGETS}
-    ${haweiswitchos_DBUS_SCRS}
     ${AUTHENTICATE}
     ${INTERFACE}
-    ${PLUGIN_MANAGER}
+    ${QT_DBUS_EXTENDED}
+    ${DBUS_DATA_TYPES}
     src/app/dde-lock.cpp
     src/dde-lock/lockframe.cpp
     src/dde-lock/lockworker.cpp
@@ -195,19 +227,18 @@ target_include_directories(dde-lock PUBLIC
     ${DTKWIDGET_INCLUDE_DIR}
     ${DTKCORE_INCLUDE_DIR}
     ${XCB_EWMH_INCLUDE_DIRS}
-    ${DFrameworkDBus_INCLUDE_DIRS}
     ${Qt5Gui_PRIVATE_INCLUDE_DIRS}
     ${PROJECT_BINARY_DIR}
     ${QGSettings_INCLUDE_DIRS}
     ${Qt5X11Extras_INCLUDE_DIRS}
     ${PROJECT_SOURCE_DIR}/src/dde-lock
     ${PROJECT_SOURCE_DIR}/src/dde-lock/dbus
+    ${Greeter_INCLUDE_DIRS}
 )
 target_link_libraries(dde-lock PRIVATE
     ${Qt_LIBS}
     ${PAM_LIBRARIES}
     ${XCB_EWMH_LIBRARIES}
-    ${DFrameworkDBus_LIBRARIES}
     ${DtkWidget_LIBRARIES}
     ${DtkCore_LIBRARIES}
     ${Qt5Widgets_LIBRARIES}
@@ -216,28 +247,30 @@ target_link_libraries(dde-lock PRIVATE
     ${Qt5DBus_LIBRARIES}
     ${Qt5Network_LIBRARIES}
     ${QGSettings_LIBRARIES}
-    KF5::WaylandClient
-    PkgConfig::SSL
+    ${Greeter_LIBRARIES}
+    ${DEEPIN_PW_CHECK}
 )
 
+set(DEEPIN_PW_CHECK libdeepin_pw_check.so)
+
 set(GREETER_SRCS
-    ${authority_DBUS_SCRS}
     ${transaction_DBUS_SCRS}
     ${GLOBAL_UTILS}
     ${GLOBAL_UTILS_DBUS}
     ${GLOBAL_UTILS_KEYBOARDMONITOR}
     ${WIDGETS}
     ${SESSION_WIDGETS}
-    ${haweiswitchos_DBUS_SCRS}
     ${AUTHENTICATE}
     ${INTERFACE}
-    ${PLUGIN_MANAGER}
+    ${DBUS_DATA_TYPES}
     src/app/lightdm-deepin-greeter.cpp
-    src/lightdm-deepin-greeter/loginwindow.cpp
+    src/lightdm-deepin-greeter/loginframe.cpp
     src/lightdm-deepin-greeter/greeterworker.cpp
     src/lightdm-deepin-greeter/logincontent.cpp
     src/lightdm-deepin-greeter/logintipswindow.cpp
-    src/lightdm-deepin-greeter/sessionwidget.cpp
+    src/lightdm-deepin-greeter/pwqualitymanager.cpp
+    src/lightdm-deepin-greeter/passwordlevelwidget.cpp
+    src/lightdm-deepin-greeter/changepasswordwidget.cpp
 )
 
 if (USE_DEEPIN_WAYLAND)
@@ -251,12 +284,12 @@ add_executable(lightdm-deepin-greeter
     ${GREETER_SRCS}
     ${QRCS}
 )
+
 target_include_directories(lightdm-deepin-greeter PUBLIC
     ${PAM_INCLUDE_DIR}
     ${DTKWIDGET_INCLUDE_DIR}
     ${DTKCORE_INCLUDE_DIR}
     ${XCB_EWMH_INCLUDE_DIRS}
-    ${DFrameworkDBus_INCLUDE_DIRS}
     ${Qt5Gui_PRIVATE_INCLUDE_DIRS}
     ${PROJECT_BINARY_DIR}
     ${QGSettings_INCLUDE_DIRS}
@@ -278,7 +311,6 @@ target_link_libraries(lightdm-deepin-greeter PRIVATE
     ${Qt_LIBS}
     ${PAM_LIBRARIES}
     ${XCB_EWMH_LIBRARIES}
-    ${DFrameworkDBus_LIBRARIES}
     ${DtkWidget_LIBRARIES}
     ${DtkCore_LIBRARIES}
     ${Qt5Widgets_LIBRARIES}
@@ -288,9 +320,11 @@ target_link_libraries(lightdm-deepin-greeter PRIVATE
     ${Qt5Network_LIBRARIES}
     ${QGSettings_LIBRARIES}
     ${Greeter_LIBRARIES}
-    KF5::WaylandClient
-    PkgConfig::SSL
+    ${DEEPIN_PW_CHECK}
 )
+
+# plugins
+add_subdirectory(modules)
 
 add_subdirectory(tests)
 add_subdirectory(plugins)

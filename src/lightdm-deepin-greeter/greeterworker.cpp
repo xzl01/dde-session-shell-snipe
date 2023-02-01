@@ -8,21 +8,22 @@
 #include "keyboardmonitor.h"
 #include "userinfo.h"
 
+#include "systempower_interface.h"
+
 #include <DSysInfo>
 #include <DGuiApplicationHelper>
 
 #include <QGSettings>
 
-#include <com_deepin_system_systempower.h>
 #include <pwd.h>
 #include </usr/include/shadow.h>
 
-#define LOCKSERVICE_PATH "/com/deepin/dde/LockService"
-#define LOCKSERVICE_NAME "com.deepin.dde.LockService"
+#define LOCKSERVICE_PATH "/org/deepin/dde/LockService1"
+#define LOCKSERVICE_NAME "org.deepin.dde.LockService1"
 #define SECURITYENHANCE_PATH "/com/deepin/daemon/SecurityEnhance"
 #define SECURITYENHANCE_NAME "com.deepin.daemon.SecurityEnhance"
 
-using PowerInter = com::deepin::system::Power;
+using PowerInter = org::deepin::dde::Power1;
 using namespace Auth;
 using namespace AuthCommon;
 DCORE_USE_NAMESPACE
@@ -37,10 +38,7 @@ GreeterWorker::GreeterWorker(SessionBaseModel *const model, QObject *parent)
     , m_greeter(new QLightDM::Greeter(this))
     , m_authFramework(new DeepinAuthFramework(this))
     , m_lockInter(new DBusLockService(LOCKSERVICE_NAME, LOCKSERVICE_PATH, QDBusConnection::systemBus(), this))
-    , m_soundPlayerInter(new SoundThemePlayerInter("com.deepin.api.SoundThemePlayer", "/com/deepin/api/SoundThemePlayer", QDBusConnection::systemBus(), this))
-#ifdef USE_DEEPIN_WAYLAND
-    , m_greeterDisplayWayland(nullptr)
-#endif
+    , m_soundPlayerInter(new SoundThemePlayerInter("org.deepin.dde.SoundThemePlayer1", "/org/deepin/dde/SoundThemePlayer1", QDBusConnection::systemBus(), this))
     , m_resetSessionTimer(new QTimer(this))
     , m_limitsUpdateTimer(new QTimer(this))
     , m_retryAuth(false)
@@ -86,10 +84,10 @@ GreeterWorker::GreeterWorker(SessionBaseModel *const model, QObject *parent)
     }
 
     m_resetSessionTimer->setSingleShot(true);
-    connect(m_resetSessionTimer, &QTimer::timeout, this, [=] {
+    connect(m_resetSessionTimer, &QTimer::timeout, this, [ = ] {
         endAuthentication(m_account, AT_All);
         m_model->updateAuthState(AT_All, AS_Cancel, "Cancel");
-        destoryAuthentication(m_account);
+        destroyAuthentication(m_account);
         createAuthentication(m_account);
     });
 }
@@ -109,7 +107,7 @@ void GreeterWorker::initConnections()
     connect(m_greeter, &QLightDM::Greeter::showPrompt, this, &GreeterWorker::showPrompt);
     connect(m_greeter, &QLightDM::Greeter::showMessage, this, &GreeterWorker::showMessage);
     connect(m_greeter, &QLightDM::Greeter::authenticationComplete, this, &GreeterWorker::authenticationComplete);
-    /* com.deepin.daemon.Accounts */
+    /* org.deepin.dde.Accounts1 */
     connect(m_accountsInter, &AccountsInter::UserAdded, m_model, static_cast<void (SessionBaseModel::*)(const QString &)>(&SessionBaseModel::addUser));
     connect(m_accountsInter, &AccountsInter::UserDeleted, m_model, static_cast<void (SessionBaseModel::*)(const QString &)>(&SessionBaseModel::removeUser));
     // connect(m_accountsInter, &AccountsInter::UserListChanged, m_model, &SessionBaseModel::updateUserList); // UserListChanged信号的处理， 改用UserAdded和UserDeleted信号替代
@@ -117,7 +115,7 @@ void GreeterWorker::initConnections()
         if (path == m_model->currentUser()->path()) {
             m_model->updateCurrentUser(m_lockInter->CurrentUser());
             m_model->updateAuthState(AT_All, AS_Cancel, "Cancel");
-            destoryAuthentication(m_account);
+            destroyAuthentication(m_account);
             if (!m_model->currentUser()->isNoPasswordLogin()) {
                 createAuthentication(m_model->currentUser()->name());
             } else {
@@ -128,7 +126,7 @@ void GreeterWorker::initConnections()
     });
     connect(m_loginedInter, &LoginedInter::LastLogoutUserChanged, m_model, static_cast<void (SessionBaseModel::*)(const uid_t)>(&SessionBaseModel::updateLastLogoutUser));
     connect(m_loginedInter, &LoginedInter::UserListChanged, m_model, &SessionBaseModel::updateLoginedUserList);
-    /* com.deepin.daemon.Authenticate */
+    /* org.deepin.dde.Authenticate1 */
     connect(m_authFramework, &DeepinAuthFramework::FramworkStateChanged, m_model, &SessionBaseModel::updateFrameworkState);
     connect(m_authFramework, &DeepinAuthFramework::LimitsInfoChanged, this, [this](const QString &account) {
         qDebug() << "GreeterWorker::initConnections LimitsInfoChanged:" << account;
@@ -138,7 +136,7 @@ void GreeterWorker::initConnections()
     });
     connect(m_authFramework, &DeepinAuthFramework::SupportedEncryptsChanged, m_model, &SessionBaseModel::updateSupportedEncryptionType);
     connect(m_authFramework, &DeepinAuthFramework::SupportedMixAuthFlagsChanged, m_model, &SessionBaseModel::updateSupportedMixAuthFlags);
-    /* com.deepin.daemon.Authenticate.Session */
+    /* org.deepin.dde.Authenticate1.Session */
     connect(m_authFramework, &DeepinAuthFramework::AuthStateChanged, this, &GreeterWorker::onAuthStateChanged);
     connect(m_authFramework, &DeepinAuthFramework::FactorsInfoChanged, m_model, &SessionBaseModel::updateFactorsInfo);
     connect(m_authFramework, &DeepinAuthFramework::FuzzyMFAChanged, m_model, &SessionBaseModel::updateFuzzyMFA);
@@ -148,7 +146,7 @@ void GreeterWorker::initConnections()
     connect(m_authFramework, &DeepinAuthFramework::SessionCreated, this, &GreeterWorker::onSessionCreated);
 
     /* org.freedesktop.login1.Session */
-    connect(m_login1SessionSelf, &Login1SessionSelf::ActiveChanged, this, [=](bool active) {
+    connect(m_login1SessionSelf, &Login1SessionSelf::ActiveChanged, this, [ = ](bool active) {
         qInfo() << "Login1SessionSelf::ActiveChanged:" << active;
         if (m_model->currentUser() == nullptr || m_model->currentUser()->name().isEmpty()) {
             return;
@@ -159,7 +157,7 @@ void GreeterWorker::initConnections()
             }
         } else {
             endAuthentication(m_account, AT_All);
-            destoryAuthentication(m_account);
+            destroyAuthentication(m_account);
         }
     });
 
@@ -169,14 +167,14 @@ void GreeterWorker::initConnections()
     });
 
     /* org.freedesktop.login1.Manager */
-    connect(m_login1Inter, &DBusLogin1Manager::PrepareForSleep, this, [=](bool isSleep) {
+    connect(m_login1Inter, &DBusLogin1Manager::PrepareForSleep, this, [ = ](bool isSleep) {
         qInfo() << "DBusLogin1Manager::PrepareForSleep:" << isSleep;
         // 登录界面待机或休眠时提供显示假黑屏，唤醒时显示正常界面
         m_model->setIsBlackMode(isSleep);
 
         if (isSleep) {
             endAuthentication(m_account, AT_All);
-            destoryAuthentication(m_account);
+            destroyAuthentication(m_account);
         } else {
             if (!m_model->currentUser()->isNoPasswordLogin()) {
                 createAuthentication(m_model->currentUser()->name());
@@ -187,7 +185,7 @@ void GreeterWorker::initConnections()
         qInfo() << "DBusLogin1Manager::SessionRemoved";
         if (m_model->updateCurrentUser(m_lockInter->CurrentUser())) {
             m_model->updateAuthState(AT_All, AS_Cancel, "Cancel");
-            destoryAuthentication(m_account);
+            destroyAuthentication(m_account);
             if (!m_model->currentUser()->isNoPasswordLogin()) {
                 createAuthentication(m_model->currentUser()->name());
             } else {
@@ -196,8 +194,8 @@ void GreeterWorker::initConnections()
         }
         m_soundPlayerInter->PrepareShutdownSound(static_cast<int>(m_model->currentUser()->uid()));
     });
-    /* com.deepin.dde.LockService */
-    connect(m_lockInter, &DBusLockService::UserChanged, this, [=](const QString &json) {
+    /* org.deepin.dde.LockService1 */
+    connect(m_lockInter, &DBusLockService::UserChanged, this, [ = ](const QString &json) {
         qInfo() << "DBusLockService::UserChanged:" << json;
         // 如果是已登录用户则返回，否则已登录用户和未登录用户来回切换时会造成用户信息错误
         std::shared_ptr<User> user_ptr = m_model->json2User(json);
@@ -212,11 +210,18 @@ void GreeterWorker::initConnections()
             m_account = account;
         }
         QTimer::singleShot(100, this, [ = ] {
-            m_model->setCurrentModeState(SessionBaseModel::ModeStatus::PasswordMode);
+            if (m_model->appType() == AppType::Login) {
+                // 管理员账户且密码过期的情况下，设置当前状态为ResetPasswdMode，从而方便直接跳转到重置密码界面
+                bool showReset = m_model->currentUser()->expiredState() == User::ExpiredState::ExpiredAlready
+                        && m_model->currentUser()->accountType() == User::AccountType::Admin;
+                m_model->setCurrentModeState(showReset ? SessionBaseModel::ModeStatus::ResetPasswdMode : SessionBaseModel::ModeStatus::PasswordMode);
+            } else {
+                m_model->setCurrentModeState(SessionBaseModel::ModeStatus::PasswordMode);
+            }
         });
     });
     /* model */
-    connect(m_model, &SessionBaseModel::authTypeChanged, this, [=](const int type) {
+    connect(m_model, &SessionBaseModel::authTypeChanged, this, [ = ](const int type) {
         qInfo() << "Auth type changed: " << type;
         if (type > 0 && m_model->getAuthProperty().MFAFlag) {
             startAuthentication(m_account, m_model->getAuthProperty().AuthType);
@@ -225,7 +230,7 @@ void GreeterWorker::initConnections()
     });
     connect(m_model, &SessionBaseModel::onPowerActionChanged, this, &GreeterWorker::doPowerAction);
     connect(m_model, &SessionBaseModel::currentUserChanged, this, &GreeterWorker::onCurrentUserChanged);
-    connect(m_model, &SessionBaseModel::visibleChanged, this, [=](bool visible) {
+    connect(m_model, &SessionBaseModel::visibleChanged, this, [ = ](bool visible) {
         if (visible) {
             if (!m_model->isServerModel()
                 && (!m_model->currentUser()->isNoPasswordLogin() || m_model->currentUser()->expiredState() == User::ExpiredAlready)) {
@@ -235,8 +240,8 @@ void GreeterWorker::initConnections()
             m_resetSessionTimer->stop();
         }
     });
-    /* 数字键盘状态 */
-    connect(KeyboardMonitor::instance(), &KeyboardMonitor::numlockStatusChanged, this, [=](bool on) {
+    /* others */
+    connect(KeyboardMonitor::instance(), &KeyboardMonitor::numlockStatusChanged, this, [ = ](bool on) {
         saveNumlockState(m_model->currentUser(), on);
     });
 
@@ -261,7 +266,7 @@ void GreeterWorker::initData()
     if (isSecurityEnhanceOpen())
         m_model->setSEType(true);
 
-    /* com.deepin.daemon.Accounts */
+    /* org.deepin.dde.Accounts */
     m_model->updateUserList(m_accountsInter->userList());
     m_model->updateLastLogoutUser(m_loginedInter->lastLogoutUser());
     m_model->updateLoginedUserList(m_loginedInter->userList());
@@ -280,16 +285,16 @@ void GreeterWorker::initData()
         if (DSysInfo::deepinType() == DSysInfo::DeepinServer || valueByQSettings<bool>("", "loginPromptInput", false)) {
             m_model->updateCurrentUser(user);
         } else {
-            /* com.deepin.dde.LockService */
+            /* org.deepin.dde.LockService1 */
             m_model->updateCurrentUser(m_lockInter->CurrentUser());
         }
     } else {
-        /* com.deepin.dde.LockService */
+        /* org.deepin.dde.LockService1 */
         m_model->updateCurrentUser(m_lockInter->CurrentUser());
     }
     m_soundPlayerInter->PrepareShutdownSound(static_cast<int>(m_model->currentUser()->uid()));
 
-    /* com.deepin.daemon.Authenticate */
+    /* org.deepin.dde.Authenticate1 */
     if (m_authFramework->isDeepinAuthValid()) {
         m_model->updateFrameworkState(m_authFramework->GetFrameworkState());
         m_model->updateSupportedEncryptionType(m_authFramework->GetSupportedEncrypts());
@@ -311,7 +316,7 @@ void GreeterWorker::initConfiguration()
 
     // 当这个配置不存在是，如果是不是笔记本就打开小键盘，否则就关闭小键盘 0关闭键盘 1打开键盘 2默认值（用来判断是不是有这个key）
     if (m_model->currentUser() != nullptr && getNumLockState(m_model->currentUser()->name()) == NUM_LOCK_UNKNOWN) {
-        PowerInter powerInter("com.deepin.system.Power", "/com/deepin/system/Power", QDBusConnection::systemBus(), this);
+        PowerInter powerInter("org.deepin.dde.Power1", "/org/deepin/dde/Power1", QDBusConnection::systemBus(), this);
         if (powerInter.hasBattery()) {
             saveNumlockState(m_model->currentUser(), false);
         } else {
@@ -384,7 +389,7 @@ void GreeterWorker::switchToUser(std::shared_ptr<User> user)
     } else {
         setCurrentUser(user);
         m_model->updateAuthState(AT_All, AS_Cancel, "Cancel");
-        destoryAuthentication(m_account);
+        destroyAuthentication(m_account);
         m_model->updateCurrentUser(user);
         if (!user->isNoPasswordLogin()) {
             createAuthentication(user->name());
@@ -488,9 +493,9 @@ void GreeterWorker::createAuthentication(const QString &account)
  *
  * @param account
  */
-void GreeterWorker::destoryAuthentication(const QString &account)
+void GreeterWorker::destroyAuthentication(const QString &account)
 {
-    qDebug() << "GreeterWorker::destoryAuthentication:" << account;
+    qDebug() << "GreeterWorker::destroyAuthentication:" << account;
     switch (m_model->getAuthProperty().FrameworkState) {
     case Available:
         m_authFramework->DestroyAuthController(account);
@@ -629,7 +634,7 @@ void GreeterWorker::checkAccount(const QString &account)
         m_resetSessionTimer->stop();
         endAuthentication(m_account, AT_All);
         m_model->updateAuthState(AT_All, AS_Cancel, "Cancel");
-        destoryAuthentication(m_account);
+        destroyAuthentication(m_account);
         createAuthentication(user_ptr->name());
     }
 }
@@ -640,8 +645,8 @@ void GreeterWorker::checkDBusServer(bool isValid)
         m_accountsInter->userList();
     } else {
         // FIXME: 我不希望这样做，但是QThread::msleep会导致无限递归
-        QTimer::singleShot(300, this, [=] {
-            qWarning() << "com.deepin.daemon.Accounts is not start, rechecking!";
+        QTimer::singleShot(300, this, [ = ] {
+            qWarning() << "org.deepin.dde.Accounts1 is not start, rechecking!";
             checkDBusServer(m_accountsInter->isValid());
         });
     }
@@ -722,7 +727,7 @@ void GreeterWorker::authenticationComplete()
 
     qInfo() << "start session = " << m_model->sessionKey();
 
-    auto startSessionSync = [=]() {
+    auto startSessionSync = [ = ]() {
         setCurrentUser(m_model->currentUser());
         m_greeter->startSessionSync(m_model->sessionKey());
     };
@@ -730,7 +735,7 @@ void GreeterWorker::authenticationComplete()
     emit requestUpdateBackground(m_model->currentUser()->greeterBackground());
     startSessionSync();
     endAuthentication(m_account, AT_All);
-    destoryAuthentication(m_account);
+    destroyAuthentication(m_account);
 }
 
 void GreeterWorker::onAuthFinished()
@@ -766,7 +771,7 @@ void GreeterWorker::onAuthStateChanged(const int type, const int state, const QS
                 break;
             case AS_Cancel:
                 m_model->updateAuthState(type, state, message);
-                destoryAuthentication(m_account);
+                destroyAuthentication(m_account);
                 break;
             default:
                 break;
@@ -791,7 +796,7 @@ void GreeterWorker::onAuthStateChanged(const int type, const int state, const QS
                         startAuthentication(m_account, type);
                     });
                 }
-                QTimer::singleShot(50, this, [=] {
+                QTimer::singleShot(50, this, [ = ] {
                     m_model->updateAuthState(type, state, message);
                 });
                 break;
@@ -800,7 +805,7 @@ void GreeterWorker::onAuthStateChanged(const int type, const int state, const QS
                     m_model->setCurrentModeState(SessionBaseModel::ModeStatus::PasswordMode);
                 endAuthentication(m_account, type);
                 // TODO: 信号时序问题,考虑优化,Bug 89056
-                QTimer::singleShot(50, this, [=] {
+                QTimer::singleShot(50, this, [ = ] {
                     m_model->updateAuthState(type, state, message);
                 });
                 break;
@@ -830,7 +835,6 @@ void GreeterWorker::onAuthStateChanged(const int type, const int state, const QS
         case AS_Success:
             if (type == AT_Face || type == AT_Iris)
                 m_resetSessionTimer->start();
-
             break;
         case AS_Failure:
             if (AT_All != type) {
@@ -844,7 +848,7 @@ void GreeterWorker::onAuthStateChanged(const int type, const int state, const QS
             }
             break;
         case AS_Cancel:
-            destoryAuthentication(m_account);
+            destroyAuthentication(m_account);
             break;
         default:
             break;
@@ -908,6 +912,10 @@ int GreeterWorker::getNumLockState(const QString &userName)
 
 void GreeterWorker::recoveryUserKBState(std::shared_ptr<User> user)
 {
+    //FIXME(lxz)
+    //    PowerInter powerInter("org.deepin.dde.Power1", "/org/deepin/dde/Power1", QDBusConnection::systemBus(), this);
+    //    const BatteryPresentInfo info = powerInter.batteryIsPresent();
+    //    const bool defaultValue = !info.values().first();
     if (user.get() == nullptr)
         return;
 

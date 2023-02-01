@@ -18,8 +18,6 @@
 #include <QTimer>
 #include <QWindow>
 
-Q_LOGGING_CATEGORY(DDE_SS, "dss.active")
-
 DGUI_USE_NAMESPACE
 
 const int PIXMAP_TYPE_BACKGROUND = 0;
@@ -35,7 +33,7 @@ QList<FullscreenBackground *> FullscreenBackground::frameList;
 FullscreenBackground::FullscreenBackground(SessionBaseModel *model, QWidget *parent)
     : QWidget(parent)
     , m_fadeOutAni(nullptr)
-    , m_imageEffectInter(new ImageEffectInter("com.deepin.daemon.ImageEffect", "/com/deepin/daemon/ImageEffect", QDBusConnection::systemBus(), this))
+    , m_imageEffectInter(new ImageEffectInter("org.deepin.dde.ImageEffect1", "/org/deepin/dde/ImageEffect1", QDBusConnection::systemBus(), this))
     , m_model(model)
     , m_useSolidBackground(false)
     , m_fadeOutAniFinished(false)
@@ -153,16 +151,15 @@ void FullscreenBackground::setScreen(QPointer<QScreen> screen, bool isVisible)
     if (screen.isNull())
         return;
 
-    qInfo() << Q_FUNC_INFO
-            << " screen info: " << screen
-            << " screen geometry: " << screen->geometry()
-            << " lock frame object:" << this;
-    if (isVisible) {
+    qInfo() << Q_FUNC_INFO << ", init screen:" << screen << " screen geometry:"
+            << screen->geometry() << " lockframe:" << this;
+    QScreen *primary_screen = QGuiApplication::primaryScreen();
+    if (primary_screen == screen && isVisible) {
         m_content->show();
         emit contentVisibleChanged(true);
     } else {
-        // 如果有多个屏幕则根据鼠标所在的屏幕来显示
-        QTimer::singleShot(1000, this, [this] {
+        QTimer::singleShot(1000, this, [ = ] {
+            m_primaryShowFinished = true;
             setMouseTracking(true);
         });
     }
@@ -261,16 +258,16 @@ void FullscreenBackground::tryActiveWindow(int count/* = 9*/)
     if (count < 0 || m_model->isUseWayland())
         return;
 
-    qCDebug(DDE_SS) << "try active window..." << count;
+    qDebug() << "try active window..." << count;
     if (isActiveWindow()) {
-        qCDebug(DDE_SS) << "...finally activewindow is me ...";
+        qDebug() << "...finally activewindow is me ...";
         return;
     }
 
     activateWindow();
 
     if (m_content && !m_content->isVisible()) {
-        qCDebug(DDE_SS) << "hide..." << count;
+        qDebug() << "hide..." << count;
         return;
     }
     QTimer::singleShot(50 , this, std::bind(&FullscreenBackground::tryActiveWindow, this, count -1));
@@ -362,7 +359,6 @@ void FullscreenBackground::showEvent(QShowEvent *event)
     }
 
     updateGeometry();
-    raise();
     return QWidget::showEvent(event);
 }
 
@@ -403,27 +399,21 @@ void FullscreenBackground::updateScreen(QPointer<QScreen> screen)
     if (!m_screen.isNull())
         disconnect(m_screen, &QScreen::geometryChanged, this, &FullscreenBackground::updateGeometry);
 
-    if (!screen.isNull()) {
-        connect(screen, &QScreen::geometryChanged, this, [=](){
+    if (screen) {
+        connect(screen, &QScreen::geometryChanged, [=](){
             qInfo() << "screen geometry changed:" << screen << " lockframe:" << this;
-        }, Qt::ConnectionType::QueuedConnection);
-        connect(screen, &QScreen::geometryChanged, this, &FullscreenBackground::updateGeometry, Qt::ConnectionType::QueuedConnection);
+        });
+        connect(screen, &QScreen::geometryChanged, this, &FullscreenBackground::updateGeometry);
     }
 
     m_screen = screen;
-
-    updateGeometry();
 }
 
 void FullscreenBackground::updateGeometry()
 {
-    qInfo() << "set background screen:" << m_screen;
-
-    if (!m_screen.isNull()) {
-        setGeometry(m_screen->geometry());
-        qInfo() << "set background geometry:" << m_screen << m_screen->geometry() << "lockFrame:"
-                << this  << " lockframe geometry:" << this->geometry();
-    }
+    setGeometry(m_screen->geometry());
+    qInfo() << "set background geometry:" << m_screen << m_screen->geometry() << "lockFrame:"
+            << this  << " lockframe geometry:" << this->geometry();
 }
 
 /********************************************************

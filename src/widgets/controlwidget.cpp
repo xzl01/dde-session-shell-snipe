@@ -6,23 +6,23 @@
 #include "sessionbasemodel.h"
 #include "kblayoutlistview.h"
 
-#include "mediawidget.h"
 #include "modules_loader.h"
 #include "tipswidget.h"
 #include "public_func.h"
-#include "plugin_manager.h"
+#include "tipcontentwidget.h"
+#include "sessionpopupwidget.h"
+#include "sessionmanager.h"
+#include "userlistpopupwidget.h"
+#include "roundpopupwidget.h"
 
 #include <DFloatingButton>
-#include <DArrowRectangle>
 #include <DPushButton>
-#include <dimagebutton.h>
 #include <DConfig>
 #include <DRegionMonitor>
 
 #include <QEvent>
 #include <QGraphicsDropShadowEffect>
 #include <QHBoxLayout>
-#include <QPainter>
 #include <QWheelEvent>
 #include <QMenu>
 #include <QWindow>
@@ -83,14 +83,18 @@ void FloatingButton::paintEvent(QPaintEvent *event)
 
 ControlWidget::ControlWidget(const SessionBaseModel *model, QWidget *parent)
     : QWidget(parent)
-    , m_contextMenu(new QMenu(this))
-    , m_tipsWidget(new TipsWidget(this))
-    , m_arrowRectWidget(new DArrowRectangle(DArrowRectangle::ArrowBottom, this))
-    , m_kbLayoutListView(nullptr)
+    , m_mainLayout(nullptr)
+    , m_switchUserBtn(new FlotingButton(this))
+    , m_powerBtn(new FlotingButton(this))
+    , m_sessionBtn(new FlotingButton(this))
     , m_keyboardBtn(nullptr)
-    , m_onboardBtnVisible(true)
-    , m_dconfig(DConfig::create(getDefaultConfigFileName(), getDefaultConfigFileName(), QString(), this))
-    , m_doGrabKeyboard(true)
+    , m_contextMenu(new QMenu(this))
+    , m_tipContentWidget(nullptr)
+    , m_tipsWidget(new TipsWidget(parent ? parent->window() : nullptr))
+    , m_roundPopupWidget(new RoundPopupWidget(this))
+    , m_kbLayoutListView(nullptr)
+    , m_sessionPopupWidget(nullptr)
+    , m_userListPopupWidget(nullptr)
 {
     setModel(model);
     initUI();
@@ -133,57 +137,34 @@ void ControlWidget::initKeyboardLayoutList()
     if (!languageList.isEmpty())
         static_cast<QAbstractButton *>(m_keyboardBtn)->setText(languageList.at(0).toUpper());
 
-    // 无特效模式时，让窗口圆角
-    m_arrowRectWidget->setProperty("_d_radius_force", true);
-    m_arrowRectWidget->setWindowFlags(Qt::Popup | Qt::FramelessWindowHint | Qt::NoDropShadowWindowHint | Qt::WindowStaysOnTopHint);
-    m_arrowRectWidget->setMargin(0);
-    m_arrowRectWidget->setShadowBlurRadius(20);
-    m_arrowRectWidget->setRadius(6);
-    m_arrowRectWidget->setShadowYOffset(2);
-    m_arrowRectWidget->setShadowXOffset(0);
-    m_arrowRectWidget->setArrowWidth(18);
-    m_arrowRectWidget->setArrowHeight(10);
-    m_arrowRectWidget->setMinimumWidth(DDESESSIONCC::KEYBOARD_LAYOUT_WIDTH);
-    m_arrowRectWidget->setMaximumSize(DDESESSIONCC::KEYBOARD_LAYOUT_WIDTH, DDESESSIONCC::LAYOUT_BUTTON_HEIGHT * 7);
-    m_arrowRectWidget->setFocusPolicy(Qt::NoFocus);
-    m_arrowRectWidget->setBackgroundColor(QColor(235, 235, 235, int(0.05 * 255)));
-    m_arrowRectWidget->installEventFilter(this);
-
-    QPalette pal = m_arrowRectWidget->palette();
-    pal.setColor(DPalette::Inactive, DPalette::Base, QColor(235, 235, 235, int(0.05 * 255)));
-    setPalette(pal);
-
+    m_kbLayoutListView->setVisible(false);
     connect(m_kbLayoutListView, &KBLayoutListView::itemClicked, this, &ControlWidget::onItemClicked);
-}
-
-void ControlWidget::setVirtualKBVisible(bool visible)
-{
-    m_onboardBtnVisible = visible;
-    m_virtualKBBtn->setVisible(visible && !m_dconfig->value("hideOnboard", false).toBool());
 }
 
 void ControlWidget::initUI()
 {
+    m_tipsWidget->setVisible(false);
+
     m_mainLayout = new QHBoxLayout(this);
     m_mainLayout->setContentsMargins(0, 0, 60, 0);
     m_mainLayout->setSpacing(26);
     m_mainLayout->setAlignment(Qt::AlignRight | Qt::AlignBottom);
 
-    m_sessionBtn = new FloatingButton(this);
     m_sessionBtn->setIconSize(BUTTON_ICON_SIZE);
     m_sessionBtn->setFixedSize(BUTTON_SIZE);
     m_sessionBtn->setAutoExclusive(true);
     m_sessionBtn->setBackgroundRole(DPalette::Button);
     m_sessionBtn->hide();
+    m_sessionBtn->setTipText(tr("Desktop Environment and Display Protocol"));
 
-    m_keyboardBtn = new FloatingButton(this);
+    m_keyboardBtn = new FlotingButton(this);
     m_keyboardBtn->setAccessibleName("KeyboardLayoutBtn");
     m_keyboardBtn->setFixedSize(BUTTON_SIZE);
     m_keyboardBtn->setAutoExclusive(true);
     m_keyboardBtn->setBackgroundRole(DPalette::Button);
     m_keyboardBtn->setAutoExclusive(true);
     static_cast<QAbstractButton *>(m_keyboardBtn)->setText(QString());
-    m_keyboardBtn->installEventFilter(this);
+    m_keyboardBtn->setTipText(tr("Keyboard Layout"));
 
     // 给显示文字的按钮设置样式
     QPalette pal = m_keyboardBtn->palette();
@@ -192,46 +173,27 @@ void ControlWidget::initUI()
     pal.setColor(QPalette::Highlight, Qt::white);
     m_keyboardBtn->setPalette(pal);
 
-    m_virtualKBBtn = new FloatingButton(this);
-    m_virtualKBBtn->setAccessibleName("VirtualKeyboardBtn");
-    m_virtualKBBtn->setIcon(QIcon::fromTheme(":/img/screen_keyboard_hover.svg"));
-    m_virtualKBBtn->hide();
-    m_virtualKBBtn->setIconSize(BUTTON_ICON_SIZE);
-    m_virtualKBBtn->setFixedSize(BUTTON_SIZE);
-    m_virtualKBBtn->setAutoExclusive(true);
-    m_virtualKBBtn->setBackgroundRole(DPalette::Button);
-    m_virtualKBBtn->installEventFilter(this);
-
-    m_switchUserBtn = new FloatingButton(this);
     m_switchUserBtn->setAccessibleName("SwitchUserBtn");
     m_switchUserBtn->setIcon(QIcon::fromTheme(":/img/bottom_actions/userswitch_hover.svg"));
     m_switchUserBtn->setIconSize(BUTTON_ICON_SIZE);
     m_switchUserBtn->setFixedSize(BUTTON_SIZE);
     m_switchUserBtn->setAutoExclusive(true);
     m_switchUserBtn->setBackgroundRole(DPalette::Button);
-    m_switchUserBtn->installEventFilter(this);
+    m_switchUserBtn->setTipText(tr("Switch User"));
 
-    m_powerBtn = new FloatingButton(this);
     m_powerBtn->setAccessibleName("PowerBtn");
     m_powerBtn->setIcon(QIcon(":/img/bottom_actions/shutdown_hover.svg"));
     m_powerBtn->setIconSize(BUTTON_ICON_SIZE);
     m_powerBtn->setFixedSize(BUTTON_SIZE);
     m_powerBtn->setAutoExclusive(true);
     m_powerBtn->setBackgroundRole(DPalette::Button);
-    m_powerBtn->installEventFilter(this);
-
-    m_btnList.append(m_sessionBtn);
-    m_btnList.append(m_keyboardBtn);
-    m_btnList.append(m_virtualKBBtn);
-    m_btnList.append(m_switchUserBtn);
-    m_btnList.append(m_powerBtn);
+    m_powerBtn->setTipText(tr("Power"));
 
     if (m_curUser->keyboardLayoutList().size() < 2)
         m_keyboardBtn->hide();
 
     m_mainLayout->addWidget(m_sessionBtn);
     m_mainLayout->addWidget(m_keyboardBtn);
-    m_mainLayout->addWidget(m_virtualKBBtn);
     m_mainLayout->addWidget(m_switchUserBtn);
     m_mainLayout->addWidget(m_powerBtn);
 
@@ -250,23 +212,25 @@ void ControlWidget::initUI()
 
 void ControlWidget::initConnect()
 {
-    connect(PluginManager::instance(), &PluginManager::trayPluginAdded, this, &ControlWidget::addModule);
-    connect(m_sessionBtn, &DFloatingButton::clicked, this, &ControlWidget::requestSwitchSession);
-    connect(m_switchUserBtn, &DFloatingButton::clicked, this, &ControlWidget::requestSwitchUser);
-    connect(m_powerBtn, &DFloatingButton::clicked, this, &ControlWidget::requestShutdown);
-    connect(m_virtualKBBtn, &DFloatingButton::clicked, this, &ControlWidget::requestSwitchVirtualKB);
-    connect(m_keyboardBtn, &DFloatingButton::clicked, this, &ControlWidget::setKBLayoutVisible);
+    connect(&module::ModulesLoader::instance(), &module::ModulesLoader::moduleFound, this, &ControlWidget::addModule);
+
+    connect(m_sessionBtn, &FlotingButton::clicked, this, &ControlWidget::showSessionPopup);
+    connect(m_sessionBtn, &FlotingButton::requestShowTips, this, &ControlWidget::showInfoTips);
+    connect(m_sessionBtn, &FlotingButton::requestHideTips, this, &ControlWidget::hideInfoTips);
+
+    connect(m_switchUserBtn, &FlotingButton::clicked, this, &ControlWidget::showUserListPopupWidget);
+    connect(m_switchUserBtn, &FlotingButton::requestShowTips, this, &ControlWidget::showInfoTips);
+    connect(m_switchUserBtn, &FlotingButton::requestHideTips, this, &ControlWidget::hideInfoTips);
+
+    connect(m_powerBtn, &FlotingButton::clicked, this, &ControlWidget::requestShutdown);
+    connect(m_powerBtn, &FlotingButton::requestShowTips, this, &ControlWidget::showInfoTips);
+    connect(m_powerBtn, &FlotingButton::requestHideTips, this, &ControlWidget::hideInfoTips);
+
+    connect(m_keyboardBtn, &FlotingButton::clicked, this, &ControlWidget::setKBLayoutVisible);
+    connect(m_keyboardBtn, &FlotingButton::requestShowTips, this, &ControlWidget::showInfoTips);
+    connect(m_keyboardBtn, &FlotingButton::requestHideTips, this, &ControlWidget::hideInfoTips);
+
     connect(m_model, &SessionBaseModel::currentUserChanged, this, &ControlWidget::setUser);
-    connect(m_dconfig, &DConfig::valueChanged, this, [this] (const QString &key) {
-        if (m_virtualKBBtn && key == "hideOnboard") {
-            m_virtualKBBtn->setVisible(m_onboardBtnVisible && !m_dconfig->value("hideOnboard", false).toBool());
-        }
-    });
-    connect(m_model, &SessionBaseModel::hidePluginMenu, m_contextMenu, [this] {
-        m_contextMenu->close();
-        // 重置密码弹窗弹出的时候不重新抓取键盘，否则会导致重置密码弹窗无法抓取键盘
-        m_doGrabKeyboard = false;
-    });
 }
 
 void ControlWidget::addModule(TrayPlugin *trayModule)
@@ -292,8 +256,6 @@ void ControlWidget::addModule(TrayPlugin *trayModule)
     }
 
     m_modules.insert(trayModule->key(), button);
-    // button的顺序与layout插入顺序保持一直
-    m_btnList.insert(1, button);
 
     connect(button, &FloatingButton::requestShowMenu, this, [ = ] {
         const QString menuJson = trayModule->itemContextMenu();
@@ -334,7 +296,8 @@ void ControlWidget::addModule(TrayPlugin *trayModule)
     connect(button, &FloatingButton::requestShowTips, this, [ = ] {
         if (trayModule->itemTipsWidget()) {
             m_tipsWidget->setContent(trayModule->itemTipsWidget());
-            m_tipsWidget->show(mapToGlobal(button->pos()).x() + button->width() / 2,mapToGlobal(button->pos()).y());
+            QPoint p = m_tipsWidget->parentWidget() ? m_tipsWidget->parentWidget()->mapFromGlobal(mapToGlobal(button->pos())) : mapToGlobal(button->pos());
+            m_tipsWidget->show(p.x() + button->width() / 2, p.y());
         }
     });
 
@@ -352,20 +315,6 @@ void ControlWidget::addModule(TrayPlugin *trayModule)
     updateLayout();
 }
 
-void ControlWidget::removeModule(TrayPlugin *trayModule)
-{
-    QMap<QString, QWidget *>::const_iterator i = m_modules.constBegin();
-    while (i != m_modules.constEnd()) {
-        if (i.key() == trayModule->key()) {
-            m_modules.remove(i.key());
-            m_btnList.removeAll(dynamic_cast<DFloatingButton *>(i.value()));
-            updateLayout();
-            break;
-        }
-        ++i;
-    }
-}
-
 void ControlWidget::updateLayout()
 {
     QObjectList moduleWidgetList = m_mainLayout->children();
@@ -378,39 +327,13 @@ void ControlWidget::updateLayout()
     for (QObject *moduleWidget : moduleWidgetList) {
         m_mainLayout->removeWidget(qobject_cast<QWidget *>(moduleWidget));
     }
-
-    updateTapOrder();
-}
-
-void ControlWidget::showTips()
-{
-#ifndef SHENWEI_PLATFORM
-    m_tipsAni->setStartValue(QPoint(m_tipWidget->width(), 0));
-    m_tipsAni->setEndValue(QPoint());
-    m_tipsAni->start();
-#else
-    m_sessionTip->move(0, 0);
-#endif
-}
-
-void ControlWidget::hideTips()
-{
-#ifndef SHENWEI_PLATFORM
-    //在退出动画时候会出现白边，+1
-    m_tipsAni->setEndValue(QPoint(m_tipWidget->width() + 1, 0));
-    m_tipsAni->setStartValue(QPoint());
-    m_tipsAni->start();
-#else
-    m_sessionTip->move(m_tipWidget->width() + 1, 0);
-#endif
 }
 
 void ControlWidget::setUserSwitchEnable(const bool visible)
 {
     m_switchUserBtn->setVisible(visible);
-    if (m_btnList.indexOf(m_switchUserBtn) == m_index) {
-        m_index = 0;
-    }
+
+    updateTapOrder();
 }
 
 void ControlWidget::setSessionSwitchEnable(const bool visible)
@@ -420,51 +343,12 @@ void ControlWidget::setSessionSwitchEnable(const bool visible)
         return;
     }
 
-        m_sessionBtn->show();
-#ifndef SHENWEI_PLATFORM
-        m_sessionBtn->installEventFilter(this);
-#else
-        m_sessionBtn->setProperty("normalIcon", ":/img/sessions/unknown_indicator_normal.svg");
-        m_sessionBtn->setProperty("hoverIcon", ":/img/sessions/unknown_indicator_hover.svg");
-        m_sessionBtn->setProperty("checkedIcon", ":/img/sessions/unknown_indicator_press.svg");
+    m_sessionBtn->show();
 
-#endif
-
-    if (!m_tipWidget) {
-        m_tipWidget = new QWidget;
-        m_tipWidget->setAccessibleName("TipWidget");
-        m_mainLayout->insertWidget(0, m_tipWidget);
-        m_mainLayout->setAlignment(m_tipWidget, Qt::AlignCenter);
-    }
-
-    if (!m_sessionTip) {
-        m_sessionTip = new QLabel(m_tipWidget);
-        m_sessionTip->setAccessibleName("SessionTip");
-        m_sessionTip->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
-        m_sessionTip->installEventFilter(this);
-
-#ifndef SHENWEI_PLATFORM
-        m_sessionTip->setStyleSheet("color:white;"
-                                    "font-size:12px;");
-#else
-        QPalette pe;
-        pe.setColor(QPalette::WindowText, Qt::white);
-        m_sessionTip->setPalette(pe);
-#endif
-
-        QGraphicsDropShadowEffect *tipsShadow = new QGraphicsDropShadowEffect(m_sessionTip);
-        tipsShadow->setColor(Qt::white);
-        tipsShadow->setBlurRadius(4);
-        tipsShadow->setOffset(0, 0);
-        m_sessionTip->setGraphicsEffect(tipsShadow);
-
-        m_sessionTip->move(m_tipWidget->width(), 0);
-    }
-
-#ifndef SHENWEI_PLATFORM
-    if (!m_tipsAni) {
-        m_tipsAni = new QPropertyAnimation(m_sessionTip, "pos", this);
-    }
+#ifdef SHENWEI_PLATFORM
+    m_sessionBtn->setProperty("normalIcon", ":/img/sessions/unknown_indicator_normal.svg");
+    m_sessionBtn->setProperty("hoverIcon", ":/img/sessions/unknown_indicator_hover.svg");
+    m_sessionBtn->setProperty("checkedIcon", ":/img/sessions/unknown_indicator_press.svg");
 #endif
 
     updateTapOrder();
@@ -472,99 +356,43 @@ void ControlWidget::setSessionSwitchEnable(const bool visible)
 
 void ControlWidget::chooseToSession(const QString &session)
 {
-    if (m_sessionBtn && m_sessionTip) {
-        qDebug() << "chosen session: " << session;
-        if (session.isEmpty())
-            return;
+    if (!m_sessionBtn || session.isEmpty()) {
+        return;
+    }
 
-        m_sessionTip->setText(session);
-        if (session == "deepin") {
-            m_sessionTip->setText("X11");
-        }
+    const QString sessionId = session.toLower();
+    QString normalIcon = QString(":/img/sessions/%1_indicator_normal.svg").arg(sessionId);
+    if (sessionId == "deepin") {
+        normalIcon = QString(":/img/sessions/%1_indicator_normal.svg").arg("x11");
+    }
 
-        m_sessionTip->adjustSize();
-        //当session长度改变时，应该移到它的width来隐藏
-        m_sessionTip->move(m_sessionTip->size().width() + 1, 0);
-        const QString sessionId = session.toLower();
-        QString normalIcon = QString(":/img/sessions/%1_indicator_normal.svg").arg(sessionId);
-        if (sessionId == "deepin") {
-            normalIcon = QString(":/img/sessions/%1_indicator_normal.svg").arg("x11");
-        }
-
-        if (QFile(normalIcon).exists()) {
+    if (QFile(normalIcon).exists()) {
 #ifndef SHENWEI_PLATFORM
-            m_sessionBtn->setIcon(QIcon::fromTheme(normalIcon));
+        m_sessionBtn->setIcon(QIcon::fromTheme(normalIcon));
 #else
-            m_sessionBtn->setProperty("normalIcon", normalIcon);
-            m_sessionBtn->setProperty("hoverIcon", hoverIcon);
-            m_sessionBtn->setProperty("checkedIcon", checkedIcon);
+        m_sessionBtn->setProperty("normalIcon", normalIcon);
+        m_sessionBtn->setProperty("hoverIcon", hoverIcon);
+        m_sessionBtn->setProperty("checkedIcon", checkedIcon);
 #endif
-        } else {
+    } else {
 #ifndef SHENWEI_PLATFORM
-            m_sessionBtn->setIcon(QIcon::fromTheme(":/img/sessions/unknown_indicator_normal.svg"));
+        m_sessionBtn->setIcon(QIcon::fromTheme(":/img/sessions/unknown_indicator_normal.svg"));
 #else
-            m_sessionBtn->setProperty("normalIcon", ":/img/sessions/unknown_indicator_normal.svg");
-            m_sessionBtn->setProperty("hoverIcon", ":/img/sessions/unknown_indicator_hover.svg");
-            m_sessionBtn->setProperty("checkedIcon", ":/img/sessions/unknown_indicator_press.svg");
+        m_sessionBtn->setProperty("normalIcon", ":/img/sessions/unknown_indicator_normal.svg");
+        m_sessionBtn->setProperty("hoverIcon", ":/img/sessions/unknown_indicator_hover.svg");
+        m_sessionBtn->setProperty("checkedIcon", ":/img/sessions/unknown_indicator_press.svg");
 #endif
-        }
     }
-}
-
-void ControlWidget::leftKeySwitch()
-{
-    if (m_index == 0) {
-        m_index = m_btnList.length() - 1;
-    } else {
-        --m_index;
-    }
-
-    for (int i = m_btnList.size(); i != 0; --i) {
-        int index = (m_index + i) % m_btnList.size();
-
-        if (m_btnList[index]->isVisible()) {
-            m_index = index;
-            break;
-        }
-    }
-
-    m_btnList.at(m_index)->setFocus();
-}
-
-void ControlWidget::rightKeySwitch()
-{
-    if (m_index == m_btnList.size() - 1) {
-        m_index = 0;
-    } else {
-        ++m_index;
-    }
-
-    for (int i = 0; i < m_btnList.size(); ++i) {
-        int index = (m_index + i) % m_btnList.size();
-
-        if (m_btnList[index]->isVisible()) {
-            m_index = index;
-            break;
-        }
-    }
-
-    m_btnList.at(m_index)->setFocus();
 }
 
 void ControlWidget::setKBLayoutVisible()
 {
-    DFloatingButton *layoutButton = static_cast<DFloatingButton *>(sender());
-    if (!layoutButton)
+    FlotingButton *clickedButton = static_cast<FlotingButton *>(sender());
+    if (!clickedButton)
         return;
 
-    if (!m_arrowRectWidget->getContent()) {
-        m_arrowRectWidget->setContent(m_kbLayoutListView);
-    }
-    m_arrowRectWidget->resize(m_kbLayoutListView->size() + QSize(0, 10));
-
-    QPoint pos = QPoint(mapToGlobal(layoutButton->pos()).x() + layoutButton->width() / 2, mapToGlobal(layoutButton->pos()).y());
-    m_arrowRectWidget->move(pos.x(), pos.y());
-    m_arrowRectWidget->setVisible(!m_arrowRectWidget->isVisible());
+    m_roundPopupWidget->setContent(m_kbLayoutListView);
+    showPopupWidget(clickedButton);
 }
 
 void ControlWidget::setKeyboardType(const QString &str)
@@ -601,82 +429,159 @@ void ControlWidget::onItemClicked(const QString &str)
     if (currentText.contains("/"))
         currentText = currentText.split("/").last();
 
-    static_cast<QAbstractButton *>(m_keyboardBtn)->setText(currentText.toUpper());
-    m_arrowRectWidget->hide();
+    static_cast<QAbstractButton *>(m_keyboardBtn)->setText(currentText);
+    m_roundPopupWidget->hide();
     m_curUser->setKeyboardLayout(str);
 }
 
-void ControlWidget::updateModuleVisible()
+void ControlWidget::showSessionPopup()
 {
-    for (QWidget *moduleWidget : m_modules.values()) {
-        moduleWidget->setVisible(m_model->currentModeState() == SessionBaseModel::ModeStatus::PasswordMode);
+    if (!m_sessionPopupWidget) {
+        m_sessionPopupWidget = new SessionPopupWidget(this);
+        connect(m_sessionPopupWidget, &SessionPopupWidget::sessionItemClicked, [this](QString session) {
+            m_roundPopupWidget->hide();
+            Q_EMIT requestSwitchSession(session);
+        });
+
+        m_sessionPopupWidget->setSessionInfo(SessionManager::Reference().sessionInfo(),
+                                             SessionManager::Reference().currentSession());
+    } else {
+        m_sessionPopupWidget->updateCurrentSession(SessionManager::Reference().currentSession());
     }
+
+    m_roundPopupWidget->setContent(m_sessionPopupWidget);
+    showPopupWidget(m_sessionBtn);
 }
 
-bool ControlWidget::eventFilter(QObject *watched, QEvent *event)
+void ControlWidget::showUserListPopupWidget()
 {
-#ifndef SHENWEI_PLATFORM
-    if (watched == m_sessionBtn) {
-        if (event->type() == QEvent::Enter)
-            showTips();
-        else if (event->type() == QEvent::Leave)
-            hideTips();
+    if (!m_userListPopupWidget) {
+        m_userListPopupWidget = new UserListPopupWidget(m_model, this);
+        connect(m_userListPopupWidget, &UserListPopupWidget::requestSwitchToUser, [ this ](std::shared_ptr<User> user) {
+            m_roundPopupWidget->hide();
+            Q_EMIT requestSwitchUser(user);
+        });
     }
 
-    if (watched == m_sessionTip) {
-        if (event->type() == QEvent::Resize) {
-            m_tipWidget->setFixedSize(m_sessionTip->size());
-        }
-    }
-
-    DFloatingButton *btn = qobject_cast<DFloatingButton *>(watched);
-    if (btn && m_btnList.contains(btn)) {
-        if (event->type() == QEvent::Enter) {
-            m_index = m_btnList.indexOf(btn);
-        }
-    }
-
-    if (watched == m_arrowRectWidget && event->type() == QEvent::Hide) {
-        emit notifyKeyboardLayoutHidden();
-    }
-
-#else
-    Q_UNUSED(watched);
-    Q_UNUSED(event);
-#endif
-    return false;
+    m_roundPopupWidget->setContent(m_userListPopupWidget);
+    showPopupWidget(m_switchUserBtn);
 }
 
 void ControlWidget::keyReleaseEvent(QKeyEvent *event)
 {
-    switch (event->key()) {
-    case Qt::Key_Left:
-        leftKeySwitch();
-        break;
-    case Qt::Key_Right:
-        rightKeySwitch();
-        break;
-    case Qt::Key_Tab:
-        auto it = std::find_if(m_btnList.begin(), m_btnList.end(),
-                               [](DFloatingButton *btn) { return btn->hasFocus(); });
-        m_index = it != m_btnList.end() ? m_btnList.indexOf(it.i->t()) : 0;
-        break;
+    // 处理键盘上左右键焦点切换；本身支持左右焦点切换，但最左和最右切换的时候不能循环焦点，需单独处理
+    static int currentIndex = -1;
+    int key = event->key();
+    switch (key) {
+        case Qt::Key_Left:
+            if (currentIndex == 0 && m_showedBtnList.last()) {
+                m_showedBtnList.last()->setFocus();
+            }
+            break;
+        case Qt::Key_Right:
+            if ((currentIndex + 1) == m_showedBtnList.count() && m_showedBtnList.first()) {
+                m_showedBtnList.first()->setFocus();
+            }
+            break;
+        default:
+            break;
     }
+
+    if (key == Qt::Key_Tab || key == Qt::Key_Left || key == Qt::Key_Right) {
+        currentIndex = focusedBtnIndex();
+    }
+
+    QWidget::keyReleaseEvent(event);
 }
 
 void ControlWidget::updateTapOrder()
 {
-    // 找出所有按钮
-    QList<DFloatingButton*> buttons;
+    // 找出所有显示的按钮
+    m_showedBtnList.clear();
     for(int i = 0; i < m_mainLayout->count(); ++i) {
-        DFloatingButton *btn = qobject_cast<DFloatingButton *>(m_mainLayout->itemAt(i)->widget());
-        if (btn)
-            buttons.append(btn);
+        FlotingButton *btn = qobject_cast<FlotingButton *>(m_mainLayout->itemAt(i)->widget());
+        if (btn && btn->isVisible()) {
+            m_showedBtnList.append(btn);
+        }
     }
 
     // 按从左到右的顺序设置tab order
-    for (int i = 0; i < buttons.size(); ++i) {
-        if ((i + 1) < buttons.size())
-            setTabOrder(buttons[i], buttons[i + 1]);
+    for (int i = 0; i < m_showedBtnList.size(); ++i) {
+        if ((i + 1) < m_showedBtnList.size()) {
+            setTabOrder(m_showedBtnList[i], m_showedBtnList[i + 1]);
+        }
     }
+}
+
+int ControlWidget::focusedBtnIndex()
+{
+    for (int index = 0; index < m_showedBtnList.count(); index++) {
+        FlotingButton *btn = m_showedBtnList.at(index);
+        if (btn && btn->hasFocus()) {
+            return index;
+        }
+    }
+
+    return -1;
+}
+
+void ControlWidget::showInfoTips()
+{
+    FlotingButton * button = qobject_cast<FlotingButton *>(sender());
+    if (!button) {
+        return;
+    }
+
+    if (!m_tipContentWidget) {
+        m_tipContentWidget = new TipContentWidget(this);
+    }
+
+    m_tipContentWidget->setText(button->tipText());
+    m_tipsWidget->setContent(m_tipContentWidget);
+
+    m_tipsWidget->show(mapToGlobal(button->pos()).x() + button->width() / 2, mapToGlobal(button->pos()).y());
+}
+
+void ControlWidget::hideInfoTips()
+{
+    if (m_tipsWidget->getContent()) {
+        m_tipsWidget->getContent()->setVisible(false);
+    }
+
+    m_tipsWidget->hide();
+}
+
+void ControlWidget::showEvent(QShowEvent *event)
+{
+    updateTapOrder();
+
+    QWidget::showEvent(event);
+}
+
+void ControlWidget::showPopupWidget(const FlotingButton *clickedBtn)
+{
+    if (!m_roundPopupWidget || !clickedBtn || !topLevelWidget())
+        return;
+
+    if (m_roundPopupWidget->isVisible()) {
+        m_roundPopupWidget->setVisible(false);
+        return;
+    }
+
+    // 设计弹窗离右边距和底部按钮距离
+    const int rightMargin = 10;
+    const int bottomMargin = 10;
+
+    QPoint pos = mapToGlobal(clickedBtn->pos()) - QPoint((m_roundPopupWidget->width() - clickedBtn->width()) / 2 - rightMargin,
+                                                              m_roundPopupWidget->height() + bottomMargin);
+
+    // 保证页面显示没超出显示屏幕范围
+    QRect topWidgetRect = topLevelWidget()->frameGeometry();
+    if ((pos.x() + m_roundPopupWidget->width() + rightMargin) > (topWidgetRect.x() + topWidgetRect.width())) {
+        int leftMoveValue = pos.x() + m_roundPopupWidget->width() + rightMargin - (topWidgetRect.x() + topWidgetRect.width());
+        pos.setX(pos.x() - leftMoveValue);
+    }
+
+    m_roundPopupWidget->setGeometry(QRect(pos, m_roundPopupWidget->size()));
+    m_roundPopupWidget->setVisible(true);
 }

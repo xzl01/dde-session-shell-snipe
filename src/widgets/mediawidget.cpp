@@ -62,7 +62,7 @@ void MediaWidget::initMediaPlayer()
                 qDebug() << "media player dbus has not started, waiting for signal...";
                 QDBusConnectionInterface *dbusDaemonInterface = QDBusConnection::sessionBus().interface();
                 connect(dbusDaemonInterface, &QDBusConnectionInterface::serviceOwnerChanged, this,
-                        [=](const QString &name, const QString &oldOwner, const QString &newOwner) {
+                        [ = ](const QString &name, const QString &oldOwner, const QString &newOwner) {
                             Q_UNUSED(oldOwner)
                             if (name.startsWith("org.mpris.MediaPlayer2.") && !newOwner.isEmpty()) {
                                 initMediaPlayer();

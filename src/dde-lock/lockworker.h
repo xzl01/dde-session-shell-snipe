@@ -11,21 +11,22 @@
 #include "dbuslogin1manager.h"
 #include "deepinauthframework.h"
 #include "sessionbasemodel.h"
-#include "switchos_interface.h"
+#include "huaweiswitchos_interface.h"
 #include "userinfo.h"
+
+#include "accounts_interface.h"
+#include "logined_interface.h"
+#include "accountsuser_interface.h"
+#include "sessionmanager_interface.h"
 
 #include <QObject>
 #include <QWidget>
 
-#include <com_deepin_daemon_accounts.h>
-#include <com_deepin_daemon_accounts_user.h>
-#include <com_deepin_daemon_logined.h>
-#include <com_deepin_sessionmanager.h>
-
-using AccountsInter = com::deepin::daemon::Accounts;
-using UserInter = com::deepin::daemon::accounts::User;
-using LoginedInter = com::deepin::daemon::Logined;
-using SessionManagerInter = com::deepin::SessionManager;
+using AccountsInter = org::deepin::dde::Accounts1;
+using UserInter = org::deepin::dde::accounts1::User;
+using LoginedInter = org::deepin::dde::Logined1;
+using SessionManagerInter = org::deepin::dde::SessionManager1;
+using HuaWeiSwitchOSInterface = com::huawei::switchos;
 
 class SessionBaseModel;
 class LockWorker : public Auth::AuthInterface
@@ -41,9 +42,10 @@ public:
 public slots:
     /* New authentication framework */
     void createAuthentication(const QString &account);
-    void destoryAuthentication(const QString &account);
+    void destroyAuthentication(const QString &account);
     void startAuthentication(const QString &account, const int authType);
     void endAuthentication(const QString &account, const int authType);
+    void endAccountAuthentication(const QString &account, const int authType);
     void sendTokenToAuth(const QString &account, const int authType, const QString &token);
     void onEndAuthentication(const QString &account, const int authType);
 
@@ -65,22 +67,21 @@ private:
     void setLocked(const bool locked);
 
     // lock
-    void lockServiceEvent(quint32 eventType, quint32 pid, const QString &username, const QString &message);
+    void handleServiceEvent(quint32 eventType, quint32 pid, const QString &username, const QString &message);
     void onUnlockFinished(bool unlocked);
 
 private:
-    bool m_authenticating;
     bool m_isThumbAuth;
+    bool m_canAuthenticate;
     DeepinAuthFramework *m_authFramework;
     DBusLockService *m_lockInter;
     DBusHotzone *m_hotZoneInter;
+    SessionManagerInter *m_sessionManagerInter;
+    HuaWeiSwitchOSInterface *m_switchosInterface;
+
+    QMap<std::shared_ptr<User>, bool> m_lockUser;
     QTimer *m_resetSessionTimer;
     QTimer *m_limitsUpdateTimer;
-    QString m_password;
-    QMap<std::shared_ptr<User>, bool> m_lockUser;
-    SessionManagerInter *m_sessionManagerInter;
-    HuaWeiSwitchOSInterface *m_switchosInterface = nullptr;
-    bool m_canAuthenticate = false;
     QString m_account;
     QDBusInterface *m_kglobalaccelInter;
     QDBusInterface *m_kwinInter;

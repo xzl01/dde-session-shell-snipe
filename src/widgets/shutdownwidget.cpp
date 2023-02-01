@@ -320,6 +320,8 @@ void ShutdownWidget::initUI()
     for (auto it = m_trList.constBegin(); it != m_trList.constEnd(); ++it) {
         it->first(qApp->translate("ShutdownWidget", it->second.toUtf8()));
     }
+
+    this->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
 }
 
 void ShutdownWidget::leftKeySwitch()
@@ -425,7 +427,7 @@ void ShutdownWidget::onStatusChanged(SessionBaseModel::ModeStatus status)
 
 void ShutdownWidget::runSystemMonitor()
 {
-    QProcess::startDetached("deepin-system-monitor", {});
+    QProcess::startDetached("/usr/bin/deepin-system-monitor", QStringList());
 
     if (m_systemMonitor) {
         m_systemMonitor->clearFocus();

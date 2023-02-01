@@ -7,9 +7,8 @@
 
 #include "lockcontent.h"
 
-class SessionWidget;
 class LoginTipsWindow;
-
+class ChangePasswordWidget;
 class LoginContent : public LockContent
 {
     Q_OBJECT
@@ -18,14 +17,14 @@ public:
 
     void onCurrentUserChanged(std::shared_ptr<User> user) override;
     void onStatusChanged(SessionBaseModel::ModeStatus status) override;
-    void pushSessionFrame();
-    void pushTipsFrame();
-    void popTipsFrame();
+
+    bool tryPushTipsFrame();
+    void pushLoginFrame();
+    void pushChangePasswordFrame();
 
 private:
-    SessionWidget *m_sessionFrame;
-    LoginTipsWindow *m_loginTipsWindow;
-    bool m_showTipsWidget = true;
+    QSharedPointer<LoginTipsWindow> m_loginTipsWindow;
+    QSharedPointer<ChangePasswordWidget> m_resetPasswordWidget;
 };
 
 #endif // LOGINCONTENT_H

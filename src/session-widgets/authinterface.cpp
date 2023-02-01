@@ -20,20 +20,36 @@ using namespace Auth;
 AuthInterface::AuthInterface(SessionBaseModel *const model, QObject *parent)
     : QObject(parent)
     , m_model(model)
-    , m_accountsInter(new AccountsInter("com.deepin.daemon.Accounts", "/com/deepin/daemon/Accounts", QDBusConnection::systemBus(), this))
-    , m_loginedInter(new LoginedInter("com.deepin.daemon.Accounts", "/com/deepin/daemon/Logined", QDBusConnection::systemBus(), this))
+    , m_accountsInter(new AccountsInter("org.deepin.dde.Accounts1", "/org/deepin/dde/Accounts1", QDBusConnection::systemBus(), this))
+    , m_loginedInter(new LoginedInter("org.deepin.dde.Logined1", "/org/deepin/dde/Logined1", QDBusConnection::systemBus(), this))
     , m_login1Inter(new DBusLogin1Manager("org.freedesktop.login1", "/org/freedesktop/login1", QDBusConnection::systemBus(), this))
-    , m_powerManagerInter(new PowerManagerInter("com.deepin.daemon.PowerManager", "/com/deepin/daemon/PowerManager", QDBusConnection::systemBus(), this))
-    , m_authenticateInter(new Authenticate("com.deepin.daemon.Authenticate", "/com/deepin/daemon/Authenticate", QDBusConnection::systemBus(), this))
+    , m_powerManagerInter(new PowerManagerInter("org.deepin.dde.PowerManager1", "/org/deepin/dde/PowerManager1", QDBusConnection::systemBus(), this))
+    , m_authenticateInter(new Authenticate("org.deepin.dde.Authenticate1", "/org/deepin/dde/Authenticate1", QDBusConnection::systemBus(), this))
     , m_dbusInter(new DBusObjectInter("org.freedesktop.DBus", "/org/freedesktop/DBus", QDBusConnection::systemBus(), this))
     , m_lastLogoutUid(0)
     , m_currentUserUid(0)
     , m_loginUserList(0)
 {
     if (m_login1Inter->isValid()) {
-       QString session_self = m_login1Inter->GetSessionByPID(0).value().path();
-       m_login1SessionSelf = new Login1SessionSelf("org.freedesktop.login1", session_self, QDBusConnection::systemBus(), this);
-       m_login1SessionSelf->setSync(false);
+        QString sessionSelf;
+        if (m_model->appType() == AppType::Lock) {
+            // v23上m_login1Inter->GetSessionByPID(0)接口已不可用，使用org.deepin.Session获取
+            QDBusInterface inter("org.deepin.dde.Session1", "/org/deepin/dde/Session1",
+                                 "org.deepin.dde.Session1", QDBusConnection::sessionBus());
+            QDBusReply<QString> reply = inter.call("GetSessionPath");
+            if (reply.isValid())
+                sessionSelf = reply.value();
+            else
+                qWarning() << "org.deepin.dde.Session1 get session path has error!";
+        } else {
+            // AppType::Login
+            sessionSelf = m_login1Inter->GetSessionByPID(0).value().path();
+        }
+
+        if (!sessionSelf.isEmpty()) {
+            m_login1SessionSelf = new Login1SessionSelf("org.freedesktop.login1", sessionSelf, QDBusConnection::systemBus(), this);
+            m_login1SessionSelf->setSync(false);
+        }
     } else {
         qWarning() << "m_login1Inter:" << m_login1Inter->lastError().type();
     }
@@ -66,8 +82,6 @@ void AuthInterface::onUserListChanged(const QStringList &list)
             onUserRemove(u);
         }
     }
-
-    m_loginedInter->userList();
 }
 
 void AuthInterface::onUserAdded(const QString &user)
@@ -94,8 +108,6 @@ void AuthInterface::initData()
     onUserListChanged(m_accountsInter->userList());
     onLastLogoutUserChanged(m_loginedInter->lastLogoutUser());
     onLoginUserListChanged(m_loginedInter->userList());
-    // m_accountsInter->userList();
-    // m_loginedInter->lastLogoutUser();
 
     checkConfig();
     checkPowerInfo();
@@ -103,9 +115,6 @@ void AuthInterface::initData()
 
 void AuthInterface::initDBus()
 {
-    // m_accountsInter->setSync(false);
-    // m_loginedInter->setSync(false);
-
     connect(m_accountsInter, &AccountsInter::UserListChanged, this, &AuthInterface::onUserListChanged, Qt::QueuedConnection);
     connect(m_accountsInter, &AccountsInter::UserAdded, this, &AuthInterface::onUserAdded, Qt::QueuedConnection);
     connect(m_accountsInter, &AccountsInter::UserDeleted, this, &AuthInterface::onUserRemove, Qt::QueuedConnection);
@@ -149,7 +158,7 @@ void AuthInterface::onLoginUserListChanged(const QString &list)
 
         auto find_it = std::find_if(
             availableUidList.begin(), availableUidList.end(),
-            [=] (const uint find_addomain_uid) { return find_addomain_uid == uid; });
+            [ = ] (const uint addomainUid) { return addomainUid == uid; });
 
         if (haveDisplay && find_it == availableUidList.end()) {
             // init addoman user
@@ -202,8 +211,7 @@ QVariant AuthInterface::getGSettings(const QString& node, const QString& key)
 
 bool AuthInterface::isLogined(uint uid)
 {
-    return std::any_of(m_loginUserList.begin(), m_loginUserList.end(),
-                       [uid](const uint UID) { return UID == uid; });
+    return std::any_of(m_loginUserList.begin(), m_loginUserList.end(), [uid](const uint UID) { return UID == uid; });
 }
 
 bool AuthInterface::isDeepin()
@@ -224,7 +232,7 @@ void AuthInterface::checkConfig()
 
 void AuthInterface::checkPowerInfo()
 {
-    //替换接口org.freedesktop.login1 为com.deepin.sessionManager,原接口的是否支持待机和休眠的信息不准确
+    // 替换接口org.freedesktop.login1 org.deepin.dde.SessionManager1,原接口的是否支持待机和休眠的信息不准确
     QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
     bool can_sleep = env.contains(POWER_CAN_SLEEP) ? QVariant(env.value(POWER_CAN_SLEEP)).toBool()
                                                    : getGSettings("Power","sleep").toBool() && m_powerManagerInter->CanSuspend();

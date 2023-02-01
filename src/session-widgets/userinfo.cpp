@@ -30,6 +30,7 @@ User::User(QObject *parent)
     , m_shortDateFormat(0)
     , m_shortTimeFormat(0)
     , m_weekdayFormat(0)
+    , m_accountType(-1)
     , m_uid(INT_MAX)
     , m_avatar(DEFAULT_AVATAR)
     , m_greeterBackground(DEFAULT_BACKGROUND)
@@ -54,6 +55,7 @@ User::User(const User &user)
     , m_shortDateFormat(user.m_shortDateFormat)
     , m_shortTimeFormat(user.m_shortTimeFormat)
     , m_weekdayFormat(user.m_weekdayFormat)
+    , m_accountType(user.m_accountType)
     , m_uid(user.m_uid)
     , m_avatar(user.m_avatar)
     , m_fullName(user.m_fullName)
@@ -208,7 +210,7 @@ QString User::userPwdName(const uid_t uid) const
 NativeUser::NativeUser(const QString &path, QObject *parent)
     : User(parent)
     , m_path(path)
-    , m_userInter(new UserInter("com.deepin.daemon.Accounts", path, QDBusConnection::systemBus(), this))
+    , m_userInter(new UserInter("org.deepin.dde.Accounts1", path, QDBusConnection::systemBus(), this))
 {
     initConnections();
     initData();
@@ -217,8 +219,8 @@ NativeUser::NativeUser(const QString &path, QObject *parent)
 
 NativeUser::NativeUser(const uid_t &uid, QObject *parent)
     : User(parent)
-    , m_path("/com/deepin/daemon/Accounts/User" + QString::number(uid))
-    , m_userInter(new UserInter("com.deepin.daemon.Accounts", m_path, QDBusConnection::systemBus(), this))
+    , m_path("/org/deepin/dde/Accounts1/User" + QString::number(uid))
+    , m_userInter(new UserInter("org.deepin.dde.Accounts1", m_path, QDBusConnection::systemBus(), this))
 {
     initConnections();
     initData();
@@ -228,7 +230,7 @@ NativeUser::NativeUser(const uid_t &uid, QObject *parent)
 NativeUser::NativeUser(const NativeUser &user)
     : User(user)
     , m_path(user.path())
-    , m_userInter(new UserInter("com.deepin.daemon.Accounts", m_path, QDBusConnection::systemBus(), this))
+    , m_userInter(new UserInter("org.deepin.dde.Accounts1", m_path, QDBusConnection::systemBus(), this))
 {
     initConnections();
 }
@@ -236,7 +238,6 @@ NativeUser::NativeUser(const NativeUser &user)
 void NativeUser::initConnections()
 {
     connect(m_userInter, &UserInter::AutomaticLoginChanged, this, &NativeUser::updateAutomaticLogin);
-    connect(m_userInter, &UserInter::DesktopBackgroundsChanged, this, &NativeUser::updateDesktopBackgrounds);
     connect(m_userInter, &UserInter::FullNameChanged, this, &NativeUser::updateFullName);
     connect(m_userInter, &UserInter::GreeterBackgroundChanged, this, &NativeUser::updateGreeterBackground);
     connect(m_userInter, &UserInter::HistoryLayoutChanged, this, &NativeUser::updateKeyboardLayoutList);
@@ -245,11 +246,12 @@ void NativeUser::initConnections()
     connect(m_userInter, &UserInter::LocaleChanged, this, &NativeUser::updateLocale);
     connect(m_userInter, &UserInter::NoPasswdLoginChanged, this, &NativeUser::updateNoPasswordLogin);
     connect(m_userInter, &UserInter::PasswordHintChanged, this, &NativeUser::updatePasswordHint);
-    connect(m_userInter, &UserInter::PasswordStatusChanged, this, &NativeUser::updatePasswordState);
+    connect(m_userInter, &UserInter::PasswordStatusChanged, this, &NativeUser::updatePasswordStatus);
     connect(m_userInter, &UserInter::PasswordHintChanged, this, &NativeUser::updatePasswordHint);
     connect(m_userInter, &UserInter::ShortDateFormatChanged, this, &NativeUser::updateShortDateFormat);
     connect(m_userInter, &UserInter::ShortTimeFormatChanged, this, &NativeUser::updateShortTimeFormat);
     connect(m_userInter, &UserInter::WeekdayFormatChanged, this, &NativeUser::updateWeekdayFormat);
+    connect(m_userInter, &UserInter::AccountTypeChanged, this, &NativeUser::updateAccountType);
     connect(m_userInter, &UserInter::UidChanged, this, &NativeUser::updateUid);
     connect(m_userInter, &UserInter::UserNameChanged, this, &NativeUser::updateName);
     connect(m_userInter, &UserInter::Use24HourFormatChanged, this, &NativeUser::updateUse24HourFormat);
@@ -273,6 +275,7 @@ void NativeUser::initData()
     m_shortDateFormat = m_userInter->shortDateFormat();
     m_shortTimeFormat = m_userInter->shortTimeFormat();
     m_weekdayFormat = m_userInter->weekdayFormat();
+    m_accountType = m_userInter->accountType();
 
     const QString avatarPath = toLocalFile(m_userInter->iconFile());
     if (!avatarPath.isEmpty() && QFile(avatarPath).exists() && QFile(avatarPath).size() && checkPictureCanRead(avatarPath)) {
@@ -359,27 +362,6 @@ void NativeUser::updateAutomaticLogin(const bool autoLoginState)
     }
     m_isAutomaticLogin = autoLoginState;
     emit autoLoginStateChanged(autoLoginState);
-}
-
-/**
- * @brief 更新桌面背景
- *
- * @param backgrounds
- */
-void NativeUser::updateDesktopBackgrounds(const QStringList &backgrounds)
-{
-    QSettings settings(DDESESSIONCC::CONFIG_FILE + m_name, QSettings::IniFormat);
-    settings.beginGroup("User");
-
-    int index = settings.value("Workspace").toInt();
-    //刚安装的系统中返回的Workspace为0
-    index = index <= 0 ? 1 : index;
-    if (backgrounds.size() >= index && index > 0) {
-        // m_desktopBackgrounds = toLocalFile(backgrounds.at(index - 1));
-        // emit desktopBackgroundChanged(m_desktopBackgrounds);
-    } else {
-        qDebug() << "DesktopBackgroundsChanged get error index:" << index << ", paths:" << backgrounds;
-    }
 }
 
 /**
@@ -517,9 +499,9 @@ void NativeUser::updateAccountType()
  *
  * @param state 有密码：P 无密码：NP
  */
-void NativeUser::updatePasswordState(const QString &state)
+void NativeUser::updatePasswordStatus(const QString &state)
 {
-    const bool isPasswordValidTmp = state == "P" ? true : false;
+    const bool isPasswordValidTmp = ((state == "P") ? true : false);
     if (isPasswordValidTmp == m_isPasswordValid) {
         return;
     }
@@ -566,6 +548,15 @@ void NativeUser::updateWeekdayFormat(const int format)
     }
     m_weekdayFormat = format;
     emit weekdayFormatChanged(format);
+}
+
+void NativeUser::updateAccountType(const int type)
+{
+    if (m_accountType == type)
+        return;
+
+    m_accountType = type;
+    emit accountTypeChanged(type);
 }
 
 /**

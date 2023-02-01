@@ -131,10 +131,10 @@ public:
     ModuleType type() const override { return LoginType; }
 
     /**
-    * @brief 模块加载的类型
-    * @return LoadType
-    */
-    LoadType loadPluginType() const override { return Load; }
+     * @brief 模块图标的路径
+     * @return std::string
+     */
+    virtual std::string icon() const { return std::string(); }
 
     /**
      * @brief 插件图标

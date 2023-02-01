@@ -8,6 +8,8 @@
 #include "dlineeditex.h"
 #include "dstyle.h"
 
+#include "accountsuser_interface.h"
+
 #include <DHiDPIHelper>
 #include <DLabel>
 #include <DPaletteHelper>
@@ -27,25 +29,16 @@
 
 #include <unistd.h>
 
-#include <com_deepin_daemon_accounts_user.h>
-
-#define Service "com.deepin.dialogs.ResetPassword"
-#define Path "/com/deepin/dialogs/ResetPassword"
-#define Interface "com.deepin.dialogs.ResetPassword"
-
-const QString PASSWORD_HIDE = QStringLiteral(":/misc/images/password-hide.svg");
-const QString PASSWORD_SHOWN = QStringLiteral(":/misc/images/password-shown.svg");
-
 using namespace AuthCommon;
 
 AuthPassword::AuthPassword(QWidget *parent)
     : AuthModule(AT_Password, parent)
     , m_capsLock(new DLabel(this))
-    , m_lineEdit(new DLineEditEx(this))
-    , m_passwordShowBtn(new DIconButton(this))
+    , m_passwordEdit(new DLineEditEx(this))
     , m_passwordHintBtn(new DIconButton(this))
     , m_resetPasswordMessageVisible(false)
     , m_resetPasswordFloatingMessage(nullptr)
+    , m_currentUid(0)
     , m_bindCheckTimer(nullptr)
     , m_passwordHintWidget(nullptr)
     , m_iconButton(nullptr)
@@ -56,8 +49,9 @@ AuthPassword::AuthPassword(QWidget *parent)
     initUI();
     initConnections();
 
-    m_lineEdit->installEventFilter(this);
-    setFocusProxy(m_lineEdit);
+    setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
+    m_passwordEdit->installEventFilter(this);
+    setFocusProxy(m_passwordEdit);
 }
 
 /**
@@ -69,16 +63,16 @@ void AuthPassword::initUI()
     mainLayout->setContentsMargins(0, 0, 0, 0);
     mainLayout->setSpacing(0);
 
-    m_lineEdit->setClearButtonEnabled(false);
-    m_lineEdit->setEchoMode(QLineEdit::Password);
-    m_lineEdit->setContextMenuPolicy(Qt::NoContextMenu);
-    m_lineEdit->setFocusPolicy(Qt::StrongFocus);
-    m_lineEdit->lineEdit()->setAlignment(Qt::AlignCenter);
-    m_lineEdit->lineEdit()->setValidator(new QRegExpValidator(QRegExp("^[ -~]+$")));
+    m_passwordEdit->setClearButtonEnabled(false);
+    m_passwordEdit->setEchoMode(QLineEdit::Password);
+    m_passwordEdit->setContextMenuPolicy(Qt::NoContextMenu);
+    m_passwordEdit->setFocusPolicy(Qt::StrongFocus);
+    m_passwordEdit->lineEdit()->setAlignment(Qt::AlignCenter);
+    m_passwordEdit->lineEdit()->setValidator(new QRegExpValidator(QRegExp("^[ -~]+$")));
 
     setLineEditInfo(tr("Password"), PlaceHolderText);
 
-    QHBoxLayout *passwordLayout = new QHBoxLayout(m_lineEdit->lineEdit());
+    QHBoxLayout *passwordLayout = new QHBoxLayout(m_passwordEdit->lineEdit());
     passwordLayout->setContentsMargins(5, 0, 10, 0);
     passwordLayout->setSpacing(5);
     /* 大小写状态 */
@@ -116,8 +110,7 @@ void AuthPassword::initUI()
     m_passwordHintBtn->setVisible(false);
     passwordLayout->addWidget(m_passwordHintBtn, 0, Qt::AlignRight | Qt::AlignVCenter);
 
-    mainLayout->addWidget(m_lineEdit);
-    updatePasswordTextMargins();
+    mainLayout->addWidget(m_passwordEdit);
 }
 
 /**
@@ -129,9 +122,8 @@ void AuthPassword::initConnections()
     /* 密码提示 */
     connect(m_passwordHintBtn, &DIconButton::clicked, this, &AuthPassword::showPasswordHint);
     /* 密码输入框 */
-    connect(m_lineEdit, &DLineEditEx::focusChanged, this, [this](const bool focus) {
-        if (!focus)
-            m_lineEdit->setAlert(false);
+    connect(m_passwordEdit, &DLineEditEx::focusChanged, this, [this](const bool focus) {
+        if (!focus) m_passwordEdit->setAlert(false);
         m_authStateLabel->setVisible(!focus && m_showAuthState);
         updatePasswordTextMargins();
         emit focusChanged(focus);
@@ -139,14 +131,13 @@ void AuthPassword::initConnections()
             emit lineEditTextChanged(m_lineEdit->text());
         }
     });
-    connect(m_lineEdit, &DLineEditEx::textChanged, this, [this](const QString &text) {
-        m_lineEdit->hideAlertMessage();
-        hidePasswordHintWidget();
-        m_lineEdit->setAlert(false);
+    connect(m_passwordEdit, &DLineEditEx::textChanged, this, [this](const QString &text) {
+        m_passwordEdit->hideAlertMessage();
+        m_passwordEdit->setAlert(false);
         emit lineEditTextChanged(text);
     });
-    connect(m_lineEdit, &DLineEditEx::returnPressed, this, [ this ] {
-        if (!m_lineEdit->lineEdit()->isReadOnly()) // 避免用户在验证的时候反复点击
+    connect(m_passwordEdit, &DLineEditEx::returnPressed, this, [ this ] {
+        if (!m_passwordEdit->lineEdit()->isReadOnly()) // 避免用户在验证的时候反复点击
             emit requestAuthenticate();
     });
 
@@ -166,10 +157,9 @@ void AuthPassword::initConnections()
  */
 void AuthPassword::reset()
 {
-    m_lineEdit->clear();
-    m_lineEdit->setAlert(false);
-    m_lineEdit->hideAlertMessage();
-    hidePasswordHintWidget();
+    m_passwordEdit->clear();
+    m_passwordEdit->setAlert(false);
+    m_passwordEdit->hideAlertMessage();
     setLineEditEnabled(true);
     setLineEditInfo(tr("Password"), PlaceHolderText);
 }
@@ -188,20 +178,19 @@ void AuthPassword::setAuthState(const int state, const QString &result)
     case AS_Success:
         setAnimationState(false);
         setAuthStateStyle(LOGIN_CHECK);
-        m_lineEdit->setAlert(false);
-        m_lineEdit->clear();
+        m_passwordEdit->setAlert(false);
+        m_passwordEdit->clear();
         setLineEditEnabled(false);
         setLineEditInfo(tr("Verification successful"), PlaceHolderText);
         m_showPrompt = true;
-        m_lineEdit->hideAlertMessage();
-        hidePasswordHintWidget();
+        m_passwordEdit->hideAlertMessage();
         emit authFinished(state);
         emit requestChangeFocus();
         break;
     case AS_Failure: {
         setAnimationState(false);
         setAuthStateStyle(LOGIN_WAIT);
-        m_lineEdit->clear();
+        m_passwordEdit->clear();
         setLineEditEnabled(true);
         const int leftTimes = static_cast<int>(m_limitsInfo->maxTries - m_limitsInfo->numFailures);
         if (leftTimes > 1) {
@@ -249,14 +238,14 @@ void AuthPassword::setAuthState(const int state, const QString &result)
     case AS_Started:
         break;
     case AS_Ended:
-        m_lineEdit->clear();
+        m_passwordEdit->clear();
         break;
     case AS_Locked:
         setAnimationState(false);
         setAuthStateStyle(LOGIN_LOCK);
         setLineEditEnabled(false);
-        m_lineEdit->setAlert(false);
-        m_lineEdit->hideAlertMessage();
+        m_passwordEdit->setAlert(false);
+        m_passwordEdit->hideAlertMessage();
         if (m_integerMinutes == 1) {
             setLineEditInfo(tr("Please try again 1 minute later"), PlaceHolderText);
         } else {
@@ -292,7 +281,7 @@ void AuthPassword::setAuthState(const int state, const QString &result)
  */
 void AuthPassword::setAnimationState(const bool start)
 {
-    start ? m_lineEdit->startAnimation() : m_lineEdit->stopAnimation();
+    start ? m_passwordEdit->startAnimation() : m_passwordEdit->stopAnimation();
 }
 
 /**
@@ -313,7 +302,7 @@ void AuthPassword::setCapsLockVisible(const bool on)
  */
 void AuthPassword::setLimitsInfo(const LimitsInfo &info)
 {
-    qDebug() << "AuthPassword::setLimitsInfo" << info.numFailures;
+    qDebug() << "AuthPassword::setLimitsInfo" << info.numFailures << m_limitsInfo->locked;
     const bool lockStateChanged = (info.locked != m_limitsInfo->locked);
     AuthModule::setLimitsInfo(info);
     // 如果lock状态发生变化且当前状态为非lock更新编辑框文案
@@ -328,6 +317,12 @@ void AuthPassword::setLimitsInfo(const LimitsInfo &info)
         }
 
         if (this->isVisible() && isShowResetPasswordMessage()) {
+            qDebug() << "begin reset passoword";
+            setResetPasswordMessageVisible(true);
+            updateResetPasswordUI();
+        }
+    } else if (info.numFailures >= 3) {
+        if (this->isVisible() && QFile::exists(ResetPassword_Exe_Path) && m_currentUid <= 9999) {
             qDebug() << "begin reset passoword";
             setResetPasswordMessageVisible(true);
             updateResetPasswordUI();
@@ -351,17 +346,17 @@ void AuthPassword::setLineEditInfo(const QString &text, const TextType type)
 {
     switch (type) {
     case AlertText:
-        showAlertMessage(text);
-        m_lineEdit->setAlert(true);
+        m_passwordEdit->showAlertMessage(text, this, 5000);
+        m_passwordEdit->setAlert(true);
         break;
     case InputText: {
-        const int cursorPos = m_lineEdit->lineEdit()->cursorPosition();
-        m_lineEdit->setText(text);
-        m_lineEdit->lineEdit()->setCursorPosition(cursorPos);
+        const int cursorPos = m_passwordEdit->lineEdit()->cursorPosition();
+        m_passwordEdit->setText(text);
+        m_passwordEdit->lineEdit()->setCursorPosition(cursorPos);
         break;
     }
     case PlaceHolderText:
-        m_lineEdit->setPlaceholderText(text);
+        m_passwordEdit->setPlaceholderText(text);
         break;
     }
 }
@@ -390,7 +385,7 @@ void AuthPassword::setCurrentUid(uid_t uid)
  */
 QString AuthPassword::lineEditText() const
 {
-    return m_lineEdit->text();
+    return m_passwordEdit->text();
 }
 
 /**
@@ -400,21 +395,14 @@ QString AuthPassword::lineEditText() const
  */
 void AuthPassword::setLineEditEnabled(const bool enable)
 {
-    if (!m_passwordLineEditEnabled) {
-        m_lineEdit->setFocusPolicy(Qt::NoFocus);
-        m_lineEdit->clearFocus();
-        m_lineEdit->lineEdit()->setReadOnly(true);
-        m_lineEdit->lineEdit()->setEnabled(false);
-    } else if (enable && !m_limitsInfo->locked) {
-        m_lineEdit->setFocusPolicy(Qt::StrongFocus);
-        m_lineEdit->setFocus();
-        m_lineEdit->lineEdit()->setReadOnly(false);
-        m_lineEdit->lineEdit()->setEnabled(true);
+    if (enable && !m_limitsInfo->locked) {
+        m_passwordEdit->setFocusPolicy(Qt::StrongFocus);
+        m_passwordEdit->setFocus();
+        m_passwordEdit->lineEdit()->setReadOnly(false);
     } else {
-        m_lineEdit->setFocusPolicy(Qt::NoFocus);
-        m_lineEdit->clearFocus();
-        m_lineEdit->lineEdit()->setReadOnly(true);
-        m_lineEdit->lineEdit()->setEnabled(true);
+        m_passwordEdit->setFocusPolicy(Qt::NoFocus);
+        m_passwordEdit->clearFocus();
+        m_passwordEdit->lineEdit()->setReadOnly(true);
     }
 }
 
@@ -431,9 +419,9 @@ void AuthPassword::updateUnlockPrompt()
 {
     AuthModule::updateUnlockPrompt();
     if (m_integerMinutes == 1) {
-        m_lineEdit->setPlaceholderText(tr("Please try again 1 minute later"));
+        m_passwordEdit->setPlaceholderText(tr("Please try again 1 minute later"));
     } else if (m_integerMinutes > 1) {
-        m_lineEdit->setPlaceholderText(tr("Please try again %n minutes later", "", static_cast<int>(m_integerMinutes)));
+        m_passwordEdit->setPlaceholderText(tr("Please try again %n minutes later", "", static_cast<int>(m_integerMinutes)));
     } else {
         QTimer::singleShot(1000, this, [this] {
             emit activeAuth(m_type);
@@ -448,19 +436,7 @@ void AuthPassword::updateUnlockPrompt()
  */
 void AuthPassword::showPasswordHint()
 {
-    // FIXME dtk如果后期提供接口设置alert的调色板，那么直接设置即可
-    // 在这里将调色板的TextWarning改成黑色，让DAlertControl继承父类调色板，从而能显示黑色的文字
-    DPalette palette = DPaletteHelper::instance()->palette(this->topLevelWidget());
-    palette.setColor(DPalette::TextWarning, Qt::black);
-    DPaletteHelper::instance()->setPalette(this->topLevelWidget(), palette);
-
-    // 每次显示都需要重新生成对象，因为无法修改其内部私有对象的调色板，只能在创建对象的时候从父对象继承
-    if (!m_passwordHintWidget) {
-        m_passwordHintWidget = new DAlertControl(m_lineEdit->lineEdit());
-        QTimer::singleShot(5000, this, &AuthPassword::hidePasswordHintWidget);
-    }
-    m_passwordHintWidget->showAlertMessage(m_passwordHint, m_lineEdit->lineEdit(), 5000);
-    m_lineEdit->hideAlertMessage();
+    m_passwordEdit->showAlertMessage(m_passwordHint, this, 5000);
 }
 
 /**
@@ -482,10 +458,6 @@ void AuthPassword::setResetPasswordMessageVisible(const bool isVisible)
 {
     qDebug() << "set reset password message visible: " << isVisible;
     if (m_resetPasswordMessageVisible == isVisible)
-        return;
-
-    // 如果设置为显示重置按钮，失败次数>=3次就显示重置密码 1060-24505
-    if (isVisible && m_limitsInfo && m_limitsInfo->numFailures < 3)
         return;
 
     m_resetPasswordMessageVisible = isVisible;
@@ -536,9 +508,9 @@ void AuthPassword::showResetPasswordMessage()
     m_resetPasswordFloatingMessage->setWidget(suggestButton);
     m_resetPasswordFloatingMessage->setMessage(tr("Forgot password?"));
     connect(suggestButton, &QPushButton::clicked, this, [ this ] {
-        const QString AccountsService("com.deepin.daemon.Accounts");
-        const QString path = QString("/com/deepin/daemon/Accounts/User%1").arg(m_currentUid);
-        com::deepin::daemon::accounts::User user(AccountsService, path, QDBusConnection::systemBus());
+        const QString AccountsService("org.deepin.dde.Accounts1");
+        const QString path = QString("/org/deepin/dde/Accounts1/User%1").arg(m_currentUid);
+        org::deepin::dde::accounts1::User user(AccountsService, path, QDBusConnection::systemBus());
         auto reply = user.SetPassword("");
         reply.waitForFinished();
         if (reply.isError())
@@ -589,9 +561,9 @@ bool AuthPassword::isUserAccountBinded()
         return false;
     }
 
-    QDBusInterface accountsInter("com.deepin.daemon.Accounts",
-                                 QString("/com/deepin/daemon/Accounts/User%1").arg(m_currentUid),
-                                 "com.deepin.daemon.Accounts.User",
+    QDBusInterface accountsInter("org.deepin.dde.Accounts1",
+                                 QString("/org/deepin/dde/Accounts1/User%1").arg(m_currentUid),
+                                 "org.deepin.dde.Accounts1.User",
                                  QDBusConnection::systemBus());
     QVariant retUUID = accountsInter.property("UUID");
     if (!accountsInter.isValid()) {
@@ -613,7 +585,7 @@ bool AuthPassword::isUserAccountBinded()
         qWarning() << "UOSID:" << uosid << "uuid:" << uuid;
         qWarning() << retLocalBindCheck.error().message();
         if (retLocalBindCheck.error().message().contains("network error")) {
-            if (m_bindCheckTimer == nullptr) {
+            if (!m_bindCheckTimer) {
                 m_bindCheckTimer = new QTimer(this);
                 connect(m_bindCheckTimer, &QTimer::timeout, this, [this] {
                     qWarning() << "BindCheck retry!";
@@ -657,7 +629,7 @@ bool AuthPassword::isShowResetPasswordMessage()
 
 bool AuthPassword::eventFilter(QObject *watched, QEvent *event)
 {
-    if (qobject_cast<DLineEditEx *>(watched) == m_lineEdit && event->type() == QEvent::KeyPress) {
+    if (qobject_cast<DLineEditEx *>(watched) == m_passwordEdit && event->type() == QEvent::KeyPress) {
         QKeyEvent *keyEvent = static_cast<QKeyEvent *>(event);
         if (keyEvent->matches(QKeySequence::Cut)
             || keyEvent->matches(QKeySequence::Copy)
@@ -685,9 +657,8 @@ bool AuthPassword::eventFilter(QObject *watched, QEvent *event)
 
 void AuthPassword::hideEvent(QHideEvent *event)
 {
-    m_lineEdit->setAlert(false);
-    m_lineEdit->hideAlertMessage();
-    hidePasswordHintWidget();
+    m_passwordEdit->setAlert(false);
+    m_passwordEdit->hideAlertMessage();
     setLineEditInfo(tr("Password"), PlaceHolderText);
     closeResetPasswordMessage();
     AuthModule::hideEvent(event);

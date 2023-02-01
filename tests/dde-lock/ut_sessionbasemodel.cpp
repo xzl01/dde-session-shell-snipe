@@ -30,7 +30,7 @@ void UT_SessionBaseModel::TearDown()
 
 TEST_F(UT_SessionBaseModel, init)
 {
-    std::shared_ptr<NativeUser> nativeUser(new NativeUser("/com/deepin/daemon/Accounts/User"+QString::number((getuid()))));
+    std::shared_ptr<NativeUser> nativeUser(new NativeUser("/org/deepin/dde/Accounts1/User"+QString::number((getuid()))));
     ASSERT_TRUE(m_sessionBaseModel);
     m_sessionBaseModel->updateCurrentUser(nativeUser);
     EXPECT_EQ(m_sessionBaseModel->currentUser(), nativeUser);
@@ -68,10 +68,6 @@ TEST_F(UT_SessionBaseModel, init)
     SessionBaseModel::ModeStatus currentmodethr = m_sessionBaseModel->currentModeState();
     m_sessionBaseModel->onStatusChanged(SessionBaseModel::ModeStatus::UserMode);
     EXPECT_EQ(m_sessionBaseModel->currentModeState(), currentmodethr);
-
-    SessionBaseModel::ModeStatus currentmodefor = m_sessionBaseModel->currentModeState();
-    m_sessionBaseModel->onStatusChanged(SessionBaseModel::ModeStatus::SessionMode);
-    EXPECT_EQ(m_sessionBaseModel->currentModeState(), currentmodefor);
 
     SessionBaseModel::ModeStatus currentmodefiv = m_sessionBaseModel->currentModeState();
     m_sessionBaseModel->onStatusChanged(SessionBaseModel::ModeStatus::PowerMode);

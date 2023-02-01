@@ -9,6 +9,11 @@
 #include <functional>
 #include <QVariant>
 
+/**
+ * @brief The FrameDataBind class 锁屏页面之间的数据同步
+ * @note 之所以不用创建一份锁屏内容，然后跟随鼠标移动到对应屏幕上的方式，
+ *       是因为对于多个分辨率不一样的屏幕，移动过去再显示需要resize，用户能看到变化，体验不好，优化这里需要注意这个问题
+ */
 class FrameDataBind : public QObject
 {
     Q_OBJECT

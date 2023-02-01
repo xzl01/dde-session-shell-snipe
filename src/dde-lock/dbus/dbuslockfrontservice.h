@@ -20,12 +20,12 @@ class QVariant;
 QT_END_NAMESPACE
 
 /*
- * Proxy class for interface com.deepin.dde.lockFront
+ * Proxy class for interface org.deepin.dde.LockFront1
  */
 class DBusLockFrontService: public QDBusAbstractAdaptor
 {
     Q_OBJECT
-    Q_CLASSINFO("D-Bus Interface", "com.deepin.dde.lockFront")
+    Q_CLASSINFO("D-Bus Interface", "org.deepin.dde.LockFront1")
 
 public:
     explicit DBusLockFrontService(DBusLockAgent *parent);

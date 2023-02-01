@@ -7,7 +7,7 @@
 DWIDGET_USE_NAMESPACE
 
 TipsWidget::TipsWidget(QWidget *parent)
-    : DArrowRectangle(DArrowRectangle::ArrowBottom, parent)
+    : DArrowRectangle(DArrowRectangle::ArrowBottom, parent ? DArrowRectangle::FloatWidget : DArrowRectangle::FloatWindow, parent)
 {
     setProperty("_d_radius_force", true); // 无特效模式时，让窗口圆角
     setShadowBlurRadius(20);
@@ -16,6 +16,8 @@ TipsWidget::TipsWidget(QWidget *parent)
     setShadowXOffset(0);
     setArrowWidth(18);
     setArrowHeight(10);
+
+    setWindowFlags(windowFlags() | Qt::ToolTip | Qt::WindowDoesNotAcceptFocus);
 }
 
 void TipsWidget::setContent(QWidget *content)
@@ -39,7 +41,7 @@ bool TipsWidget::eventFilter(QObject *o, QEvent *e)
         return false;
 
     if (isVisible()) {
-        QTimer::singleShot(10, this, [=] {
+        QTimer::singleShot(10, this, [ = ] {
             if (isVisible())
                 show(m_lastPos.x(), m_lastPos.y());
         });

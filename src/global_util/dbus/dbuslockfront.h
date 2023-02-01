@@ -11,7 +11,7 @@
 #include <QMetaProperty>
 
 /*
- * Proxy class for interface com.deepin.dde.lockFront
+ * Proxy class for interface org.deepin.dde.LockFront1
  */
 class DBusLockFront: public QDBusAbstractInterface
 {
@@ -23,7 +23,7 @@ class DBusLockFront: public QDBusAbstractInterface
         if (3 != arguments.count())
             return;
         QString interfaceName = msg.arguments().at(0).toString();
-        if (interfaceName !="com.deepin.dde.lockFront")
+        if (interfaceName !="org.deepin.dde.LockFront1")
             return;
         QVariantMap changedProps = qdbus_cast<QVariantMap>(arguments.at(1).value<QDBusArgument>());
         foreach(const QString &prop, changedProps.keys()) {
@@ -38,7 +38,7 @@ class DBusLockFront: public QDBusAbstractInterface
    }
 public:
     static inline const char *staticInterfaceName()
-    { return "com.deepin.dde.lockFront"; }
+    { return "org.deepin.dde.LockFront1"; }
 
 public:
     explicit DBusLockFront(QObject *parent = 0);

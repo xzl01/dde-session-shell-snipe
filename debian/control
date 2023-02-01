@@ -15,8 +15,8 @@ Build-Depends: debhelper (>= 8.0.0), pkg-config,
  libdtkcore5-bin,
  qtdeclarative5-dev,
  qttools5-dev-tools,
- libpam0g-dev,libsystemd-dev,
- libdframeworkdbus-dev,
+ libpam0g-dev,
+ libsystemd-dev,
  deepin-gettext-tools,
  libxtst-dev,
  libxcursor-dev,
@@ -26,7 +26,9 @@ Build-Depends: debhelper (>= 8.0.0), pkg-config,
  libx11-xcb-dev,
  libssl-dev,
  libdtkcore-dev,
- libkf5wayland-dev
+ qtwebengine5-dev,
+ libdeepin-pw-check-dev,
+ libxcb-util0-dev|libxcb-util1-dev
 Standards-Version: 3.9.4
 Homepage: http://www.deepin.org/
 
@@ -34,15 +36,13 @@ Package: dde-session-shell
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}, ${dist:Depends},
  deepin-desktop-schemas (>=5.9.14),
- libdframeworkdbus2 (>=5.4.10),
  dde-daemon (>=5.13.12),
  startdde (>=5.8.9),
  x11-xserver-utils,
- dbus-x11,
  deepin-authenticate(>=1.2.27),
- xsettingsd,
- libssl-dev,
- libxcb-util0 | libxcb-util1
+ libssl3,
+ libxcb-util0|libxcb-util1,
+ xsettingsd
 Provides: lightdm-greeter
 Recommends: onboard,
  dss-network-plugin,

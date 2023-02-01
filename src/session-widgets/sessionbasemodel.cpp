@@ -9,8 +9,8 @@
 #include <QDebug>
 #include <QGSettings>
 
-#define SessionManagerService "com.deepin.SessionManager"
-#define SessionManagerPath "/com/deepin/SessionManager"
+#define SessionManagerService "org.deepin.dde.SessionManager1"
+#define SessionManagerPath "/org/deepin/dde/SessionManager1"
 
 DCORE_USE_NAMESPACE
 
@@ -26,14 +26,17 @@ SessionBaseModel::SessionBaseModel(QObject *parent)
     , m_isLockNoPassword(false)
     , m_isBlackMode(false)
     , m_isHibernateMode(false)
+    , m_isLock(false)
     , m_allowShowCustomUser(false)
     , m_SEOpen(false)
     , m_isUseWayland(QGuiApplication::platformName().startsWith("wayland", Qt::CaseInsensitive))
+    , m_userListSize(0)
     , m_appType(AuthCommon::None)
     , m_currentUser(nullptr)
     , m_lastLogoutUser(nullptr)
     , m_powerAction(PowerAction::RequireNormal)
     , m_currentModeState(ModeStatus::NoStatus)
+    , m_isCheckedInhibit(false)
     , m_authProperty {false, false, Unavailable, AuthCommon::None, AuthCommon::None, 0, "", "", ""}
     , m_users(new QMap<QString, std::shared_ptr<User>>())
     , m_loginedUsers(new QMap<QString, std::shared_ptr<User>>())
@@ -155,9 +158,6 @@ void SessionBaseModel::setVisible(const bool visible)
         return;
     }
     m_visible = visible;
-
-    //根据界面显示还是隐藏设置是否加载虚拟键盘
-    setHasVirtualKB(m_visible);
 
     emit visibleChanged(m_visible);
 }
@@ -499,7 +499,7 @@ void SessionBaseModel::updateLoginedUserList(const QString &list)
                 // 排除非正常登录用户
                 continue;
             }
-            const QString path = QString("/com/deepin/daemon/Accounts/User") + QString::number(uid);
+            const QString path = QString("/org/deepin/dde/Accounts1/User") + QString::number(uid);
             if (!m_loginedUsers->contains(path)) {
                 // 对于通过自定义窗口输入的账户(域账户), 此时账户还没添加进来，导致下面m_users->value(path)为空指针，调用会导致程序奔溃
                 // 因此在登录时，对于新增的账户，调用addUser先将账户添加进来，然后再去更新对应账户的登录状态

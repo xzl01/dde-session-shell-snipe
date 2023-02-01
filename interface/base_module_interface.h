@@ -12,21 +12,7 @@ const QString BASE_API_VERSION = "2.0.0";
 namespace dss {
 namespace module {
 
-/**
- * @brief 消息回调函数
- * @param const QString & 发送给登录器的数据
- * @param void * 登录器回传指针
- *
- * @return 登录器返回的数据
- * @since 2.0.0
- *
- * 传入和传出的数据都是json格式的字符串，详见登录插件接口说明文档
- *
- */
-using MessageCallbackFunc = QString (*)(const QString&, void *);
-
-using AppDataPtr = void*;
-
+const QStringList ValidVersions = {"1.0.0", "1.0.1"};
 class BaseModuleInterface
 {
 public:
@@ -84,18 +70,10 @@ public:
     virtual ModuleType type() const = 0;
 
     /**
-    * @brief 模块加载类型
-    *
-    * 登陆器在加载插件的时候会调用这个接口，如果返回Load，那么登陆会加载插件，返回其它则不会加载插件。
-    * 非全平台或全架构的插件需要重新实现这个接口，根据实际情况处理。
-    *
-    * @return LoadType 详见`LoadType`说明
-    *
-    * @since 1.1.0
-    */
-    virtual LoadType loadPluginType() const { return Load; }
-
-    // Warning: 不要增加虚函数，即使在最后面（会改变派生类的虚表）
+     * @brief isNeedInitPlugin 是否需要初始化插件，主要适应插件通过配置不显示等情况。
+     * @return
+     */
+    virtual bool isNeedInitPlugin() const = 0;
 };
 
 } // namespace module

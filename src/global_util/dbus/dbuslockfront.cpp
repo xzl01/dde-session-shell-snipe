@@ -9,7 +9,7 @@
  */
 
 DBusLockFront::DBusLockFront(QObject *parent)
-    : QDBusAbstractInterface("com.deepin.dde.lockFront", "/com/deepin/dde/lockFront", staticInterfaceName(), QDBusConnection::sessionBus(), parent)
+    : QDBusAbstractInterface("org.deepin.dde.LockFront1", "/org/deepin/dde/LockFront1", staticInterfaceName(), QDBusConnection::sessionBus(), parent)
 {
     QDBusConnection::sessionBus().connect(this->service(), this->path(), "org.freedesktop.DBus.Properties",  "PropertiesChanged","sa{sv}as", this, SLOT(__propertyChanged__(QDBusMessage)));
 }

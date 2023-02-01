@@ -29,7 +29,7 @@ const QDBusArgument &operator>>(const QDBusArgument &argument, InputDevice &devi
 
 
 /*
- * Proxy class for interface com.deepin.daemon.InputDevices
+ * Proxy class for interface com.deepin.dde.InputDevices1
  */
 class DBusInputDevices: public QDBusAbstractInterface
 {
@@ -41,7 +41,7 @@ class DBusInputDevices: public QDBusAbstractInterface
             if (3 != arguments.count())
                 return;
             QString interfaceName = msg.arguments().at(0).toString();
-            if (interfaceName !="com.deepin.daemon.InputDevices")
+            if (interfaceName !="org.deepin.dde.InputDevices1")
                 return;
             QVariantMap changedProps = qdbus_cast<QVariantMap>(arguments.at(1).value<QDBusArgument>());
             QStringList keys = changedProps.keys();
@@ -57,11 +57,11 @@ class DBusInputDevices: public QDBusAbstractInterface
        }
 public:
     static inline const char *staticInterfaceName()
-    { return "com.deepin.daemon.InputDevices"; }
+    { return "org.deepin.dde.InputDevices1"; }
     static inline const char *staticServiceName()
-    { return "com.deepin.daemon.InputDevices"; }
+    { return "org.deepin.dde.InputDevices1"; }
     static inline const char *staticObjectPath()
-    { return "/com/deepin/daemon/InputDevices"; }
+    { return "/org/deepin/dde/InputDevices1"; }
 
 public:
     DBusInputDevices(QObject *parent = 0);
@@ -78,10 +78,10 @@ Q_SIGNALS: // SIGNALS
     void InfosChanged();
 };
 
-namespace com {
+namespace org {
   namespace deepin {
-    namespace daemon {
-      typedef ::DBusInputDevices InputDevices;
+    namespace dde {
+      typedef ::DBusInputDevices InputDevices1;
     }
   }
 }

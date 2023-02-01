@@ -42,7 +42,7 @@
     </message>
     <message numerus="yes">
         <source>Verification failed, %n chances left</source>
-        <translation><numerusform>ར་སྤྲོད་ཐུབ་མ་སོང་། ཁྱེད་ཀྱིས་ད་དུང་ལྟ་ཚོད་%nབྱེད་ཆོག</numerusform></translation>
+        <translation type="unfinished"><numerusform></numerusform></translation>
     </message>
     <message>
         <source>Verification failed, only one chance left</source>
@@ -88,7 +88,7 @@
     </message>
     <message numerus="yes">
         <source>Verification failed, %n chances left</source>
-        <translation><numerusform>ར་སྤྲོད་ཐུབ་མ་སོང་། ཁྱེད་ཀྱིས་ད་དུང་ལྟ་ཚོད་%nབྱེད་ཆོག</numerusform></translation>
+        <translation type="unfinished"><numerusform></numerusform></translation>
     </message>
     <message>
         <source>Verification failed, only one chance left</source>
@@ -127,7 +127,7 @@
     </message>
     <message numerus="yes">
         <source>Please try again %n minutes later</source>
-        <translation><numerusform>སྐར་མ་%nརྗེས་ཡང་བསྐྱར་ཚོད་ལྟ་བྱེད།</numerusform></translation>
+        <translation type="unfinished"><numerusform></numerusform></translation>
     </message>
     <message>
         <source>Reset Password</source>
@@ -146,7 +146,7 @@
     </message>
     <message numerus="yes">
         <source>Verification failed, %n chances left</source>
-        <translation><numerusform>ར་སྤྲོད་ཐུབ་མ་སོང་། ཁྱེད་ཀྱིས་ད་དུང་ལྟ་ཚོད་%nབྱེད་ཆོག</numerusform></translation>
+        <translation type="unfinished"><numerusform></numerusform></translation>
     </message>
     <message>
         <source>Verification failed, only one chance left</source>
@@ -166,7 +166,7 @@
     </message>
     <message numerus="yes">
         <source>Please try again %n minute(s) later</source>
-        <translation><numerusform>སྐར་མ་ %n རྗེས་ཡང་བསྐྱར་ཚོད་ལྟ་བྱེད།</numerusform></translation>
+        <translation type="unfinished"><numerusform></numerusform></translation>
     </message>
     <message>
         <source>Please try again 1 minute later</source>
@@ -188,8 +188,78 @@
         <translation type="unfinished"><numerusform></numerusform></translation>
     </message>
     <message>
-        <source>Password expired, please change</source>
-        <translation>གསང་ཨང་དུས་ཚོད་ཡོལ་ཟིན་པས། བཟོ་བཅོས་བྱེད་རོགས།</translation>
+        <source>Your password has expired. Please contact the administrator to change it.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <source>Your password has expired. Please change it.</source>
+        <translation type="unfinished"/>
+    </message>
+</context>
+<context>
+    <name>ChangePasswordWidget</name>
+    <message>
+        <source>Your password has expired. Please change it and log in again.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <source>Save</source>
+        <translation>ཉར་ཚགས། </translation>
+    </message>
+    <message>
+        <source>Old password</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <source>New password</source>
+        <translation>གསང་ཨང་གསར་པ། </translation>
+    </message>
+    <message>
+        <source>Repeat new password</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <source>Password hint (Optional)</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <source>Passwords do not match</source>
+        <translation>གསང་ཨང་མི་མཐུན་བ། </translation>
+    </message>
+    <message>
+        <source>The hint is visible to all users. Do not include the password here.</source>
+        <translation>གསང་ཨང་ཚང་མས་མཐོང་ཐུབ་པས། གསང་ཨང་གི་ཞིབ་ཕྲའི་ཆ་འཕྲིན་མ་འབྲི།</translation>
+    </message>
+    <message>
+        <source>New password should differ from the current one</source>
+        <translation>གསང་ཨང་གསར་པ་དང་རྙིང་པ་གཅིག་མཚུངས་ཡིན་མི་རུང་། </translation>
+    </message>
+    <message>
+        <source>Password changed</source>
+        <translation>གསང་ཨང་བཅོས་ཐུབ་སོང་།</translation>
+    </message>
+    <message>
+        <source>Wrong password</source>
+        <translation>གསང་ཨང་ནོར་འདུག</translation>
+    </message>
+</context>
+<context>
+    <name>ControlWidget</name>
+    <message>
+        <source>Desktop Environment and Display Protocol</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <source>Keyboard Layout</source>
+        <translation>མཐེབ་གཞོང་བཀོད་པ།</translation>
+    </message>
+    <message>
+        <source>Switch User</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <source>Power</source>
+        <translation>གློག་ཁུངས།</translation>
     </message>
 </context>
 <context>
@@ -248,17 +318,76 @@
     </message>
 </context>
 <context>
-    <name>SessionWidget</name>
+    <name>PasswordLevelWidget</name>
     <message>
-        <source>You have enabled the high system security level, thus cannot switch to the Wayland mode, please disable the high security level in Security Center and try again.</source>
-        <translation>ཁྱེད་ཀྱིས་རིམ་པ་མཐོ་བའི་སྲུང་སྐྱོབ་ཁ་ཕྱེ་ཡོད་པས། Waylandལ་བརྗེ་ཐབས་མེད། ཁྱེད་ཀྱིས་“བདེ་འཇགས་ལྟེ་གནས་”ནས་རིམ་པ་མཐོ་བའི་སྲུང་སྐྱོབ་ཁ་བརྒྱབ་རྗེས་ཚོད་ལྟ་བྱེད་དང་།</translation>
+        <source>Weak</source>
+        <translation>དཀའ་ཚད་དམའ་བ།</translation>
+    </message>
+    <message>
+        <source>Medium</source>
+        <translation>དཀའ་ཚད་འབྲིང་བ།</translation>
+    </message>
+    <message>
+        <source>Strong</source>
+        <translation>དཀའ་ཚད་མཐོ་བ།</translation>
+    </message>
+</context>
+<context>
+    <name>PwqualityManager</name>
+    <message>
+        <source>Password cannot be empty</source>
+        <translation>གསང་ཨང་སྟོང་པ་ཡིན་མི་རུང་། </translation>
+    </message>
+    <message>
+        <source>Password must have at least %1 characters</source>
+        <translation>གསང་ཨང་རིང་ཚད་གྲངས་གནས་%1ལས་ཉུང་མི་རུང་།</translation>
+    </message>
+    <message>
+        <source>Password must be no more than %1 characters</source>
+        <translation>གསང་ཨང་གི་རིང་ཚད་%1གཉིས་ལས་བརྒལ་མི་རུང་། </translation>
+    </message>
+    <message>
+        <source>Password can only contain English letters (case-sensitive), numbers or special symbols (~`!@#$%^&amp;*()-_+=|\{}[]:&quot;&apos;&lt;&gt;,.?/)</source>
+        <translation>གསང་ཨང་ནི་དབྱིན་ཡིག་(ཡིག་ཆེན་དང་ཡིག་ཆུང་གི་དབྱེ་བ་འབྱེད་དགོས། )དང་། ཨང་ཀི། ཡང་ན་དམིགས་བསལ་མཚོན་རྟགས་(~!@#$%^&amp;*()[]{}\|/?,.&lt;&gt;)བཅས་ལས་གྲུབ་དགོས།</translation>
+    </message>
+    <message>
+        <source>No more than %1 palindrome characters please</source>
+        <translation>སྐོར་ཟློས་ཡིག་འབྲུ་%1ལས་བརྒལ་མི་རུང་།</translation>
+    </message>
+    <message>
+        <source>No more than %1 monotonic characters please</source>
+        <translation>གཅིག་རྐྱང་ཅན་གྱི་ཡིག་འབྲུ་%1ལས་བརྒལ་མི་རུང་།</translation>
+    </message>
+    <message>
+        <source>No more than %1 repeating characters please</source>
+        <translation>བསྐྱར་ཟློས་ཡིག་འབྲུ་%1ལས་བརྒལ་མི་རུང་།</translation>
+    </message>
+    <message>
+        <source>Password must contain uppercase letters, lowercase letters, numbers and symbols (~`!@#$%^&amp;*()-_+=|\{}[]:&quot;&apos;&lt;&gt;,.?/)</source>
+        <translation>གསང་ཨང་ནི་ངེས་པར་དུ་ཡིག་ཆེན་དང་། ཡིག་ཆུང་། གྲངས་ཀ མཚོན་རྟགས་（~!@#$%^&amp;*-+=`|\(){}[]:;&quot;&apos;&lt;&gt;,.?/）བཅས་རིགས་བཞི་ལས་གྲུབ་དགོས།</translation>
+    </message>
+    <message>
+        <source>Password must not contain more than 4 palindrome characters</source>
+        <translation>གསང་ཨང་ནང་བསྟུད་མར་ཟུང་ལྡན་གྱི་ཡིག་འབྲུ་4ཡན་ཡོད་མི་ཆོག </translation>
+    </message>
+    <message>
+        <source>Do not use common words and combinations as password</source>
+        <translation>གསང་ཨང་ནི་རྒྱུན་མཐོང་གི་མིང་དང་ཚིག་གྲུབ་ཡིན་མི་ཆོག </translation>
+    </message>
+    <message>
+        <source>Create a strong password please</source>
+        <translation>གསང་ཨང་སྟབས་བདེ་དྲགས་པས། གསང་ཨང་རྙོག་འཛིང་ཆེ་རུ་གཏོང་།</translation>
+    </message>
+    <message>
+        <source>It does not meet password rules</source>
+        <translation>གསང་ཨང་བདེ་འཇགས་ཀྱི་བླང་བྱ་དང་མི་འཚམ་པ།</translation>
     </message>
 </context>
 <context>
     <name>ShutdownWidget</name>
     <message>
         <source>Shut down</source>
-        <translation>ཁ་བརྒྱབ།</translation>
+        <translation>རྩིས་འཁོར་གློག་གསོད།</translation>
     </message>
     <message>
         <source>Reboot</source>
@@ -281,12 +410,12 @@
         <translation>ཐོ་སུབ་པ།</translation>
     </message>
     <message>
-        <source>Switch user</source>
-        <translation>སྤྱོད་མཁན་བརྗེ་བ།</translation>
-    </message>
-    <message>
         <source>Switch system</source>
         <translation>རྒྱུད་ཁོངས་བརྗེ་བ།</translation>
+    </message>
+    <message>
+        <source>Switch user</source>
+        <translation>སྤྱོད་མཁན་བརྗེ་བ།</translation>
     </message>
 </context>
 <context>
@@ -294,6 +423,28 @@
     <message>
         <source>Start system monitor</source>
         <translation>རྒྱུད་ཁོངས་ཀྱི་ལྟ་ཆས་འགོ་སློང་།</translation>
+    </message>
+</context>
+<context>
+    <name>UserListPopupWidget</name>
+    <message>
+        <source>Standard User</source>
+        <translation>ཚད་ལྡན་སྤྱོད་མཁན།</translation>
+    </message>
+    <message>
+        <source>Administrator</source>
+        <translation>དོ་དམ་པ། </translation>
+    </message>
+    <message>
+        <source>Other Users</source>
+        <translation type="unfinished"/>
+    </message>
+</context>
+<context>
+    <name>VirtualKeyboardModule</name>
+    <message>
+        <source>Onboard</source>
+        <translation>བརྙན་ཡོལ་མཐེབ་གཞོང་།</translation>
     </message>
 </context>
 <context>

@@ -42,7 +42,7 @@
     </message>
     <message numerus="yes">
         <source>Verification failed, %n chances left</source>
-        <translation><numerusform>Falha ao verificar, %n tentativa restante</numerusform><numerusform>Falha ao verificar, %n tentativas restantes</numerusform><numerusform>Falha ao verificar, %n tentativas restantes</numerusform></translation>
+        <translation type="unfinished"><numerusform></numerusform><numerusform></numerusform><numerusform></numerusform></translation>
     </message>
     <message>
         <source>Verification failed, only one chance left</source>
@@ -88,7 +88,7 @@
     </message>
     <message numerus="yes">
         <source>Verification failed, %n chances left</source>
-        <translation><numerusform>Falha ao verificar, %n tentativa restante</numerusform><numerusform>Falha ao verificar, %n tentativas restantes</numerusform><numerusform>Falha ao verificar, %n tentativas restantes</numerusform></translation>
+        <translation type="unfinished"><numerusform></numerusform><numerusform></numerusform><numerusform></numerusform></translation>
     </message>
     <message>
         <source>Verification failed, only one chance left</source>
@@ -127,7 +127,7 @@
     </message>
     <message numerus="yes">
         <source>Please try again %n minutes later</source>
-        <translation><numerusform>Tentar novamente %n minuto mais tarde</numerusform><numerusform>Tentar novamente %n minutos mais tarde</numerusform><numerusform>Tentar novamente %n minutos mais tarde</numerusform></translation>
+        <translation type="unfinished"><numerusform></numerusform><numerusform></numerusform><numerusform></numerusform></translation>
     </message>
     <message>
         <source>Reset Password</source>
@@ -146,7 +146,7 @@
     </message>
     <message numerus="yes">
         <source>Verification failed, %n chances left</source>
-        <translation><numerusform>Falha ao verificar, %n tentativa restante</numerusform><numerusform>Falha ao verificar, %n tentativas restantes</numerusform><numerusform>Falha ao verificar, %n tentativas restantes</numerusform></translation>
+        <translation type="unfinished"><numerusform></numerusform><numerusform></numerusform><numerusform></numerusform></translation>
     </message>
     <message>
         <source>Verification failed, only one chance left</source>
@@ -166,7 +166,7 @@
     </message>
     <message numerus="yes">
         <source>Please try again %n minute(s) later</source>
-        <translation><numerusform>Tentar novamente %n minuto mais tarde</numerusform><numerusform>Tentar novamente %n minutos mais tarde</numerusform><numerusform>Tentar novamente %n minutos mais tarde</numerusform></translation>
+        <translation type="unfinished"><numerusform></numerusform><numerusform></numerusform><numerusform></numerusform></translation>
     </message>
     <message>
         <source>Please try again 1 minute later</source>
@@ -188,8 +188,78 @@
         <translation type="unfinished"><numerusform></numerusform><numerusform></numerusform><numerusform></numerusform></translation>
     </message>
     <message>
-        <source>Password expired, please change</source>
-        <translation>A palavra-passe expirou, altere-a</translation>
+        <source>Your password has expired. Please contact the administrator to change it.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <source>Your password has expired. Please change it.</source>
+        <translation type="unfinished"/>
+    </message>
+</context>
+<context>
+    <name>ChangePasswordWidget</name>
+    <message>
+        <source>Your password has expired. Please change it and log in again.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <source>Save</source>
+        <translation>Guardar</translation>
+    </message>
+    <message>
+        <source>Old password</source>
+        <translation>Palavra-passe antiga</translation>
+    </message>
+    <message>
+        <source>New password</source>
+        <translation>Nova palavra-passe</translation>
+    </message>
+    <message>
+        <source>Repeat new password</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <source>Password hint (Optional)</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <source>Passwords do not match</source>
+        <translation>As palavras-passe não coincidem</translation>
+    </message>
+    <message>
+        <source>The hint is visible to all users. Do not include the password here.</source>
+        <translation>A dica é visível para todos os utilizadores. Não inclua aqui a palavra-passe.</translation>
+    </message>
+    <message>
+        <source>New password should differ from the current one</source>
+        <translation>A nova palavra-passe deve ser diferente da atual</translation>
+    </message>
+    <message>
+        <source>Password changed</source>
+        <translation>Palavra-passe alterada</translation>
+    </message>
+    <message>
+        <source>Wrong password</source>
+        <translation>Palavra-passe incorreta</translation>
+    </message>
+</context>
+<context>
+    <name>ControlWidget</name>
+    <message>
+        <source>Desktop Environment and Display Protocol</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <source>Keyboard Layout</source>
+        <translation>Esquema do teclado</translation>
+    </message>
+    <message>
+        <source>Switch User</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <source>Power</source>
+        <translation>Energia</translation>
     </message>
 </context>
 <context>
@@ -218,14 +288,14 @@
     </message>
     <message>
         <source>Failed to lock screen</source>
-        <translation>O bloqueio do ecrã falhou</translation>
+        <translation>Falha ao bloquear o ecrã</translation>
     </message>
 </context>
 <context>
     <name>LockWorker</name>
     <message>
         <source>Fingerprint verification timed out, please enter your password manually</source>
-        <translation>A verificação da impressão digital expirou, insira manualmente a sua palavra-passe</translation>
+        <translation>A verificação da impressão digital expirou, introduza manualmente a sua palavra-passe</translation>
     </message>
     <message>
         <source>Failed to match fingerprint</source>
@@ -248,10 +318,69 @@
     </message>
 </context>
 <context>
-    <name>SessionWidget</name>
+    <name>PasswordLevelWidget</name>
     <message>
-        <source>You have enabled the high system security level, thus cannot switch to the Wayland mode, please disable the high security level in Security Center and try again.</source>
-        <translation>Ativou o modo de alta segurança no sistema, não podendo assim mudar para o modo Wayland. Desative o modo de alta segurança no Centro de Segurança e tente novamente.</translation>
+        <source>Weak</source>
+        <translation>Fraca</translation>
+    </message>
+    <message>
+        <source>Medium</source>
+        <translation>Médio</translation>
+    </message>
+    <message>
+        <source>Strong</source>
+        <translation>Forte</translation>
+    </message>
+</context>
+<context>
+    <name>PwqualityManager</name>
+    <message>
+        <source>Password cannot be empty</source>
+        <translation>A palavra-passe não pode estar em branco</translation>
+    </message>
+    <message>
+        <source>Password must have at least %1 characters</source>
+        <translation>A palavra-passe deve ter pelo menos %1 caracteres</translation>
+    </message>
+    <message>
+        <source>Password must be no more than %1 characters</source>
+        <translation>A palavra-passe não deve ter mais do que %1 caracteres</translation>
+    </message>
+    <message>
+        <source>Password can only contain English letters (case-sensitive), numbers or special symbols (~`!@#$%^&amp;*()-_+=|\{}[]:&quot;&apos;&lt;&gt;,.?/)</source>
+        <translation>A palavra-passe apenas pode conter letras em Inglês (maiúsculas e minúsculas), números ou símbolos especiais (~`!@#$%^&amp;*()-_+=|\{}[]:&quot;&apos;&lt;&gt;,.?/)</translation>
+    </message>
+    <message>
+        <source>No more than %1 palindrome characters please</source>
+        <translation>Não mais de %1 caracteres palíndroma por favor</translation>
+    </message>
+    <message>
+        <source>No more than %1 monotonic characters please</source>
+        <translation>Não mais de %1 caracteres mono tónicos por favor</translation>
+    </message>
+    <message>
+        <source>No more than %1 repeating characters please</source>
+        <translation>Não mais de %1 caracteres repetidos por favor</translation>
+    </message>
+    <message>
+        <source>Password must contain uppercase letters, lowercase letters, numbers and symbols (~`!@#$%^&amp;*()-_+=|\{}[]:&quot;&apos;&lt;&gt;,.?/)</source>
+        <translation>A palavra-passe deve conter letras maiúsculas, letras minúsculas, números e símbolos (~`!@#$%^&amp;*()-_+=|\{}[]:&quot;&apos;&lt;&gt;,.?/)</translation>
+    </message>
+    <message>
+        <source>Password must not contain more than 4 palindrome characters</source>
+        <translation>A palavra-passe não deve conter mais de 4 caracteres palíndromo</translation>
+    </message>
+    <message>
+        <source>Do not use common words and combinations as password</source>
+        <translation>Não utilizar palavras e combinações comuns como palavra-passe</translation>
+    </message>
+    <message>
+        <source>Create a strong password please</source>
+        <translation>Crie uma palavra-passe forte</translation>
+    </message>
+    <message>
+        <source>It does not meet password rules</source>
+        <translation>Não cumpre as regras de palavra-passe</translation>
     </message>
 </context>
 <context>
@@ -281,12 +410,12 @@
         <translation>Terminar sessão</translation>
     </message>
     <message>
-        <source>Switch user</source>
-        <translation>Trocar de utilizador</translation>
-    </message>
-    <message>
         <source>Switch system</source>
         <translation>Mudar de sistema</translation>
+    </message>
+    <message>
+        <source>Switch user</source>
+        <translation>Trocar de utilizador</translation>
     </message>
 </context>
 <context>
@@ -294,6 +423,28 @@
     <message>
         <source>Start system monitor</source>
         <translation>Iniciar monitor do sistema</translation>
+    </message>
+</context>
+<context>
+    <name>UserListPopupWidget</name>
+    <message>
+        <source>Standard User</source>
+        <translation>Utilizador padrão</translation>
+    </message>
+    <message>
+        <source>Administrator</source>
+        <translation>Administrador</translation>
+    </message>
+    <message>
+        <source>Other Users</source>
+        <translation type="unfinished"/>
+    </message>
+</context>
+<context>
+    <name>VirtualKeyboardModule</name>
+    <message>
+        <source>Onboard</source>
+        <translation>Onboard</translation>
     </message>
 </context>
 <context>

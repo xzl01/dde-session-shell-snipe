@@ -8,14 +8,16 @@
 #include <QObject>
 #include <QPointer>
 
-#include <com_deepin_daemon_authenticate.h>
-#include <com_deepin_daemon_authenticate_session2.h>
 #include <memory>
 
-#define AUTHENTICATE_SERVICE "com.deepin.daemon.Authenticate"
+#include "authenticate_interface.h"
+#include "authenticatesession2_interface.h"
 
-using AuthInter = com::deepin::daemon::Authenticate;
-using AuthControllerInter = com::deepin::daemon::authenticate::Session;
+#define AUTHRNTICATESERVICE "org.deepin.dde.Authenticate1"
+#define AUTHRNTICATEINTERFACE "org.deepin.dde.Authenticate1.Session"
+
+using AuthInter = org::deepin::dde::Authenticate1;
+using AuthControllerInter = org::deepin::dde::authenticate1::Session;
 
 
 class DeepinAuthFramework : public QObject
@@ -37,13 +39,13 @@ public:
     void SendToken(const QString &token);
     void DestroyAuthenticate();
 
-    /* com.deepin.daemon.Authenticate */
+    /* org.deepin.dde.Authenticate1 */
     int GetFrameworkState() const;
     int GetSupportedMixAuthFlags() const;
     QString GetPreOneKeyLogin(const int flag) const;
     QString GetLimitedInfo(const QString &account) const;
     QString GetSupportedEncrypts() const;
-    /* com.deepin.daemon.Authenticate.Session */
+    /* org.deepin.dde.Authenticate1.Session */
     int GetFuzzyMFA(const QString &account) const;
     int GetMFAFlag(const QString &account) const;
     int GetPINLen(const QString &account) const;
@@ -58,12 +60,12 @@ public:
     bool isDeepinAuthValid() const;
 
 signals:
-    /* com.deepin.daemon.Authenticate */
+    /* org.deepin.dde.Authenticate1 */
     void LimitsInfoChanged(const QString &);
     void SupportedMixAuthFlagsChanged(const int);
     void FramworkStateChanged(const int);
     void SupportedEncryptsChanged(const QString &);
-    /* com.deepin.daemon.Authenticate.Session */
+    /* org.deepin.dde.Authenticate1.Session */
     void MFAFlagChanged(const bool);
     void FuzzyMFAChanged(const bool);
     void PromptChanged(const QString &);

@@ -25,7 +25,7 @@ void UT_Interface::TearDown()
 
 TEST_F(UT_Interface, user)
 {
-    std::shared_ptr<NativeUser> nativeUser(new NativeUser("/com/deepin/daemon/Accounts/User"+QString::number((getuid()))));
+    std::shared_ptr<NativeUser> nativeUser(new NativeUser("/org/deepin/dde/Accounts1/User"+QString::number((getuid()))));
     // ASSERT_TRUE(nativeUser->userInter());
     // EXPECT_TRUE(nativeUser->userInter()->greeterBackground().isEmpty());
     // EXPECT_TRUE(nativeUser->userInter()->uid().isEmpty());
@@ -42,7 +42,6 @@ TEST_F(UT_Interface, user)
     nativeUser->updateAutomaticLogin(false);
     QStringList backgrounds;
     backgrounds << "";
-    nativeUser->updateDesktopBackgrounds(backgrounds);
     nativeUser->updateFullName("");
     nativeUser->updateGreeterBackground("");
     nativeUser->updateKeyboardLayout("");
@@ -52,7 +51,7 @@ TEST_F(UT_Interface, user)
     nativeUser->updateLocale("");
     nativeUser->updateName("");
     nativeUser->updateNoPasswordLogin(false);
-    nativeUser->updatePasswordState("P");
+    nativeUser->updatePasswordStatus("P");
     nativeUser->updateShortDateFormat(0);
     nativeUser->updateShortTimeFormat(0);
     nativeUser->updateWeekdayFormat(0);

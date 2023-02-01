@@ -43,7 +43,7 @@ TEST_F(UT_GreeterWorker, AuthTest)
 //    m_worker->startAuthentication(UserName, 19);
 //    m_worker->sendTokenToAuth(UserName, 1, "123");
 //    m_worker->endAuthentication(UserName, 19);
-//    m_worker->destoryAuthentication(UserName);
+//    m_worker->destroyAuthentication(UserName);
     m_worker->restartResetSessionTimer();
     m_worker->doPowerAction(SessionBaseModel::PowerAction::RequireLock);
     std::shared_ptr<User> user_ptr(new User);

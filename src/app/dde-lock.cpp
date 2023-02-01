@@ -156,7 +156,7 @@ int main(int argc, char *argv[])
         QObject::connect(model, &SessionBaseModel::visibleChanged, lockFrame,[&](bool visible) {
             emit lockService.Visible(visible);
         });
-        QObject::connect(lockFrame, &LockFrame::requestSetLayout, worker, &LockWorker::setKeyboardLayout);
+        QObject::connect(lockFrame, &LockFrame::requestSetKeyboardLayout, worker, &LockWorker::setKeyboardLayout);
         QObject::connect(lockFrame, &LockFrame::requestEnableHotzone, worker, &LockWorker::enableZoneDetected, Qt::UniqueConnection);
         QObject::connect(lockFrame, &LockFrame::destroyed, property_group, &PropertyGroup::removeObject);
         QObject::connect(lockFrame, &LockFrame::sendKeyValue, [&](QString key) {
@@ -164,7 +164,7 @@ int main(int argc, char *argv[])
         });
         QObject::connect(lockFrame, &LockFrame::requestStartAuthentication, worker, &LockWorker::startAuthentication);
         QObject::connect(lockFrame, &LockFrame::sendTokenToAuth, worker, &LockWorker::sendTokenToAuth);
-        QObject::connect(lockFrame, &LockFrame::requestEndAuthentication, worker, &LockWorker::onEndAuthentication);
+        QObject::connect(lockFrame, &LockFrame::requestEndAuthentication, worker, &LockWorker::endAccountAuthentication);
         QObject::connect(lockFrame, &LockFrame::authFinished, worker, &LockWorker::onAuthFinished);
         if (model->isUseWayland()) {
             QObject::connect(lockFrame, &LockFrame::requestDisableGlobalShortcutsForWayland, worker, &LockWorker::disableGlobalShortcutsForWayland);
@@ -200,8 +200,8 @@ int main(int argc, char *argv[])
         qDebug() << "register dbus failed"<< "maybe lockFront is running..." << conn.lastError();
 
         if (!runDaemon) {
-            const char *lockFrontInter = "com.deepin.dde.lockFront";
-            const char *shutdownFrontInter = "com.deepin.dde.shutdownFront";
+            const char *lockFrontInter = "org.deepin.dde.LockFront1";
+            const char *shutdownFrontInter = "org.deepin.dde.ShutdownFront1";
             if (showUserList) {
                 QDBusInterface ifc(DBUS_LOCK_NAME, DBUS_LOCK_PATH, lockFrontInter, QDBusConnection::sessionBus(), nullptr);
                 ifc.asyncCall("ShowUserList");

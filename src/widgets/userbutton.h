@@ -13,12 +13,13 @@
 #include <QObject>
 #include <QLabel>
 #include <QPropertyAnimation>
-#include <com_deepin_daemon_accounts_user.h>
 #include <memory>
 
 #include "useravatar.h"
 
-using UserInter = com::deepin::daemon::accounts::User;
+#include "accountsuser_interface.h"
+
+using UserInter = org::deepin::dde::accounts1::User;
 
 static const int USER_ICON_WIDTH = 180;
 static const int USER_ICON_HEIGHT = 180;

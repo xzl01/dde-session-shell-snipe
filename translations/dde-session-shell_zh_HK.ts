@@ -188,8 +188,78 @@
         <translation><numerusform>密碼將於%n天後過期，請及時修改密碼</numerusform></translation>
     </message>
     <message>
-        <source>Password expired, please change</source>
+        <source>Your password has expired. Please contact the administrator to change it.</source>
+        <translation>您的密碼已過期，請聯繫管理員修改密碼</translation>
+    </message>
+    <message>
+        <source>Your password has expired. Please change it.</source>
         <translation>密碼已過期，請修改</translation>
+    </message>
+</context>
+<context>
+    <name>ChangePasswordWidget</name>
+    <message>
+        <source>Your password has expired. Please change it and log in again.</source>
+        <translation>您的密碼已過期，請修改密碼後重新登錄</translation>
+    </message>
+    <message>
+        <source>Save</source>
+        <translation>保 存</translation>
+    </message>
+    <message>
+        <source>Old password</source>
+        <translation>舊密碼</translation>
+    </message>
+    <message>
+        <source>New password</source>
+        <translation>新密碼</translation>
+    </message>
+    <message>
+        <source>Repeat new password</source>
+        <translation>重複新密碼</translation>
+    </message>
+    <message>
+        <source>Password hint (Optional)</source>
+        <translation>密碼提示（選填）</translation>
+    </message>
+    <message>
+        <source>Passwords do not match</source>
+        <translation>密碼不一致</translation>
+    </message>
+    <message>
+        <source>The hint is visible to all users. Do not include the password here.</source>
+        <translation>密碼提示對所有人可見，切勿包含具體密碼訊息</translation>
+    </message>
+    <message>
+        <source>New password should differ from the current one</source>
+        <translation>新密碼和舊密碼不能相同</translation>
+    </message>
+    <message>
+        <source>Password changed</source>
+        <translation>密碼修改成功</translation>
+    </message>
+    <message>
+        <source>Wrong password</source>
+        <translation>密碼錯誤</translation>
+    </message>
+</context>
+<context>
+    <name>ControlWidget</name>
+    <message>
+        <source>Desktop Environment and Display Protocol</source>
+        <translation>桌面環境與顯示協議</translation>
+    </message>
+    <message>
+        <source>Keyboard Layout</source>
+        <translation>鍵盤佈局</translation>
+    </message>
+    <message>
+        <source>Switch User</source>
+        <translation>切換用戶</translation>
+    </message>
+    <message>
+        <source>Power</source>
+        <translation>電源</translation>
     </message>
 </context>
 <context>
@@ -214,11 +284,11 @@
     <name>LockContent</name>
     <message>
         <source>Lock Screen</source>
-        <translation>鎖屏</translation>
+        <translation>鎖定螢幕</translation>
     </message>
     <message>
         <source>Failed to lock screen</source>
-        <translation>鎖屏失敗</translation>
+        <translation>鎖定螢幕失敗</translation>
     </message>
 </context>
 <context>
@@ -248,10 +318,69 @@
     </message>
 </context>
 <context>
-    <name>SessionWidget</name>
+    <name>PasswordLevelWidget</name>
     <message>
-        <source>You have enabled the high system security level, thus cannot switch to the Wayland mode, please disable the high security level in Security Center and try again.</source>
-        <translation>您已開啟高級別等級保護，無法切換Wayland模式，請於“安全中心”關閉高級別等級保護後再試</translation>
+        <source>Weak</source>
+        <translation>強度低</translation>
+    </message>
+    <message>
+        <source>Medium</source>
+        <translation>強度中</translation>
+    </message>
+    <message>
+        <source>Strong</source>
+        <translation>強度高</translation>
+    </message>
+</context>
+<context>
+    <name>PwqualityManager</name>
+    <message>
+        <source>Password cannot be empty</source>
+        <translation>密碼不能為空</translation>
+    </message>
+    <message>
+        <source>Password must have at least %1 characters</source>
+        <translation>密碼長度不能少於%1個字符</translation>
+    </message>
+    <message>
+        <source>Password must be no more than %1 characters</source>
+        <translation>密碼長度不能超過%1個字符</translation>
+    </message>
+    <message>
+        <source>Password can only contain English letters (case-sensitive), numbers or special symbols (~`!@#$%^&amp;*()-_+=|\{}[]:&quot;&apos;&lt;&gt;,.?/)</source>
+        <translation>密碼只能由英文（區分大小寫）、數字或特殊符號（~`!@#$%^&amp;*()-_+=|\{}[]:&quot;&apos;&lt;&gt;,.?/）組成</translation>
+    </message>
+    <message>
+        <source>No more than %1 palindrome characters please</source>
+        <translation>回文字符長度不超過%1位</translation>
+    </message>
+    <message>
+        <source>No more than %1 monotonic characters please</source>
+        <translation>單調性字符不超過%1位</translation>
+    </message>
+    <message>
+        <source>No more than %1 repeating characters please</source>
+        <translation>重複字符不超過%1位</translation>
+    </message>
+    <message>
+        <source>Password must contain uppercase letters, lowercase letters, numbers and symbols (~`!@#$%^&amp;*()-_+=|\{}[]:&quot;&apos;&lt;&gt;,.?/)</source>
+        <translation>密碼必須由大寫字母、小寫字母、數字、符號（~`!@#$%^&amp;*()-_+=|\{}[]:&quot;&apos;&lt;&gt;,.?/）三種類型組成</translation>
+    </message>
+    <message>
+        <source>Password must not contain more than 4 palindrome characters</source>
+        <translation>密碼不得含有連續4個以上的回文字符</translation>
+    </message>
+    <message>
+        <source>Do not use common words and combinations as password</source>
+        <translation>密碼不能是常見單詞及組合</translation>
+    </message>
+    <message>
+        <source>Create a strong password please</source>
+        <translation>密碼過於簡單，請增加密碼複雜度</translation>
+    </message>
+    <message>
+        <source>It does not meet password rules</source>
+        <translation>密碼不符合安全要求</translation>
     </message>
 </context>
 <context>
@@ -262,7 +391,7 @@
     </message>
     <message>
         <source>Reboot</source>
-        <translation>重新啟動</translation>
+        <translation>重啟</translation>
     </message>
     <message>
         <source>Suspend</source>
@@ -281,12 +410,12 @@
         <translation>註銷</translation>
     </message>
     <message>
-        <source>Switch user</source>
-        <translation>切換使用者</translation>
-    </message>
-    <message>
         <source>Switch system</source>
         <translation>切換系統</translation>
+    </message>
+    <message>
+        <source>Switch user</source>
+        <translation>切換用戶</translation>
     </message>
 </context>
 <context>
@@ -294,6 +423,28 @@
     <message>
         <source>Start system monitor</source>
         <translation>啟動系統監視器</translation>
+    </message>
+</context>
+<context>
+    <name>UserListPopupWidget</name>
+    <message>
+        <source>Standard User</source>
+        <translation>標準用戶</translation>
+    </message>
+    <message>
+        <source>Administrator</source>
+        <translation>管理員</translation>
+    </message>
+    <message>
+        <source>Other Users</source>
+        <translation>其他用戶</translation>
+    </message>
+</context>
+<context>
+    <name>VirtualKeyboardModule</name>
+    <message>
+        <source>Onboard</source>
+        <translation>螢幕鍵盤</translation>
     </message>
 </context>
 <context>
@@ -328,7 +479,7 @@
     </message>
     <message>
         <source>Reboot</source>
-        <translation>重新啟動</translation>
+        <translation>重啟</translation>
     </message>
     <message>
         <source>Suspend</source>

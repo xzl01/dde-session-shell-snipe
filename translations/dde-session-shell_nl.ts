@@ -166,7 +166,7 @@
     </message>
     <message numerus="yes">
         <source>Please try again %n minute(s) later</source>
-        <translation><numerusform>Probeer het over %n minuut opnieuw</numerusform><numerusform>Probeer het over %n minuten opnieuw</numerusform></translation>
+        <translation><numerusform>Probeer het over %n minuut</numerusform><numerusform>Probeer het over %n minuten opnieuw</numerusform></translation>
     </message>
     <message>
         <source>Please try again 1 minute later</source>
@@ -188,8 +188,78 @@
         <translation type="unfinished"><numerusform></numerusform><numerusform></numerusform></translation>
     </message>
     <message>
-        <source>Password expired, please change</source>
-        <translation>Je wachtwoord is verlopen - wijzig het</translation>
+        <source>Your password has expired. Please contact the administrator to change it.</source>
+        <translation>Je wachtwoord is verlopen. Neem contact op met de beheerder om het te wijzigen.</translation>
+    </message>
+    <message>
+        <source>Your password has expired. Please change it.</source>
+        <translation>Je wachtwoord is verlopen - wijzig het.</translation>
+    </message>
+</context>
+<context>
+    <name>ChangePasswordWidget</name>
+    <message>
+        <source>Your password has expired. Please change it and log in again.</source>
+        <translation>Je wachtwoord is verlopen - wijzig het en meld je dan opnieuw aan.</translation>
+    </message>
+    <message>
+        <source>Save</source>
+        <translation>Opslaan</translation>
+    </message>
+    <message>
+        <source>Old password</source>
+        <translation>Oud wachtwoord</translation>
+    </message>
+    <message>
+        <source>New password</source>
+        <translation>Nieuw wachtwoord</translation>
+    </message>
+    <message>
+        <source>Repeat new password</source>
+        <translation>Herhaal wachtwoord</translation>
+    </message>
+    <message>
+        <source>Password hint (Optional)</source>
+        <translation>Wachtwoordhint (optioneel)</translation>
+    </message>
+    <message>
+        <source>Passwords do not match</source>
+        <translation>De wachtwoorden komen niet overeen</translation>
+    </message>
+    <message>
+        <source>The hint is visible to all users. Do not include the password here.</source>
+        <translation>Deze hint is zichtbaar voor alle gebruikers, dus zet hier NIET je wachtwoord neer.</translation>
+    </message>
+    <message>
+        <source>New password should differ from the current one</source>
+        <translation>Het nieuwe wachtwoord moet verschillen van het huidige wachtwoord</translation>
+    </message>
+    <message>
+        <source>Password changed</source>
+        <translation>Het wachtwoord is gewijzigd</translation>
+    </message>
+    <message>
+        <source>Wrong password</source>
+        <translation>Onjuist wachtwoord</translation>
+    </message>
+</context>
+<context>
+    <name>ControlWidget</name>
+    <message>
+        <source>Desktop Environment and Display Protocol</source>
+        <translation>Werkomgeving en vensterprotocol</translation>
+    </message>
+    <message>
+        <source>Keyboard Layout</source>
+        <translation>Toetsenbordindeling</translation>
+    </message>
+    <message>
+        <source>Switch User</source>
+        <translation>Andere gebruiker</translation>
+    </message>
+    <message>
+        <source>Power</source>
+        <translation>Energie</translation>
     </message>
 </context>
 <context>
@@ -225,7 +295,7 @@
     <name>LockWorker</name>
     <message>
         <source>Fingerprint verification timed out, please enter your password manually</source>
-        <translation>Vingerafdrukauthenticatie verlopen - voer je wachtwoord handmatig in</translation>
+        <translation>De vingerafdrukverificatie is verlopen. Voer je wachtwoord handmatig in.</translation>
     </message>
     <message>
         <source>Failed to match fingerprint</source>
@@ -248,10 +318,69 @@
     </message>
 </context>
 <context>
-    <name>SessionWidget</name>
+    <name>PasswordLevelWidget</name>
     <message>
-        <source>You have enabled the high system security level, thus cannot switch to the Wayland mode, please disable the high security level in Security Center and try again.</source>
-        <translation>Je kunt de Wayland-modus niet gebruiken omdat je het hoogste beveiligingsniveau hebt ingeschakeld. Schakel dit niveau uit in het beveiligingscentrum en probeer het opnieuw.</translation>
+        <source>Weak</source>
+        <translation>Zwak</translation>
+    </message>
+    <message>
+        <source>Medium</source>
+        <translation>Redelijk</translation>
+    </message>
+    <message>
+        <source>Strong</source>
+        <translation>Sterk</translation>
+    </message>
+</context>
+<context>
+    <name>PwqualityManager</name>
+    <message>
+        <source>Password cannot be empty</source>
+        <translation>Voer een wachtwoord in</translation>
+    </message>
+    <message>
+        <source>Password must have at least %1 characters</source>
+        <translation>Het wachtwoord moet minimaal %1 tekens bevatten</translation>
+    </message>
+    <message>
+        <source>Password must be no more than %1 characters</source>
+        <translation>Het wachtwoord mag niet langer zijn dan %1 tekens</translation>
+    </message>
+    <message>
+        <source>Password can only contain English letters (case-sensitive), numbers or special symbols (~`!@#$%^&amp;*()-_+=|\{}[]:&quot;&apos;&lt;&gt;,.?/)</source>
+        <translation>Het wachtwoord mag alleen Nederlandstalige letters (hoofdlettergevoelig), cijfers of speciale tekens (~!@#$%^&amp;*()[]{}\|/?,.&lt;&gt;) bevatten</translation>
+    </message>
+    <message>
+        <source>No more than %1 palindrome characters please</source>
+        <translation>Maximaal %1 palindroomtekens</translation>
+    </message>
+    <message>
+        <source>No more than %1 monotonic characters please</source>
+        <translation>Maximaal %1 monotone tekens</translation>
+    </message>
+    <message>
+        <source>No more than %1 repeating characters please</source>
+        <translation>Maximaal %1 dezelfde tekens</translation>
+    </message>
+    <message>
+        <source>Password must contain uppercase letters, lowercase letters, numbers and symbols (~`!@#$%^&amp;*()-_+=|\{}[]:&quot;&apos;&lt;&gt;,.?/)</source>
+        <translation>Het wachtwoord moet hoofdletters, kleine letters, getallen en speciale tekens bevatten (~!@#$%^&amp;*()[]{}\|/?,.&lt;&gt;)</translation>
+    </message>
+    <message>
+        <source>Password must not contain more than 4 palindrome characters</source>
+        <translation>Het wachtwoord mag niet meer dan 4 palindroomtekens bevatten</translation>
+    </message>
+    <message>
+        <source>Do not use common words and combinations as password</source>
+        <translation>Het wachtwoord mag geen algemene woorden of samenstellingen bevatten</translation>
+    </message>
+    <message>
+        <source>Create a strong password please</source>
+        <translation>Stel een sterk wachtwoord samen</translation>
+    </message>
+    <message>
+        <source>It does not meet password rules</source>
+        <translation>Het wachtwoord voldoet niet aan de vereisten</translation>
     </message>
 </context>
 <context>
@@ -281,12 +410,12 @@
         <translation>Afmelden</translation>
     </message>
     <message>
-        <source>Switch user</source>
-        <translation>Andere gebruiker</translation>
-    </message>
-    <message>
         <source>Switch system</source>
         <translation>Ander systeem</translation>
+    </message>
+    <message>
+        <source>Switch user</source>
+        <translation>Andere gebruiker</translation>
     </message>
 </context>
 <context>
@@ -294,6 +423,28 @@
     <message>
         <source>Start system monitor</source>
         <translation>Systeemmonitor openen</translation>
+    </message>
+</context>
+<context>
+    <name>UserListPopupWidget</name>
+    <message>
+        <source>Standard User</source>
+        <translation>Standaardgebruiker</translation>
+    </message>
+    <message>
+        <source>Administrator</source>
+        <translation>Beheerder</translation>
+    </message>
+    <message>
+        <source>Other Users</source>
+        <translation>Andere gebruikers</translation>
+    </message>
+</context>
+<context>
+    <name>VirtualKeyboardModule</name>
+    <message>
+        <source>Onboard</source>
+        <translation>Onboard</translation>
     </message>
 </context>
 <context>

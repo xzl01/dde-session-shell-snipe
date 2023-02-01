@@ -88,6 +88,7 @@ Q_SIGNALS:
 
 protected:
     void showEvent(QShowEvent *event) override;
+    void paintEvent(QPaintEvent *event) override;
 
 protected:
     void initUI();
@@ -103,7 +104,6 @@ protected:
     void setLockButtonType(const int type);
 
     void updatePasswordExpiredState();
-    void updateExpiredState();
 
     void registerSyncFunctions(const QString &flag, std::function<void(QVariant)> function);
     void syncSingle(const QVariant &value);

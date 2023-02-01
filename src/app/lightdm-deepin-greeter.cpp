@@ -6,7 +6,7 @@
 #include "appeventfilter.h"
 #include "constants.h"
 #include "greeterworker.h"
-#include "loginwindow.h"
+#include "loginframe.h"
 #include "modules_loader.h"
 #include "multiscreenmanager.h"
 #include "propertygroup.h"
@@ -336,7 +336,7 @@ int main(int argc, char* argv[])
 
     ModulesLoader::instance().start(QThread::LowestPriority);
 
-    const QString serviceName = "com.deepin.daemon.Accounts";
+    const QString serviceName = "org.deepin.dde.Accounts1";
     QDBusConnectionInterface *interface = QDBusConnection::systemBus().interface();
     if (!interface->isServiceRegistered(serviceName)) {
         qWarning() << "accounts service is not registered wait...";
@@ -378,31 +378,19 @@ int main(int argc, char* argv[])
     PropertyGroup *property_group = new PropertyGroup(worker);
     property_group->addProperty("contentVisible");
 
-    auto createFrame = [&](QPointer<QScreen> screen, int count) -> QWidget * {
-        LoginWindow *loginFrame = new LoginWindow(model);
-        // 创建Frame可能会花费数百毫秒，这个和机器性能有关，在此过程完成后，screen可能已经析构了
-        // 在wayland的环境插拔屏幕或者显卡驱动有问题时可能会出现此类问题
-        if (screen.isNull()) {
-            loginFrame->deleteLater();
-            loginFrame = nullptr;
-            qWarning() << "Screen was released when the frame was created ";
-            return nullptr;
-        }
+    auto createFrame = [&](QScreen *screen, int count) -> QWidget * {
+        LoginFrame *loginFrame = new LoginFrame(model);
         loginFrame->setScreen(screen, count <= 0);
         property_group->addObject(loginFrame);
-        QObject::connect(loginFrame, &LoginWindow::requestSwitchToUser, worker, &GreeterWorker::switchToUser);
-        QObject::connect(loginFrame, &LoginWindow::requestSetKeyboardLayout, worker, &GreeterWorker::setKeyboardLayout);
-        QObject::connect(loginFrame, &LoginWindow::requestCheckAccount, worker, &GreeterWorker::checkAccount);
-        QObject::connect(loginFrame, &LoginWindow::requestStartAuthentication, worker, &GreeterWorker::startAuthentication);
-        QObject::connect(loginFrame, &LoginWindow::sendTokenToAuth, worker, &GreeterWorker::sendTokenToAuth);
-        QObject::connect(loginFrame, &LoginWindow::requestEndAuthentication, worker, &GreeterWorker::endAuthentication);
-        QObject::connect(loginFrame, &LoginWindow::authFinished, worker, &GreeterWorker::onAuthFinished);
-        QObject::connect(worker, &GreeterWorker::requestUpdateBackground, loginFrame, &LoginWindow::updateBackground);
-        if (!IsWayland) {
-            loginFrame->setVisible(model->visible());
-        } else {
-            QObject::connect(worker, &GreeterWorker::showLoginWindow, loginFrame, &LoginWindow::setVisible);
-        }
+        QObject::connect(loginFrame, &LoginFrame::requestSwitchToUser, worker, &GreeterWorker::switchToUser);
+        QObject::connect(loginFrame, &LoginFrame::requestSetKeyboardLayout, worker, &GreeterWorker::setKeyboardLayout);
+        QObject::connect(loginFrame, &LoginFrame::requestCheckAccount, worker, &GreeterWorker::checkAccount);
+        QObject::connect(loginFrame, &LoginFrame::requestStartAuthentication, worker, &GreeterWorker::startAuthentication);
+        QObject::connect(loginFrame, &LoginFrame::sendTokenToAuth, worker, &GreeterWorker::sendTokenToAuth);
+        QObject::connect(loginFrame, &LoginFrame::requestEndAuthentication, worker, &GreeterWorker::endAuthentication);
+        QObject::connect(loginFrame, &LoginFrame::authFinished, worker, &GreeterWorker::onAuthFinished);
+        QObject::connect(worker, &GreeterWorker::requestUpdateBackground, loginFrame, &LoginFrame::updateBackground);
+        loginFrame->show();
         return loginFrame;
     };
 

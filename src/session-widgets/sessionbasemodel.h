@@ -7,13 +7,13 @@
 
 #include "authcommon.h"
 #include "userinfo.h"
+#include "mfainfolist.h"
 
 #include <DSysInfo>
 
 #include <QObject>
 
 #include <memory>
-#include <types/mfainfolist.h>
 
 using namespace AuthCommon;
 
@@ -43,17 +43,16 @@ public:
 
     enum ModeStatus {
         NoStatus,
-        PasswordMode,
-        ConfirmPasswordMode,
-        UserMode,
-        SessionMode,
+        PasswordMode,           // 输入密码验证页面
+        ConfirmPasswordMode,    // 确认密码页面(一般是关机或者重启等操作需要验证用户密码)
+        UserMode,               // 显示用户列表
         PowerMode,
-        ShutDownMode,
-        ResetPasswdMode
+        ShutDownMode,           // 关机界面
+        ResetPasswdMode         // 重设密码界面
     };
     Q_ENUM(ModeStatus)
 
-    /* com.deepin.daemon.Authenticate */
+    /* org.deepin.dde.Authenticate1 */
     struct AuthProperty {
         bool FuzzyMFA;          // Reserved
         bool MFAFlag;           // 多因子标志位
@@ -144,20 +143,20 @@ public:
     inline int currentPowerBtnIndex() const { return m_currentPowerBntIndex;}
 
 signals:
-    /* com.deepin.daemon.Accounts */
+    /* org.deepin.dde.Accounts1 */
     void currentUserChanged(const std::shared_ptr<User>);
     void userAdded(const std::shared_ptr<User>);
     void userRemoved(const std::shared_ptr<User>);
     void userListChanged(const QList<std::shared_ptr<User>>);
     void loginedUserListChanged(const QList<std::shared_ptr<User>>);
-    /* com.deepin.daemon.Authenticate */
+    /* org.deepin.dde.Authenticate1 */
     void MFAFlagChanged(const bool);
     /* others */
     void visibleChanged(const bool);
     void powerBtnIndexChanged(int index);
 
 public slots:
-    /* com.deepin.daemon.Accounts */
+    /* org.deepin.dde.Accounts1 */
     void addUser(const QString &path);
     void addUser(const std::shared_ptr<User> user);
     void removeUser(const QString &path);
@@ -168,12 +167,12 @@ public slots:
     void updateLastLogoutUser(const uid_t uid);
     void updateLastLogoutUser(const std::shared_ptr<User> lastLogoutUser);
     void updateLoginedUserList(const QString &list);
-    /* com.deepin.daemon.Authenticate */
+    /* org.deepin.dde.Authenticate1 */
     void updateLimitedInfo(const QString &info);
     void updateFrameworkState(const int state);
     void updateSupportedMixAuthFlags(const int flags);
     void updateSupportedEncryptionType(const QString &type);
-    /* com.deepin.daemon.Authenticate.Session */
+    /* org.deepin.dde.Authenticate1.Session */
     void updateAuthState(const int type, const int state, const QString &message);
     void updateFactorsInfo(const MFAInfoList &infoList);
     void updateFuzzyMFA(const bool fuzzMFA);
@@ -207,7 +206,7 @@ signals:
     void prepareForSleep(bool is_Sleep);          //待机信号改变
     void shutdownInhibit(const SessionBaseModel::PowerAction action, bool needConfirm);
     void cancelShutdownInhibit(bool hideFrame);
-    void tipsShowed();
+    void requestLoginFrame();
     void clearServerLoginWidgetContent();
 
     void authStateChanged(const int, const int, const QString &);
@@ -227,12 +226,11 @@ private:
     bool m_isLockNoPassword;
     bool m_isBlackMode;
     bool m_isHibernateMode;
-    bool m_isLock = false;
+    bool m_isLock;
     bool m_allowShowCustomUser;
-    bool m_SEOpen; // 保存等保开启、关闭的状态
+    bool m_SEOpen;                                  // 保存等保开启、关闭的状态
     bool m_isUseWayland;
-    int m_userListSize = 0;
-    int m_currentPowerBntIndex = -1;
+    int m_userListSize;
     AppType m_appType;
     QList<std::shared_ptr<User>> m_userList;
     std::shared_ptr<User> m_currentUser;
@@ -240,8 +238,8 @@ private:
     QString m_sessionKey;
     PowerAction m_powerAction;
     ModeStatus m_currentModeState;
-    bool m_isCheckedInhibit = false;
-    AuthProperty m_authProperty; // 认证相关属性的值，初始时通过dbus获取，暂存在model中，供widget初始化界面使用
+    bool m_isCheckedInhibit;
+    AuthProperty m_authProperty;                    // 认证相关属性的值，初始时通过dbus获取，暂存在model中，供widget初始化界面使用
     QMap<QString, std::shared_ptr<User>> *m_users;
     QMap<QString, std::shared_ptr<User>> *m_loginedUsers;
 };

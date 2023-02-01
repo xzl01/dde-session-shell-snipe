@@ -10,7 +10,7 @@ WarningContent::WarningContent(SessionBaseModel * const model, const SessionBase
     , m_login1Inter(new DBusLogin1Manager("org.freedesktop.login1", "/org/freedesktop/login1", QDBusConnection::systemBus(), this))
     , m_powerAction(action)
 {
-    m_inhibitorBlacklists << "NetworkManager" << "ModemManager" << "com.deepin.daemon.Power";
+    m_inhibitorBlacklists << "NetworkManager" << "ModemManager" << "org.deepin.dde.Power1";
     setTopFrameVisible(false);
     setBottomFrameVisible(false);
 }
@@ -78,7 +78,7 @@ QList<InhibitWarnView::InhibitorData> WarningContent::listInhibitors(const Sessi
 
                     if (connection.interface()->isServiceRegistered(inhibitor.who)) {
 
-                        QDBusInterface ifc(inhibitor.who, "/com/deepin/InhibitHint", "com.deepin.InhibitHint", connection);
+                        QDBusInterface ifc(inhibitor.who, "/org/deepin/dde/InhibitHint1", "org.deepin.dde.InhibitHint1", connection);
                         QDBusMessage msg = ifc.call("Get", qgetenv("LANG"), inhibitor.why);
                         if (msg.type() == QDBusMessage::ReplyMessage) {
                             InhibitHint inhibitHint = qdbus_cast<InhibitHint>(msg.arguments().at(0).value<QDBusArgument>());
@@ -120,7 +120,6 @@ void WarningContent::doCancelShutdownInhibit()
 
     m_model->setIsCheckedInhibit(true);
     m_model->setPowerAction(SessionBaseModel::PowerAction::None);
-    // 在关机界面点击取消时需要回到桌面，其他情况直接退回原界面
     emit m_model->cancelShutdownInhibit(m_model->currentModeState() == SessionBaseModel::ModeStatus::ShutDownMode);
 }
 

@@ -12,13 +12,14 @@
 #include "sessionbasemodel.h"
 #include "greeter_display_wayland.h"
 
+#include "soundthemeplayer_interface.h"
+
 #include <QLightDM/Greeter>
 #include <QLightDM/SessionsModel>
+
 #include <QObject>
 
-#include <com_deepin_api_soundthemeplayer.h>
-
-using SoundThemePlayerInter = com::deepin::api::SoundThemePlayer;
+using SoundThemePlayerInter = org::deepin::dde::SoundThemePlayer1;
 
 class GreeterWorker : public Auth::AuthInterface
 {
@@ -46,7 +47,7 @@ signals:
 public slots:
     /* New authentication framework */
     void createAuthentication(const QString &account);
-    void destoryAuthentication(const QString &account);
+    void destroyAuthentication(const QString &account);
     void startAuthentication(const QString &account, const int authType);
     void endAuthentication(const QString &account, const int authType);
     void sendTokenToAuth(const QString &account, const int authType, const QString &token);

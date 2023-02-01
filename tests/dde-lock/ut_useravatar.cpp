@@ -37,8 +37,5 @@ TEST_F(UT_UserAvatar, BasicTest)
     m_avatar->borderColor();
     m_avatar->setBorderWidth(10);
     m_avatar->borderWidth();
-    m_avatar->setSelected(true); m_avatar->setDeleteable(true);
-    m_avatar->deleteable();
-    m_avatar->setColor(QColor());
     //m_avatar->paintEvent(new QPaintEvent(m_avatar->rect()));
 }

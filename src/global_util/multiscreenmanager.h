@@ -11,9 +11,10 @@
 #include <QMap>
 #include <functional>
 #include <QTimer>
-#include <com_deepin_system_systemdisplay.h>
 
-using SystemDisplayInter = com::deepin::system::Display;
+#include "systemdisplay_interface.h"
+
+using SystemDisplayInter = org::deepin::dde::Display1;
 
 const static int COPY_MODE = 1;
 const static int EXTENDED_MODE = 2;
@@ -26,6 +27,9 @@ public:
 
     void register_for_mutil_screen(std::function<QWidget* (QScreen *, int)> function);
     void startRaiseContentFrame(const bool visible = true);
+
+protected:
+    bool eventFilter(QObject *watched, QEvent *event) override;
 
 protected:
     bool eventFilter(QObject *watched, QEvent *event) override;

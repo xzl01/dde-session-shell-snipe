@@ -32,7 +32,7 @@ using namespace AuthCommon;
 
 DeepinAuthFramework::DeepinAuthFramework(QObject *parent)
     : QObject(parent)
-    , m_authenticateInter(new AuthInter(AUTHENTICATE_SERVICE, "/com/deepin/daemon/Authenticate", QDBusConnection::systemBus(), this))
+    , m_authenticateInter(new AuthInter(AUTHRNTICATESERVICE, "/org/deepin/dde/Authenticate1", QDBusConnection::systemBus(), this))
     , m_PAMAuthThread(0)
     , m_authenticateControllers(new QMap<QString, AuthControllerInter *>())
     , m_cancelAuth(false)
@@ -50,6 +50,8 @@ DeepinAuthFramework::~DeepinAuthFramework()
         m_authenticateControllers->remove(key);
     }
     delete m_authenticateControllers;
+    delete m_AES;
+
     DestroyAuthenticate();
 }
 
@@ -283,7 +285,7 @@ void DeepinAuthFramework::CreateAuthController(const QString &account, const int
     }
     const QString authControllerInterPath = m_authenticateInter->Authenticate(account, authType, appType);
     qInfo() << "Create Authenticate Session:" << account << authType << appType << authControllerInterPath;
-    AuthControllerInter *authControllerInter = new AuthControllerInter("com.deepin.daemon.Authenticate", authControllerInterPath, QDBusConnection::systemBus(), this);
+    AuthControllerInter *authControllerInter = new AuthControllerInter("org.deepin.dde.Authenticate1", authControllerInterPath, QDBusConnection::systemBus(), this);
     m_authenticateControllers->insert(account, authControllerInter);
 
     connect(authControllerInter, &AuthControllerInter::FactorsInfoChanged, this, &DeepinAuthFramework::FactorsInfoChanged);

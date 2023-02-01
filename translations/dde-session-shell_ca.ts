@@ -146,7 +146,7 @@
     </message>
     <message numerus="yes">
         <source>Verification failed, %n chances left</source>
-        <translation><numerusform>Ha fallat la verificació. Resta %n intent.</numerusform><numerusform>Ha fallat la verificació. Resten %n intents.</numerusform></translation>
+        <translation><numerusform>Ha fallat la verificació. Resten %n intent.</numerusform><numerusform>Ha fallat la verificació. Resten %n intents.</numerusform></translation>
     </message>
     <message>
         <source>Verification failed, only one chance left</source>
@@ -166,7 +166,7 @@
     </message>
     <message numerus="yes">
         <source>Please try again %n minute(s) later</source>
-        <translation><numerusform>Torneu-ho a intentar d&apos;aquí a %n minut.</numerusform><numerusform>Torneu-ho a intentar d&apos;aquí a %n minuts.</numerusform></translation>
+        <translation><numerusform>Si us plau, torneu-ho a intentar d&apos;aquí a %n minut.</numerusform><numerusform>Si us plau, torneu-ho a intentar d&apos;aquí a %n minuts.</numerusform></translation>
     </message>
     <message>
         <source>Please try again 1 minute later</source>
@@ -188,8 +188,78 @@
         <translation type="unfinished"><numerusform></numerusform><numerusform></numerusform></translation>
     </message>
     <message>
-        <source>Password expired, please change</source>
+        <source>Your password has expired. Please contact the administrator to change it.</source>
+        <translation>La contrasenya ha caducat. Poseu-vos en contacte amb l&apos;administrador per canviar-la.</translation>
+    </message>
+    <message>
+        <source>Your password has expired. Please change it.</source>
         <translation>La contrasenya ha caducat. Si us plau, canvieu-la.</translation>
+    </message>
+</context>
+<context>
+    <name>ChangePasswordWidget</name>
+    <message>
+        <source>Your password has expired. Please change it and log in again.</source>
+        <translation> La contrasenya ha caducat. Si us plau, canvieu-la i torneu a iniciar la sessió.</translation>
+    </message>
+    <message>
+        <source>Save</source>
+        <translation>Desa</translation>
+    </message>
+    <message>
+        <source>Old password</source>
+        <translation>Contrasenya antiga</translation>
+    </message>
+    <message>
+        <source>New password</source>
+        <translation>Contrasenya nova</translation>
+    </message>
+    <message>
+        <source>Repeat new password</source>
+        <translation>Repetiu la contrasenya nova.</translation>
+    </message>
+    <message>
+        <source>Password hint (Optional)</source>
+        <translation>Suggeriment de contrasenya (opcional)</translation>
+    </message>
+    <message>
+        <source>Passwords do not match</source>
+        <translation>Les contrasenyes no coincideixen.</translation>
+    </message>
+    <message>
+        <source>The hint is visible to all users. Do not include the password here.</source>
+        <translation>La pista és visible per a tots els usuaris. No inclogueu aquí la contrasenya.</translation>
+    </message>
+    <message>
+        <source>New password should differ from the current one</source>
+        <translation>La contrasenya nova hauria de ser diferent de l&apos;actual.</translation>
+    </message>
+    <message>
+        <source>Password changed</source>
+        <translation>Contrasenya canviada</translation>
+    </message>
+    <message>
+        <source>Wrong password</source>
+        <translation>Contrasenya incorrecta</translation>
+    </message>
+</context>
+<context>
+    <name>ControlWidget</name>
+    <message>
+        <source>Desktop Environment and Display Protocol</source>
+        <translation>Entorn d&apos;escriptori i protocol de visualització</translation>
+    </message>
+    <message>
+        <source>Keyboard Layout</source>
+        <translation>Disposició del teclat</translation>
+    </message>
+    <message>
+        <source>Switch User</source>
+        <translation>Canvia d&apos;usuari</translation>
+    </message>
+    <message>
+        <source>Power</source>
+        <translation>Energia</translation>
     </message>
 </context>
 <context>
@@ -248,10 +318,69 @@
     </message>
 </context>
 <context>
-    <name>SessionWidget</name>
+    <name>PasswordLevelWidget</name>
     <message>
-        <source>You have enabled the high system security level, thus cannot switch to the Wayland mode, please disable the high security level in Security Center and try again.</source>
-        <translation>Heu activat el nivell de seguretat del sistema alt i, per tant, no podeu canviar al mode Wayland. Desactiveu el nivell de seguretat alt al Centre de seguretat i torneu-ho a provar.</translation>
+        <source>Weak</source>
+        <translation>Dèbil</translation>
+    </message>
+    <message>
+        <source>Medium</source>
+        <translation>Mitjana</translation>
+    </message>
+    <message>
+        <source>Strong</source>
+        <translation>Forta</translation>
+    </message>
+</context>
+<context>
+    <name>PwqualityManager</name>
+    <message>
+        <source>Password cannot be empty</source>
+        <translation>La contrasenya no pot estar en blanc.</translation>
+    </message>
+    <message>
+        <source>Password must have at least %1 characters</source>
+        <translation>La contrasenya ha de tenir com a mínim %1 caràcters.</translation>
+    </message>
+    <message>
+        <source>Password must be no more than %1 characters</source>
+        <translation>La contrasenya no ha de tenir més de %1 caràcters.</translation>
+    </message>
+    <message>
+        <source>Password can only contain English letters (case-sensitive), numbers or special symbols (~`!@#$%^&amp;*()-_+=|\{}[]:&quot;&apos;&lt;&gt;,.?/)</source>
+        <translation>La contrasenya només pot contenir caràcters en anglès (majúscules o minúscules), números o símbols especials (~`!@#$%^&amp;*()-_+=|\{}[]:&quot;&apos;&lt;&gt;,.?/).</translation>
+    </message>
+    <message>
+        <source>No more than %1 palindrome characters please</source>
+        <translation>Com a màxim %1 caràcters palíndroms, si us plau.</translation>
+    </message>
+    <message>
+        <source>No more than %1 monotonic characters please</source>
+        <translation>Com a màxim %1 caràcters monòtons, si us plau.</translation>
+    </message>
+    <message>
+        <source>No more than %1 repeating characters please</source>
+        <translation>Com a màxim %1 caràcters repetits, si us plau.</translation>
+    </message>
+    <message>
+        <source>Password must contain uppercase letters, lowercase letters, numbers and symbols (~`!@#$%^&amp;*()-_+=|\{}[]:&quot;&apos;&lt;&gt;,.?/)</source>
+        <translation>La contrasenya ha de tenir lletres majúscules, minúscules, números i símbols (~`!@#$%^&amp;*()-_+=|\{}[]:&quot;&apos;&lt;&gt;,.?/).</translation>
+    </message>
+    <message>
+        <source>Password must not contain more than 4 palindrome characters</source>
+        <translation>La contrasenya no ha de contenir més de 4 caràcters palíndroms.</translation>
+    </message>
+    <message>
+        <source>Do not use common words and combinations as password</source>
+        <translation>No useu paraules i combinacions habituals com a contrasenya.</translation>
+    </message>
+    <message>
+        <source>Create a strong password please</source>
+        <translation>Si us plau, creeu una contrasenya forta.</translation>
+    </message>
+    <message>
+        <source>It does not meet password rules</source>
+        <translation>No compleix les regles de la contrasenya.</translation>
     </message>
 </context>
 <context>
@@ -281,12 +410,12 @@
         <translation>Surt de la sessió</translation>
     </message>
     <message>
-        <source>Switch user</source>
-        <translation>Canvia d&apos;usuari</translation>
-    </message>
-    <message>
         <source>Switch system</source>
         <translation>Canvia de sistema</translation>
+    </message>
+    <message>
+        <source>Switch user</source>
+        <translation>Canvia d&apos;usuari</translation>
     </message>
 </context>
 <context>
@@ -294,6 +423,28 @@
     <message>
         <source>Start system monitor</source>
         <translation>Inicia el monitor del sistema</translation>
+    </message>
+</context>
+<context>
+    <name>UserListPopupWidget</name>
+    <message>
+        <source>Standard User</source>
+        <translation>Usuari estàndard</translation>
+    </message>
+    <message>
+        <source>Administrator</source>
+        <translation>Administrador/a</translation>
+    </message>
+    <message>
+        <source>Other Users</source>
+        <translation>Altres usuaris</translation>
+    </message>
+</context>
+<context>
+    <name>VirtualKeyboardModule</name>
+    <message>
+        <source>Onboard</source>
+        <translation>Abord</translation>
     </message>
 </context>
 <context>

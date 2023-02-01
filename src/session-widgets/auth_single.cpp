@@ -7,6 +7,8 @@
 #include "authcommon.h"
 #include "dlineeditex.h"
 
+#include "accountsuser_interface.h"
+
 #include <DHiDPIHelper>
 #include <DDialogCloseButton>
 
@@ -22,11 +24,6 @@
 #include <QRegExp>
 
 #include <unistd.h>
-#include <com_deepin_daemon_accounts_user.h>
-
-#define Service "com.deepin.dialogs.ResetPassword"
-#define Path "/com/deepin/dialogs/ResetPassword"
-#define Interface "com.deepin.dialogs.ResetPassword"
 
 using namespace AuthCommon;
 
@@ -382,10 +379,6 @@ void AuthSingle::setResetPasswordMessageVisible(const bool isVisible)
     if (m_resetPasswordMessageVisible == isVisible)
         return;
 
-    // 如果设置为显示重置按钮，失败次数>=3次就显示重置密码:1060-24505
-    if (isVisible && m_limitsInfo && m_limitsInfo->numFailures < 3)
-        return;
-
     m_resetPasswordMessageVisible = isVisible;
     emit resetPasswordMessageVisibleChanged(m_resetPasswordMessageVisible);
 }
@@ -480,9 +473,9 @@ void AuthSingle::showResetPasswordMessage()
     m_resetPasswordFloatingMessage->setWidget(suggestButton);
     m_resetPasswordFloatingMessage->setMessage(tr("Forgot password?"));
     connect(suggestButton, &QPushButton::clicked, this, [ this ]{
-        const QString AccountsService("com.deepin.daemon.Accounts");
-        const QString path = QString("/com/deepin/daemon/Accounts/User%1").arg(m_currentUid);
-        com::deepin::daemon::accounts::User user(AccountsService, path, QDBusConnection::systemBus());
+        const QString AccountsService("org.deepin.dde.Accounts1");
+        const QString path = QString("/org/deepin/dde/Accounts1/User%1").arg(m_currentUid);
+        org::deepin::dde::accounts1::User user(AccountsService, path, QDBusConnection::systemBus());
         auto reply = user.SetPassword("");
         reply.waitForFinished();
         qWarning() << "reply setpassword:" << reply.error().message();
@@ -532,9 +525,9 @@ bool AuthSingle::isUserAccountBinded()
         return false;
     }
 
-    QDBusInterface accountsInter("com.deepin.daemon.Accounts",
-                                 QString("/com/deepin/daemon/Accounts/User%1").arg(m_currentUid),
-                                 "com.deepin.daemon.Accounts.User",
+    QDBusInterface accountsInter("org.deepin.dde.Accounts1",
+                                 QString("/org/deepin/dde/Accounts1/User%1").arg(m_currentUid),
+                                 "org.deepin.dde.Accounts1.User",
                                  QDBusConnection::systemBus());
     QVariant retUUID = accountsInter.property("UUID");
     if (!accountsInter.isValid()) {

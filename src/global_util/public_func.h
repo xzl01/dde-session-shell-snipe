@@ -14,9 +14,7 @@
 #include <QSettings>
 #include <QString>
 
-class QJsonDocument;
-
-#define ACCOUNTS_DBUS_PREFIX "/com/deepin/daemon/Accounts/User"
+#define ACCOUNTS_DBUS_PREFIX "/org/deepin/dde/Accounts1/User"
 
 static const int APP_TYPE_LOCK = 0;
 static const int APP_TYPE_LOGIN = 1;

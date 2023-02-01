@@ -188,8 +188,78 @@
         <translation type="unfinished"><numerusform></numerusform><numerusform></numerusform><numerusform></numerusform><numerusform></numerusform></translation>
     </message>
     <message>
-        <source>Password expired, please change</source>
-        <translation>Срок действия пароля истек, пожалуйста, измените</translation>
+        <source>Your password has expired. Please contact the administrator to change it.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <source>Your password has expired. Please change it.</source>
+        <translation type="unfinished"/>
+    </message>
+</context>
+<context>
+    <name>ChangePasswordWidget</name>
+    <message>
+        <source>Your password has expired. Please change it and log in again.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <source>Save</source>
+        <translation>Сохранить</translation>
+    </message>
+    <message>
+        <source>Old password</source>
+        <translation>Прежний пароль</translation>
+    </message>
+    <message>
+        <source>New password</source>
+        <translation>Новый пароль</translation>
+    </message>
+    <message>
+        <source>Repeat new password</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <source>Password hint (Optional)</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <source>Passwords do not match</source>
+        <translation>Пароли не совпадают</translation>
+    </message>
+    <message>
+        <source>The hint is visible to all users. Do not include the password here.</source>
+        <translation>Подсказка видна всем пользователям. Не указывайте здесь пароль.</translation>
+    </message>
+    <message>
+        <source>New password should differ from the current one</source>
+        <translation>Новый пароль должен отличаться от текущего</translation>
+    </message>
+    <message>
+        <source>Password changed</source>
+        <translation>Пароль был изменен</translation>
+    </message>
+    <message>
+        <source>Wrong password</source>
+        <translation>Неверный пароль</translation>
+    </message>
+</context>
+<context>
+    <name>ControlWidget</name>
+    <message>
+        <source>Desktop Environment and Display Protocol</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <source>Keyboard Layout</source>
+        <translation>Раскладка клавиатуры</translation>
+    </message>
+    <message>
+        <source>Switch User</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <source>Power</source>
+        <translation>Питание</translation>
     </message>
 </context>
 <context>
@@ -248,10 +318,69 @@
     </message>
 </context>
 <context>
-    <name>SessionWidget</name>
+    <name>PasswordLevelWidget</name>
     <message>
-        <source>You have enabled the high system security level, thus cannot switch to the Wayland mode, please disable the high security level in Security Center and try again.</source>
-        <translation>Вы включили высокий уровень безопасности системы, поэтому не можете переключиться в режим Wayland, отключите высокий уровень безопасности в Центре безопасности и повторите попытку.</translation>
+        <source>Weak</source>
+        <translation>Слабый</translation>
+    </message>
+    <message>
+        <source>Medium</source>
+        <translation>Средний</translation>
+    </message>
+    <message>
+        <source>Strong</source>
+        <translation>Сильный</translation>
+    </message>
+</context>
+<context>
+    <name>PwqualityManager</name>
+    <message>
+        <source>Password cannot be empty</source>
+        <translation>Пароль не может быть пустым</translation>
+    </message>
+    <message>
+        <source>Password must have at least %1 characters</source>
+        <translation>Пароль должен содержать не менее %1 символов</translation>
+    </message>
+    <message>
+        <source>Password must be no more than %1 characters</source>
+        <translation>Пароль должен содержать не более %1 символов</translation>
+    </message>
+    <message>
+        <source>Password can only contain English letters (case-sensitive), numbers or special symbols (~`!@#$%^&amp;*()-_+=|\{}[]:&quot;&apos;&lt;&gt;,.?/)</source>
+        <translation>Пароль может содержать только английские буквы (с учетом регистра), цифры или специальные символы(~`!@#$%^&amp;*()-_+=|\{}[]:&quot;&apos;&lt;&gt;,.?/)</translation>
+    </message>
+    <message>
+        <source>No more than %1 palindrome characters please</source>
+        <translation>Слишком много палиндромов: %1</translation>
+    </message>
+    <message>
+        <source>No more than %1 monotonic characters please</source>
+        <translation>Слишком много символов по порядку: %1</translation>
+    </message>
+    <message>
+        <source>No more than %1 repeating characters please</source>
+        <translation>Слишком много повторяющихся символов: %1</translation>
+    </message>
+    <message>
+        <source>Password must contain uppercase letters, lowercase letters, numbers and symbols (~`!@#$%^&amp;*()-_+=|\{}[]:&quot;&apos;&lt;&gt;,.?/)</source>
+        <translation>Пароль должен содержать прописные буквы, строчные буквы, цифры и символы (~`!@#$%^&amp;*()-_+=|\{}[]:&quot;&apos;&lt;&gt;,.?/)</translation>
+    </message>
+    <message>
+        <source>Password must not contain more than 4 palindrome characters</source>
+        <translation>Пароль не должен содержать более 4 символов палиндрома</translation>
+    </message>
+    <message>
+        <source>Do not use common words and combinations as password</source>
+        <translation>Не используйте общие слова и комбинации в качестве пароля</translation>
+    </message>
+    <message>
+        <source>Create a strong password please</source>
+        <translation>Пожалуйста, создайте надежный пароль</translation>
+    </message>
+    <message>
+        <source>It does not meet password rules</source>
+        <translation>Не соответствует правилам паролей</translation>
     </message>
 </context>
 <context>
@@ -281,12 +410,12 @@
         <translation>Выйти</translation>
     </message>
     <message>
-        <source>Switch user</source>
-        <translation>Переключить пользователя</translation>
-    </message>
-    <message>
         <source>Switch system</source>
         <translation>Переключить систему</translation>
+    </message>
+    <message>
+        <source>Switch user</source>
+        <translation>Переключить пользователя</translation>
     </message>
 </context>
 <context>
@@ -294,6 +423,28 @@
     <message>
         <source>Start system monitor</source>
         <translation>Запустить системный монитор</translation>
+    </message>
+</context>
+<context>
+    <name>UserListPopupWidget</name>
+    <message>
+        <source>Standard User</source>
+        <translation>Обычный пользователь</translation>
+    </message>
+    <message>
+        <source>Administrator</source>
+        <translation>Администратор</translation>
+    </message>
+    <message>
+        <source>Other Users</source>
+        <translation type="unfinished"/>
+    </message>
+</context>
+<context>
+    <name>VirtualKeyboardModule</name>
+    <message>
+        <source>Onboard</source>
+        <translation>Экранная Клавиатура</translation>
     </message>
 </context>
 <context>

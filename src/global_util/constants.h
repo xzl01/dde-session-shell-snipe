@@ -16,10 +16,10 @@ namespace DDESESSIONCC
 static const QString CONFIG_FILE("/var/lib/AccountsService/deepin/users/");
 static const QString DEFAULT_CURSOR_THEME("/usr/share/icons/default/index.theme");
 static const QString LAST_USER_CONFIG("/var/lib/lightdm/lightdm-deepin-greeter");
-static const int PASSWD_EDIT_WIDTH = 280;
-static const int PASSWD_EDIT_HEIGHT = 36;
-static const int LOCK_CONTENT_TOP_WIDGET_HEIGHT = 132; // 顶部控件（日期）的高度
-static const int LOCK_CONTENT_CENTER_LAYOUT_MARGIN = 33; // SessionBaseWindow 中main layout的上下间隔
+static const int PASSWDLINEEIDT_WIDTH = 280;
+static const int PASSWDLINEEDIT_HEIGHT = 36;
+static const int LOCK_CONTENT_TOPBOTTOM_WIDGET_HEIGHT = 132; // 顶部和底部控件(日期区域和底部区域)的高度
+static const int LOCK_CONTENT_CENTER_LAYOUT_MARGIN = 33; // SessionBaseWindow 中mainlayout的上下间隔
 static const int BIO_AUTH_STATE_PLACE_HOLDER_HEIGHT = 42; // 生物认证状态占位高度
 static const int BIO_AUTH_STATE_BOTTOM_SPACING = 30; // 生物识别状态底部间隔
 static const int CHOOSE_AUTH_TYPE_BUTTON_BOTTOM_SPACING = 40; // 认证类型选择按钮底部间隔

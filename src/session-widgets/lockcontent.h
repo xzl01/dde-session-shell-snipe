@@ -16,8 +16,7 @@
 #include <QWidget>
 #include <QLocalServer>
 
-#include <com_deepin_wm.h>
-#include <memory>
+#include "wm_interface.h"
 
 class AuthWidget;
 class MFAWidget;
@@ -45,8 +44,7 @@ public:
 signals:
     void requestBackground(const QString &path);
     void requestSwitchToUser(std::shared_ptr<User> user);
-    void requestSetLayout(std::shared_ptr<User> user, const QString &value);
-    void unlockActionFinish();
+    void requestSetKeyboardLayout(std::shared_ptr<User> user, const QString &value);
 
     void requestStartAuthentication(const QString &account, const int authType);
     void sendTokenToAuth(const QString &account, const int authType, const QString &token);
@@ -73,9 +71,8 @@ protected:
     void keyPressEvent(QKeyEvent *event) Q_DECL_OVERRIDE;
 
 protected:
-    void toggleVirtualKB();
+    void updateTimeFormat(bool use24);
     void showModule(const QString &name);
-    void updateVirtualKBPosition();
     void onUserListChanged(QList<std::shared_ptr<User>> list);
     void tryGrabKeyboard(bool exitIfFalied = true);
     void currentWorkspaceChanged();
@@ -91,25 +88,22 @@ protected:
 
 protected:
     SessionBaseModel *m_model;
-    ControlWidget *m_controlWidget;
-    CenterTopWidget *m_centerTopWidget;
-    ShutdownWidget *m_shutdownFrame;
-    QWidget *m_virtualKB;
+    ControlWidget *m_controlWidget;                 // 右下角图标
+    QSharedPointer<ShutdownWidget> m_shutdownFrame; // 关机界面
+    LogoWidget *m_logoWidget;                       // logo显示
+    TimeWidget *m_timeWidget;                       // 时间日期显示
+    QSharedPointer<MediaWidget> m_mediaWidget;      // 多媒体信息显示
+    UserFrameList *m_userListWidget;                // 账户展示区域
+
     std::shared_ptr<User> m_user;
     QList<QMetaObject::Connection> m_currentUserConnects;
-    LogoWidget *m_logoWidget;
-    TimeWidget *m_timeWidget;
-    MediaWidget *m_mediaWidget = nullptr;
-    com::deepin::wm *m_wmInter;
-    QWidget *m_loginWidget;
-    QMap<QString, QWidget *> m_centeralWidgets;
+    com::deepin::wm *m_wmInter;                     // 用户更新工作区壁纸
 
     SFAWidget *m_sfaWidget;
     MFAWidget *m_mfaWidget;
     AuthWidget *m_authWidget;
-    UserFrameList *m_userListWidget;
 
-    int m_failures = 0;
+    int m_lockFailTimes;                             // 尝试锁屏时失败的次数
     QLocalServer *m_localServer;
 };
 

@@ -8,12 +8,12 @@
 #include "constants.h"
 #include "public_func.h"
 
+#include "accountsuser_interface.h"
+
 #include <QObject>
 #include <QJsonObject>
 
-#include <com_deepin_daemon_accounts_user.h>
-
-using UserInter = com::deepin::daemon::accounts::User;
+using UserInter = org::deepin::dde::accounts1::User;
 
 class User : public QObject
 {
@@ -28,6 +28,12 @@ public:
         Native,
         ADDomain,
         Default
+    };
+
+    enum AccountType {
+        Standard = 0,
+        Admin = 1,
+        Other = 2
     };
 
     enum ExpiredState {
@@ -78,6 +84,7 @@ public:
     inline int shortDateFormat() const { return m_shortDateFormat; }
     inline int shortTimeFormat() const { return m_shortTimeFormat; }
     inline int weekdayFormat() const { return m_weekdayFormat; }
+    inline int accountType() const { return m_accountType; }
 
     virtual inline int type() const { return Default; }
     inline QMap<int, LimitsInfo> *limitsInfo() const { return m_limitsInfo; }
@@ -107,7 +114,6 @@ public:
 signals:
     void avatarChanged(const QString &);
     void autoLoginStateChanged(const bool);
-    void desktopBackgroundChanged(const QString &);
     void displayNameChanged(const QString &);
     void greeterBackgroundChanged(const QString &);
     void keyboardLayoutChanged(const QString &);
@@ -120,6 +126,7 @@ signals:
     void shortDateFormatChanged(const int);
     void shortTimeFormatChanged(const int);
     void weekdayFormatChanged(const int);
+    void accountTypeChanged(const int);
     void use24HourFormatChanged(const bool);
     void passwordExpiredInfoChanged();
 
@@ -142,6 +149,7 @@ protected:
     int m_shortDateFormat;               // 短日期格式
     int m_shortTimeFormat;               // 短时间格式
     int m_weekdayFormat;                 // 星期显示格式
+    int m_accountType;                   // 账户类型 1:管理员 0:标准用户 2:域账户
     uid_t m_uid;                         // 用户 uid
     QString m_avatar;                    // 用户头像
     QString m_fullName;                  // 用户全名
@@ -175,7 +183,6 @@ public:
 private slots:
     void updateAvatar(const QString &path);
     void updateAutomaticLogin(const bool autoLoginState);
-    void updateDesktopBackgrounds(const QStringList &backgrounds);
     void updateFullName(const QString &fullName);
     void updateGreeterBackground(const QString &path);
     void updateKeyboardLayout(const QString &keyboardLayout);
@@ -184,10 +191,11 @@ private slots:
     void updateName(const QString &name);
     void updateNoPasswordLogin(const bool isNoPasswordLogin);
     void updatePasswordHint(const QString &hint);
-    void updatePasswordState(const QString &state);
+    void updatePasswordStatus(const QString &state);
     void updateShortDateFormat(const int format);
     void updateShortTimeFormat(const int format);
     void updateWeekdayFormat(const int format);
+    void updateAccountType(const int type);
     void updateUid(const QString &uid);
     void updateUse24HourFormat(const bool is24HourFormat);
     void updateAccountType();

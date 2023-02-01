@@ -52,7 +52,7 @@ Any usage issues can ask for help via
 
 We encourage you to report issues and contribute changes
 
-- [**Contribution guide for developers**](https://github.com/linuxdeepin/developer-center/wiki/Contribution-Guidelines-for-Developers-en) 
+[**Contribution guide for developers**] (https://github.com/linuxdeepin/developer-center/wiki/Contribution-Guidelines-for-Developers-en) (English)
 
 ## License
 DDE session shell is licensed under [GPL-3.0-or-later](LICENSE).

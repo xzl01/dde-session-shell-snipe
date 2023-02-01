@@ -14,17 +14,16 @@ using namespace DDESESSIONCC;
 
 SessionBaseWindow::SessionBaseWindow(QWidget *parent)
     : QFrame(parent)
-    , m_centerTopFrame(nullptr)
-    , m_centerFrame(nullptr)
-    , m_bottomFrame(nullptr)
-    , m_mainLayout(nullptr)
-    , m_centerTopLayout(nullptr)
-    , m_centerLayout(nullptr)
-    , m_centerVLayout(nullptr)
-    , m_leftBottomLayout(nullptr)
-    , m_centerBottomLayout(nullptr)
-    , m_rightBottomLayout(nullptr)
-    , m_centerTopWidget(nullptr)
+    , m_TopFrame(new QFrame(this))
+    , m_centerFrame(new QFrame(this))
+    , m_bottomFrame(new QFrame(this))
+    , m_mainLayout(new QVBoxLayout(this))
+    , m_topLayout(new QHBoxLayout(this))
+    , m_centerLayout(new QVBoxLayout(this))
+    , m_leftBottomLayout(new QHBoxLayout(this))
+    , m_centerBottomLayout(new QHBoxLayout(this))
+    , m_rightBottomLayout(new QHBoxLayout(this))
+    , m_topWidget(nullptr)
     , m_centerWidget(nullptr)
     , m_leftBottomWidget(nullptr)
     , m_centerBottomWidget(nullptr)
@@ -36,45 +35,72 @@ SessionBaseWindow::SessionBaseWindow(QWidget *parent)
 
 void SessionBaseWindow::setLeftBottomWidget(QWidget * const widget)
 {
-    if (m_leftBottomWidget != nullptr) {
+    if (!widget)
+        return;
+
+    if (m_leftBottomWidget) {
         m_leftBottomLayout->removeWidget(m_leftBottomWidget);
+        // TODO 是否要将m_leftBottomWidget的visible设置为false
     }
 
     m_leftBottomLayout->addWidget(widget, 0, Qt::AlignBottom);
     m_leftBottomWidget = widget;
+
+#ifdef QT_DEBUG
+    m_leftBottomWidget->setStyleSheet("background-color: darkRed");
+#endif
 }
 
 void SessionBaseWindow::setCenterBottomWidget(QWidget *const widget)
 {
-    if (m_centerBottomWidget != nullptr) {
+    if (!widget)
+        return;
+
+    if (m_centerBottomWidget) {
         m_centerBottomLayout->removeWidget(m_centerBottomWidget);
     }
+
     m_centerBottomLayout->addWidget(widget, 0, Qt::AlignCenter);
     m_centerBottomWidget = widget;
+
+#ifdef QT_DEBUG
+    m_centerBottomWidget->setStyleSheet("background-color: darkGreen");
+#endif
 }
 
 void SessionBaseWindow::setRightBottomWidget(QWidget * const widget)
 {
-    if (m_rightBottomWidget != nullptr) {
+    if (!widget)
+        return;
+
+    if (m_rightBottomWidget) {
         m_rightBottomLayout->removeWidget(m_rightBottomWidget);
     }
 
     m_rightBottomLayout->addWidget(widget, 0, Qt::AlignBottom);
     m_rightBottomWidget = widget;
+
+#ifdef QT_DEBUG
+    m_rightBottomWidget->setStyleSheet("background-color: darkBlue");
+#endif
 }
 
-void SessionBaseWindow::setCenterContent(QWidget * const widget, int stretch, Qt::Alignment align, int spacerHeight)
+void SessionBaseWindow::setCenterContent(QWidget * const widget, Qt::Alignment align, int spacerHeight)
 {
     if (!widget || m_centerWidget == widget) {
         return;
     }
+
     if (m_centerWidget) {
         m_centerLayout->removeWidget(m_centerWidget);
         m_centerWidget->hide();
     }
-    m_centerLayout->addWidget(widget, stretch, align);
+
     m_centerSpacerItem->changeSize(0, spacerHeight);
-    m_centerVLayout->invalidate();
+    m_centerLayout->setAlignment(align);
+    m_centerLayout->addWidget(widget);
+    m_centerLayout->invalidate();
+    m_centerLayout->update();
 
     m_centerWidget = widget;
     widget->show();
@@ -83,52 +109,41 @@ void SessionBaseWindow::setCenterContent(QWidget * const widget, int stretch, Qt
     setFocus();
 }
 
-void SessionBaseWindow::setCenterTopWidget(QWidget *const widget)
+void SessionBaseWindow::setTopWidget(QWidget *const widget)
 {
-    if (m_centerTopWidget != nullptr) {
-        m_centerTopLayout->removeWidget(m_centerTopWidget);
-    }
-    m_centerTopLayout->addStretch();
-    m_centerTopLayout->addWidget(widget, 0, Qt::AlignTop);
-    m_centerTopLayout->addStretch();
-    m_centerTopWidget = widget;
+    if (!widget)
+        return;
 
-    const int centerTopHeight = qMax(calcCurrentHeight(LOCK_CONTENT_TOP_WIDGET_HEIGHT), m_centerTopWidget->sizeHint().height());
-    m_centerTopFrame->setFixedHeight(centerTopHeight);
+    if (m_topWidget) {
+        m_topLayout->removeWidget(m_topWidget);
+    }
+
+    m_topLayout->addStretch();
+    m_topLayout->addWidget(widget, 0, Qt::AlignTop);
+    m_topLayout->addStretch();
+    m_topWidget = widget;
 }
 
 void SessionBaseWindow::initUI()
 {
     //整理代码顺序，让子部件层级清晰明了,
     //同时方便计算中间区域的大小,使用QFrame替换了QScrollArea
-    m_centerTopLayout = new QHBoxLayout;
-    m_centerTopLayout->setMargin(0);
-    m_centerTopLayout->setSpacing(0);
+    m_topLayout->setMargin(0);
+    m_topLayout->setSpacing(0);
 
-    m_centerTopFrame = new QFrame;
-    m_centerTopFrame->setAccessibleName("CenterTopFrame");
-    m_centerTopFrame->setLayout(m_centerTopLayout);
-    m_centerTopFrame->setFixedHeight(calcCurrentHeight(LOCK_CONTENT_TOP_WIDGET_HEIGHT));
-    m_centerTopFrame->setAutoFillBackground(false);
+    m_TopFrame->setAccessibleName("CenterTopFrame");
+    m_TopFrame->setLayout(m_topLayout);
+    m_TopFrame->setFixedHeight(autoScaledSize(LOCK_CONTENT_TOPBOTTOM_WIDGET_HEIGHT));
+    m_TopFrame->setAutoFillBackground(false);
 
-    m_centerLayout = new QHBoxLayout;
     m_centerLayout->setMargin(0);
     m_centerLayout->setSpacing(0);
+    m_centerLayout->addSpacerItem(m_centerSpacerItem);
+    m_centerLayout->setAlignment(Qt::AlignTop | Qt::AlignHCenter);
 
-    m_centerVLayout = new QVBoxLayout;
-    m_centerVLayout->setMargin(0);
-    m_centerVLayout->setSpacing(0);
-    m_centerVLayout->addSpacerItem(m_centerSpacerItem);
-    m_centerVLayout->addLayout(m_centerLayout);
-
-    m_centerFrame = new QFrame;
     m_centerFrame->setAccessibleName("CenterFrame");
-    m_centerFrame->setLayout(m_centerVLayout);
+    m_centerFrame->setLayout(m_centerLayout);
     m_centerFrame->setAutoFillBackground(false);
-
-    m_leftBottomLayout = new QHBoxLayout;
-    m_rightBottomLayout = new QHBoxLayout;
-    m_centerBottomLayout = new QHBoxLayout;
 
     m_leftBottomLayout->setMargin(0);
     m_leftBottomLayout->setSpacing(0);
@@ -144,20 +159,21 @@ void SessionBaseWindow::initUI()
     bottomLayout->addLayout(m_centerBottomLayout, 2);
     bottomLayout->addLayout(m_rightBottomLayout, 3);
 
-    m_bottomFrame = new QFrame;
     m_bottomFrame->setAccessibleName("BottomFrame");
     m_bottomFrame->setLayout(bottomLayout);
-    m_bottomFrame->setFixedHeight(LOCK_CONTENT_TOP_WIDGET_HEIGHT);
+    m_bottomFrame->setFixedHeight(autoScaledSize(LOCK_CONTENT_TOPBOTTOM_WIDGET_HEIGHT));
     m_bottomFrame->setAutoFillBackground(false);
 
-    m_mainLayout = new QVBoxLayout;
-    const int margin = calcCurrentHeight(LOCK_CONTENT_CENTER_LAYOUT_MARGIN);
-    m_mainLayout->setContentsMargins(0, margin, 0, margin);
+    m_mainLayout->setContentsMargins(getMainLayoutMargins());
     m_mainLayout->setSpacing(0);
-    m_mainLayout->addWidget(m_centerTopFrame);
+    m_mainLayout->addWidget(m_TopFrame);
     m_mainLayout->addWidget(m_centerFrame);
     m_mainLayout->addWidget(m_bottomFrame);
 
+#ifdef QT_DEBUG
+    m_TopFrame->setStyleSheet("background-color: darkGray");
+    m_bottomFrame->setStyleSheet("background-color: gray");
+#endif
     setLayout(m_mainLayout);
 }
 
@@ -167,8 +183,8 @@ QSize SessionBaseWindow::getCenterContentSize()
     int w = width() - m_mainLayout->contentsMargins().left() - m_mainLayout->contentsMargins().right();
 
     int h = height() - m_mainLayout->contentsMargins().top() - m_mainLayout->contentsMargins().bottom();
-    if (m_centerTopFrame->isVisible()) {
-        h = h - m_centerTopFrame->height();
+    if (m_TopFrame->isVisible()) {
+        h = h - m_TopFrame->height();
     }
     if (m_bottomFrame->isVisible()) {
         h = h - m_bottomFrame->height();
@@ -177,23 +193,26 @@ QSize SessionBaseWindow::getCenterContentSize()
     return QSize(w, h);
 }
 
+void SessionBaseWindow::changeCenterSpaceSize(int w, int h)
+{
+    m_centerSpacerItem->changeSize(w, h);
+
+    m_centerLayout->invalidate();
+    m_centerLayout->update();
+}
+
 void SessionBaseWindow::resizeEvent(QResizeEvent *event)
 {
-    if (!m_centerTopWidget || !m_centerTopFrame || !m_mainLayout)
-        return;
-
-    const int margin = calcCurrentHeight(LOCK_CONTENT_CENTER_LAYOUT_MARGIN);
-    m_mainLayout->setContentsMargins(0, margin, 0, margin);
-
-    const int centerTopHeight = qMax(calcCurrentHeight(LOCK_CONTENT_TOP_WIDGET_HEIGHT), m_centerTopWidget->sizeHint().height());
-    m_centerTopFrame->setFixedSize(event->size().width(), centerTopHeight);
+    m_mainLayout->setContentsMargins(getMainLayoutMargins());
+    m_TopFrame->setFixedHeight(autoScaledSize(LOCK_CONTENT_TOPBOTTOM_WIDGET_HEIGHT));
+    m_bottomFrame->setFixedHeight(autoScaledSize(LOCK_CONTENT_TOPBOTTOM_WIDGET_HEIGHT));
 
     QFrame::resizeEvent(event);
 }
 
 void SessionBaseWindow::setTopFrameVisible(bool visible)
 {
-    m_centerTopFrame->setVisible(visible);
+    m_TopFrame->setVisible(visible);
 }
 
 void SessionBaseWindow::setBottomFrameVisible(bool visible)
@@ -201,17 +220,26 @@ void SessionBaseWindow::setBottomFrameVisible(bool visible)
     m_bottomFrame->setVisible(visible);
 }
 
-int SessionBaseWindow::calcCurrentHeight(int height) const
+/**
+ * @brief SessionBaseWindow::autoScaledSize
+ * @param height
+ * @return 自动根据当前屏幕的高度，对height进行缩放，但返回值不会大于height
+ */
+int SessionBaseWindow::autoScaledSize(const int height) const
 {
     int h = static_cast<int>(((double) height / (double) BASE_SCREEN_HEIGHT) * topLevelWidget()->geometry().height());
     return qMin(h, height);
 }
 
-int SessionBaseWindow::calcTopSpacing(int authWidgetTopSpacing) const
+/**
+ * @brief SessionBaseWindow::getMainLayoutMargins
+ * @return 返回主界面布局的边距信息
+ */
+QMargins SessionBaseWindow::getMainLayoutMargins() const
 {
-    if (!m_centerTopWidget)
-        return qMax(15, authWidgetTopSpacing - calcCurrentHeight(LOCK_CONTENT_TOP_WIDGET_HEIGHT));
+    // margin占高度的33/1080,且最大为33
+    int margin = static_cast<int>(((double) LOCK_CONTENT_CENTER_LAYOUT_MARGIN / (double) BASE_SCREEN_HEIGHT) * topLevelWidget()->geometry().height());
+    margin = qMin(margin, LOCK_CONTENT_CENTER_LAYOUT_MARGIN);
 
-    const int topWidgetHeight = qMax(calcCurrentHeight(LOCK_CONTENT_TOP_WIDGET_HEIGHT), m_centerTopWidget->sizeHint().height());
-    return qMax(15, authWidgetTopSpacing - topWidgetHeight);
+    return QMargins(0, margin, 0, margin);
 }

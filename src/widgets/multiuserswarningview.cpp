@@ -6,8 +6,6 @@
 
 #include <QLabel>
 #include <QListWidget>
-#include <QListWidgetItem>
-#include <QDebug>
 #include <QPainter>
 #include <QPainterPath>
 #include <QVBoxLayout>
@@ -28,12 +26,10 @@ MultiUsersWarningView::MultiUsersWarningView(SessionBaseModel::PowerAction inhib
     , m_inhibitType(inhibitType)
 {
     m_userList->setAttribute(Qt::WA_TranslucentBackground);
-//    m_userList->setSelectionRectVisible(false);
     m_userList->setSelectionMode(QListView::NoSelection);
     m_userList->setEditTriggers(QListView::NoEditTriggers);
     m_userList->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     m_userList->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-//    m_userList->viewport()->setAttribute(Qt::WA_TranslucentBackground);
     m_userList->setFrameStyle(QFrame::NoFrame);
     m_userList->setGridSize(UserListItemSize);
     m_userList->setFocusPolicy(Qt::NoFocus);
@@ -46,8 +42,12 @@ MultiUsersWarningView::MultiUsersWarningView(SessionBaseModel::PowerAction inhib
     m_warningTip->setFocusPolicy(Qt::NoFocus);
     m_warningTip->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 
+    m_actionBtn->setCheckable(true);
+    m_actionBtn->setFocusPolicy(Qt::NoFocus);
     m_actionBtn->setIconSize(QSize(m_buttonIconSize, m_buttonIconSize));
     m_actionBtn->setFixedSize(m_buttonWidth, m_buttonHeight);
+    m_cancelBtn->setCheckable(true);
+    m_cancelBtn->setFocusPolicy(Qt::NoFocus);
     m_cancelBtn->setIconSize(QSize(m_buttonIconSize, m_buttonIconSize));
     m_cancelBtn->setFixedSize(m_buttonWidth, m_buttonHeight);
 
@@ -148,21 +148,6 @@ void MultiUsersWarningView::setAcceptReason(const QString &reason)
     m_actionBtn->setText(reason);
 }
 
-bool MultiUsersWarningView::focusNextPrevChild(bool next)
-{
-    if (!next) {
-        qWarning() << "focus handling error, nextPrevChild is False";
-        return WarningView::focusNextPrevChild(next);
-    }
-
-    if (m_actionBtn->hasFocus())
-        setCurrentButton(ButtonType::Cancel);
-    else
-        setCurrentButton(ButtonType::Accept);
-
-    return WarningView::focusNextPrevChild(next);
-}
-
 void MultiUsersWarningView::setCurrentButton(const ButtonType btntype)
 {
     switch (btntype) {
@@ -198,12 +183,11 @@ void MultiUsersWarningView::keyPressEvent(QKeyEvent *event)
         toggleButtonState();
         break;
     case Qt::Key_Return:
-        m_currentBtn->clicked();
-        break;
     case Qt::Key_Enter:
         m_currentBtn->clicked();
         break;
     }
+
     QWidget::keyPressEvent(event);
 }
 
