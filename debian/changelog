@@ -1,3 +1,9 @@
+dde-session-shell (6.0.31) unstable; urgency=medium
+
+  * fix: lock window just show background widget (#400)
+
+ -- YeShanShan <yeshanshan@uniontech.com>  Thu, 27 Mar 2025 17:50:04 +0800
+
 dde-session-shell (6.0.30) unstable; urgency=medium
 
   * fix: Unable to open control center
