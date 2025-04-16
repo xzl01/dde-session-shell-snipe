@@ -3,7 +3,7 @@ Upstream-Name: dde-session-shell
 Upstream-Contact: UnionTech Software Technology Co., Ltd.
 Source: https://github.com/linuxdeepin/dde-session-shell
 
-# README 
+# README
 Files: README.md README.zh_CN.md
 Copyright: None
 License: CC-BY-4.0
@@ -19,7 +19,7 @@ Copyright: None
 License: CC0-1.0
 
 # docs
-Files: docs/* 
+Files: docs/*
 Copyright: UnionTech Software Technology Co., Ltd.
 License: GPL-3.0-or-later
 
@@ -39,7 +39,7 @@ Copyright: None
 License: CC0-1.0
 
 # gitignore
-Files: .gitignore 
+Files: .gitignore
 Copyright: None
 License: CC0-1.0
 
